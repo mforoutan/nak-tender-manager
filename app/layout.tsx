@@ -1,8 +1,60 @@
 import { ThemeProvider } from "@/components/theme-provider"
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 
 
+const vazirmatn = localFont({
+  src: [
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-Thin.woff2',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-ExtraLight.woff2',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-Light.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-Medium.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-SemiBold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-ExtraBold.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/vazirmatn/webfonts/Vazirmatn-UI-Black.woff2',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-vazirmatn',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -15,8 +67,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`antialiased`}>
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
+      <body className={`${vazirmatn.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
