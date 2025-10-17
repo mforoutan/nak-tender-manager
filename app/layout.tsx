@@ -2,6 +2,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 
 const vazirmatn = localFont({
@@ -76,6 +77,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>
     </html>

@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 
 import {
   SidebarGroup,
@@ -22,6 +24,8 @@ export function NavSecondary({
     icon: IconName
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const pathname = usePathname()
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -30,9 +34,11 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <DynamicIcon name={item.icon} />}
-                <span>{item.title}</span>
+              <SidebarMenuButton tooltip={item.title} asChild isActive={pathname === item.url}>
+                <Link href={item.url}>
+                  {item.icon && <DynamicIcon name={item.icon} />}
+                  <span>{item.title}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

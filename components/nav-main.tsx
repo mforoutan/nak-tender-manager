@@ -1,6 +1,8 @@
 "use client"
 
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +23,8 @@ export function NavMain({
     icon?: IconName
   }[]
 }) {
+  const pathname = usePathname()
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -48,11 +52,11 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {/* <a href={item.url}> */}
+              <SidebarMenuButton tooltip={item.title} asChild isActive={pathname === item.url}>
+                <Link href={item.url}>
                   {item.icon && <DynamicIcon name={item.icon} />}
                   <span>{item.title}</span>
-                {/* </a> */}
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

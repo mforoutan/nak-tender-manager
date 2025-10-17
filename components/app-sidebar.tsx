@@ -45,17 +45,17 @@ const data = {
   navMain: [
     {
       title: "داشبورد",
-      url: "#",
+      url: "/dashboard",
       icon: "layout-dashboard",
     },
     {
       title: "حساب کاربری",
-      url: "#",
+      url: "/dashboard/account",
       icon: "badge-check",
     },
     {
       title: "اطلاعات تکمیلی",
-      url: "#",
+      url: "/dashboard/profile",
       icon: "file-user",
     },
   ],
@@ -64,45 +64,45 @@ const data = {
       title: "Capture",
       icon: IconCamera,
       isActive: true,
-      url: "#",
+      url: "/dashboard/capture",
       items: [
         {
           title: "Active Proposals",
-          url: "#",
+          url: "/dashboard/capture/active",
         },
         {
           title: "Archived",
-          url: "#",
+          url: "/dashboard/capture/archived",
         },
       ],
     },
     {
       title: "Proposal",
       icon: IconFileDescription,
-      url: "#",
+      url: "/dashboard/proposal",
       items: [
         {
           title: "Active Proposals",
-          url: "#",
+          url: "/dashboard/proposal/active",
         },
         {
           title: "Archived",
-          url: "#",
+          url: "/dashboard/proposal/archived",
         },
       ],
     },
     {
       title: "Prompts",
       icon: IconFileAi,
-      url: "#",
+      url: "/dashboard/prompts",
       items: [
         {
           title: "Active Proposals",
-          url: "#",
+          url: "/dashboard/prompts/active",
         },
         {
           title: "Archived",
-          url: "#",
+          url: "/dashboard/prompts/archived",
         },
       ],
     },
@@ -110,29 +110,29 @@ const data = {
   navTenders: [
     {
       title: "معاملات شما",
-      url: "#",
+      url: "/dashboard/tenders/my",
       icon: "handshake",
       items: [
         {
-      title: "معاملات من",
-      url: "#",
-      icon: "camera",
-    },
+          title: "معاملات من",
+          url: "/dashboard/tenders/my/list",
+          icon: "camera",
+        },
       ]
     },
     {
       title: "وضعیت ارزیابی‌ها",
-      url: "#",
+      url: "/dashboard/tenders/evaluations",
       icon: "scan-search",
     },
     {
       title: "قراردادها",
-      url: "#",
+      url: "/dashboard/tenders/contracts",
       icon: "sticker",
     },
     {
       title: "معاملات موجود",
-      url: "#",
+      url: "/dashboard/tenders/available",
       icon: "list",
     },
   ],
@@ -140,17 +140,17 @@ const data = {
   navSecondary: [
     {
       title: "راهنمای شرکت در معامله",
-      url: "#",
+      url: "/dashboard/help",
       icon: "lightbulb",
     },
     {
       title: "پشتیبانی",
-      url: "#",
+      url: "/dashboard/support",
       icon: "headset",
     },
     {
       title: "تنظیمات",
-      url: "#",
+      url: "/dashboard/settings",
       icon: "settings",
     },
   ],
