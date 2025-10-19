@@ -18,12 +18,12 @@ export function Stepper({ steps, currentStep }: StepperProps) {
             <div className="flex flex-col items-center gap-2">
               <div
                 className={cn(
-                  "flex size-10 items-center justify-center rounded-full border-2 transition-colors",
+                  "flex size-10 items-center justify-center rounded-full transition-colors bg-white shadow-md",
                   index < currentStep
-                    ? "border-primary bg-primary text-primary-foreground"
+                    ? "bg-green-500 text-primary-foreground"
                     : index === currentStep
-                    ? "border-primary text-primary"
-                    : "border-muted-foreground/25 text-muted-foreground"
+                    ? "text-primary"
+                    : "text-muted-foreground"
                 )}
               >
                 {index < currentStep ? (
@@ -35,9 +35,13 @@ export function Stepper({ steps, currentStep }: StepperProps) {
               <span
                 className={cn(
                   "text-sm font-medium",
-                  index <= currentStep
-                    ? "text-foreground"
+                  index < currentStep
+                    ? "text-green-500"
+                    : index === currentStep
+                    ? "text-primary"
                     : "text-muted-foreground"
+                    //  "text-muted-foreground"
+
                 )}
               >
                 {step}
@@ -46,10 +50,10 @@ export function Stepper({ steps, currentStep }: StepperProps) {
             {index < steps.length - 1 && (
               <div
                 className={cn(
-                  "h-0.5 flex-1 transition-colors",
+                  "h-0.5  border-1 border-dashed flex-1 transition-colors",
                   index < currentStep
-                    ? "bg-primary"
-                    : "bg-muted-foreground/25"
+                    ? "border-green-500"
+                    : "border-muted-foreground/25"
                 )}
               />
             )}

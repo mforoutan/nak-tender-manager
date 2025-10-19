@@ -140,4 +140,34 @@
     color: #fff !important;
   }
 
+  /* Add to app/globals.css or a component CSS file */
+  .rdp {
+    --rdp-cell-size: 40px;
+    --rdp-accent-color: var(--primary);
+    --rdp-background-color: var(--primary);
+    --rdp-accent-color-dark: var(--primary-foreground);
+    --rdp-background-color-dark: var(--primary-foreground);
+    --rdp-outline: 2px solid var(--focus-ring);
+    --rdp-outline-selected: 2px solid var(--focus-ring);
+    margin: 0;
+    direction: rtl;
+  }
+
+  .rdp-months {
+    justify-content: center;
+  }
+
+  .rdp-month {
+    background-color: var(--background);
+    border-radius: var(--radius);
+    padding: 8px;
+  }
+
+  .rdp-caption {
+    padding: 0 8px;
+  }
+
+  .rdp-cell {
+    text-align: center;
+  }
 }
