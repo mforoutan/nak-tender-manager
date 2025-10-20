@@ -29,7 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Icon, User } from "lucide-react"
+import { ChevronDown, User } from "lucide-react"
 
 export function NavUser({
   user,
@@ -63,7 +63,7 @@ export function NavUser({
                   {user.email}
                 </span> */}
               </div>
-              <IconDotsVertical className="ml-auto size-4" />
+              <ChevronDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

@@ -99,4 +99,12 @@ export interface ContractorTask {
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     assignedTo?: number;
     assignedBy?: number;
+    assignedDate: string;
+    dueDate?: string;
+    completedDate?: string;
+    actionType?: string;
+    actionComment?: string;
+    actionBy?: number;
+    actionDate?: string;
+    taskType?: string;
 }

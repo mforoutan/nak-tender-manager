@@ -1,13 +1,14 @@
 "use client"
 
-import * as React from "react"
+import React, { useState, useEffect } from "react"
 import { 
   Building, 
   User, 
   Phone, 
   CreditCard, 
   UserCog, 
-  FileText 
+  FileText, 
+  AlertCircle 
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,11 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DayPicker } from "react-day-picker/persian"
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
 import { Stepper } from "@/components/ui/stepper"
 import { toast } from "sonner"
 import { ContractorFormData } from "@/types"
@@ -36,6 +32,18 @@ import {
 } from "@/components/ui/accordion"
 import { Spinner } from "@/components/ui/spinner"
 import { PersianDatePicker } from "@/components/ui/persian-date-picker"
+import { TaskStatusDialog } from "@/components/task-status-dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { FileUpload } from "@/components/ui/file-upload"
+
 const steps = ["تکمیل اطلاعات و آپلود مدارک", "ثبت و ارسال جهت بررسی", "بررسی توسط کارشناس"]
 
 
@@ -46,18 +54,18 @@ const requiredDocuments = [
   { id: "certificate", name: "گواهینامه صلاحیت", description: "گواهینامه تأیید صلاحیت از مراجع ذیصلاح" },
 ]
 
-export default function AcoountPage() {
+export default function AccountPage() {
 
-  const [currentStep, setCurrentStep] = React.useState(0)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [isSaving, setIsSaving] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [uploadedFiles, setUploadedFiles] = React.useState<{[key: string]: File | null}>({})
-  const [uploadProgress, setUploadProgress] = React.useState<{[key: string]: number}>({})
+  const [currentStep, setCurrentStep] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File | null}>({})
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({})
   // Keep track of open accordion items
-  const [openSections, setOpenSections] = React.useState<string[]>(["section-1"])
+  const [openSections, setOpenSections] = useState<string[]>(["section-1"])
   
-  const [formData, setFormData] = React.useState<ContractorFormData>({
+  const [formData, setFormData] = useState<ContractorFormData>({
     // اطلاعات اصلی (Main Information)
     companyName: "",
     companyType: "",
@@ -98,102 +106,141 @@ export default function AcoountPage() {
     repPosition: "",
   })
 
+  const [taskStatus, setTaskStatus] = useState<string | null>(null);
+  const [isEditable, setIsEditable] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  
   // Fetch contractor data on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchContractorData = async () => {
       try {
         const response = await fetch('/api/account/profile?id=301')
         if (response.ok) {
           const data = await response.json()
+          console.log("API Response:", data);
           
           if (data.contractor) {
-            // Main contractor data
             const contractor = data.contractor;
             
-            // Find CEO and representative members
-            let ceo = { FIRST_NAME: '', LAST_NAME: '', NATIONAL_ID: '', PHONE: '', POSITION_TITLE: '' };
-            let representative = { FIRST_NAME: '', LAST_NAME: '', NATIONAL_ID: '', PHONE: '', POSITION_TITLE: '' };
+            setFormData({
+              companyName: contractor.COMPANY_NAME || '',
+              nationalId: contractor.NATIONAL_ID || '',
+              economicCode: contractor.ECONOMIC_CODE || '',
+              registrationNumber: contractor.REGISTRATION_NUMBER || '',
+              establishmentDate: contractor.ESTABLISHMENT_DATE ? 
+                new Date(contractor.ESTABLISHMENT_DATE).toISOString().split('T')[0] : '',
+              phone: contractor.PHONE || '',
+              fax: contractor.FAX || '',
+              email: contractor.EMAIL || '',
+              website: contractor.WEBSITE || '',
+              address: contractor.ADDRESS || '',
+              postalCode: contractor.POSTAL_CODE || '',
+              bankName: contractor.BANK_ID?.toString() || '',
+              accountNumber: contractor.BANK_ACCOUNT || '',
+              ibanNumber: contractor.SHABA_NUMBER || '',
+              branchName: contractor.BRANCH_ACCOUNT || '',
+              branchCode: '',
+              companyType: '',
+              ceoFirstName: '',
+              ceoLastName: '',
+              ceoNationalId: '',
+              ceoBirthDate: '',
+              ceoMobile: '',
+              ceoPosition: '',
+              repFirstName: '',
+              repLastName: '',
+              repNationalId: '',
+              repPhone: '',
+              repEmail: '',
+              repPosition: '',
+            });
             
+            // Extract CEO and Rep info from members
             if (data.members && Array.isArray(data.members)) {
               data.members.forEach(member => {
                 if (member.POSITION_TITLE === 'CEO') {
-                  ceo = member;
-                }
-                if (member.POSITION_TITLE === 'Representative') {
-                  representative = member;
+                  setFormData(prev => ({
+                    ...prev,
+                    ceoFirstName: member.FIRST_NAME || '',
+                    ceoLastName: member.LAST_NAME || '',
+                    ceoNationalId: member.NATIONAL_ID || '',
+                    ceoMobile: member.MOBILE || '',
+                    ceoPosition: 'مدیر عامل',
+                  }));
+                } else if (member.POSITION_TITLE?.includes('REP')) {
+                  setFormData(prev => ({
+                    ...prev,
+                    repFirstName: member.FIRST_NAME || '',
+                    repLastName: member.LAST_NAME || '',
+                    repNationalId: member.NATIONAL_ID || '',
+                    repPhone: member.PHONE || '',
+                    repEmail: member.EMAIL || '',
+                    repPosition: member.POSITION_TITLE || '',
+                  }));
                 }
               });
             }
             
-            // Format date from database (YYYY-MM-DD)
-            const establishmentDate = contractor.ESTABLISHMENT_DATE ? 
-              new Date(contractor.ESTABLISHMENT_DATE).toISOString().split('T')[0] : '';
-            
-            setFormData({
-              // Map database fields to form fields
-              companyName: contractor.COMPANY_NAME || '',
-              companyType: contractor.COMPANY_TYPE || '',
-              registrationNumber: contractor.REGISTRATION_NUMBER || '',
-              economicCode: contractor.ECONOMIC_CODE || '',
-              nationalId: contractor.NATIONAL_ID || '',
-              establishmentDate: establishmentDate,
+            // Handle documents
+            if (data.documents && Array.isArray(data.documents)) {
+              const filesMap = {};
               
-              // CEO info (from members table + fallback to main table)
-              ceoFirstName: ceo.FIRST_NAME || '',
-              ceoLastName: ceo.LAST_NAME || '',
-              ceoNationalId: ceo.NATIONAL_ID || '',
-              ceoBirthDate: '',  // Not in database schema
-              ceoMobile: ceo.PHONE || contractor.MOBILE || '',
-              ceoPosition: ceo.POSITION_TITLE || 'CEO',
-              
-              // Contact info
-              phone: contractor.PHONE || '',
-              fax: contractor.FAX || '',
-              email: '',  // Not in database schema
-              address: '',  // Not in database schema
-              postalCode: '',  // Not in database schema
-              website: '',  // Not in database schema
-              
-              // Banking info
-              bankName: '',  // Not in database schema
-              accountNumber: '',  // Not in database schema
-              ibanNumber: '',  // Not in database schema
-              branchName: '',  // Not in database schema
-              branchCode: '',  // Not in database schema
-              
-              // Rep info
-              repFirstName: representative.FIRST_NAME || '',
-              repLastName: representative.LAST_NAME || '',
-              repNationalId: representative.NATIONAL_ID || '',
-              repPhone: representative.PHONE || '',
-              repEmail: '',  // Not in database schema
-              repPosition: representative.POSITION_TITLE || 'Representative',
-            })
-            
-            // Check for certificates to indicate uploaded documents
-            if (data.certificates && Array.isArray(data.certificates)) {
-              data.certificates.forEach(cert => {
-                if (cert.CERTIFICATE_TYPE === 'LEGAL' && cert.CERTIFICATE_NAME.includes('اساسنامه')) {
-                  setUploadProgress(prev => ({ ...prev, registration: 100 }));
+              data.documents.forEach(doc => {
+                let docType = '';
+                
+                if (doc.CERTIFICATE_TYPE === 'LEGAL' && doc.CERTIFICATE_NAME?.includes('اساسنامه')) {
+                  docType = 'registration';
+                } else if (doc.CERTIFICATE_TYPE === 'LEGAL' && doc.CERTIFICATE_NAME?.includes('روزنامه')) {
+                  docType = 'newspaper';
+                } else if (doc.CERTIFICATE_TYPE === 'TAX') {
+                  docType = 'tax';
+                } else if (doc.CERTIFICATE_TYPE === 'QUALIFICATION') {
+                  docType = 'certificate';
                 }
-                if (cert.CERTIFICATE_TYPE === 'LEGAL' && cert.CERTIFICATE_NAME.includes('روزنامه')) {
-                  setUploadProgress(prev => ({ ...prev, newspaper: 100 }));
-                }
-                if (cert.CERTIFICATE_TYPE === 'TAX') {
-                  setUploadProgress(prev => ({ ...prev, tax: 100 }));
-                }
-                if (cert.CERTIFICATE_TYPE === 'QUALIFICATION') {
-                  setUploadProgress(prev => ({ ...prev, certificate: 100 }));
+                
+                if (docType && doc.FILE_NAME) {
+                  filesMap[docType] = {
+                    name: doc.ORIGINAL_NAME || doc.FILE_NAME,
+                    size: doc.FILE_SIZE || 0,
+                    type: doc.MIME_TYPE || 'application/octet-stream',
+                  };
+                  
+                  setUploadProgress(prev => ({ ...prev, [docType]: 100 }));
                 }
               });
+              
+              if (Object.keys(filesMap).length > 0) {
+                setUploadedFiles(prev => ({ ...prev, ...filesMap }));
+              }
+            }
+            
+            // Check for tasks and set status
+            if (data.tasks && data.tasks.length > 0) {
+              const latestTask = data.tasks[0];
+              const status = latestTask.STATUS;
+              
+              setTaskStatus(status);
+              
+              if (status === 'PENDING' || status === 'IN_PROGRESS') {
+                setIsEditable(false);
+                setCurrentStep(2);
+                setStatusMessage("اطلاعات شما در حال بررسی است و امکان ویرایش وجود ندارد.");
+              } else if (status === 'COMPLETED') {
+                setIsEditable(false);
+                setCurrentStep(3); // Set to completed step (step 4 which is index 3)
+                setStatusMessage("اطلاعات شما تایید شده است.");
+              } else if (status === 'REJECTED') {
+                setIsEditable(true);
+                setCurrentStep(0);
+                setStatusMessage("اطلاعات شما نیاز به اصلاح دارد. لطفا موارد را بررسی و مجددا ارسال نمایید.");
+              }
             }
           }
-        } else {
-          toast.error('خطا در دریافت اطلاعات پیمانکار')
         }
       } catch (error) {
         console.error("Error fetching contractor data:", error)
-        toast.error('خطا در برقراری ارتباط با سرور')
+        toast.error("خطا در بارگذاری اطلاعات")
       } finally {
         setIsLoading(false)
       }
@@ -202,19 +249,59 @@ export default function AcoountPage() {
     fetchContractorData()
   }, [])
 
+  // Add function to fetch task status
+  const fetchTaskStatus = async () => {
+    try {
+      const response = await fetch(`/api/tasks/status?contractorId=301&t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Task status:", data);
+        
+        if (data.task) {
+          const status = data.task.status;
+          setTaskStatus(status);
+          
+          // If status is PENDING or IN_PROGRESS, stay on step 2
+          if (status === "PENDING" || status === "IN_PROGRESS") {
+            setIsEditable(false);
+            setStatusMessage("اطلاعات شما در حال بررسی است و امکان ویرایش وجود ندارد.");
+            if (currentStep < 2) setCurrentStep(2);
+          } else if (status === "COMPLETED") {
+            setIsEditable(false);
+            setStatusMessage("اطلاعات شما تایید شده است.");
+            // Move to completed step
+            setCurrentStep(3);
+          } else if (status === "REJECTED") {
+            setIsEditable(true);
+            setCurrentStep(0);
+            setStatusMessage("اطلاعات شما نیاز به اصلاح دارد. لطفا موارد را بررسی و مجددا ارسال نمایید.");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching task status:", error);
+    }
+  };
+
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < steps.length - 1 && isEditable && 
+      !(taskStatus && (taskStatus === 'PENDING' || taskStatus === 'COMPLETED'))) {
       setCurrentStep(currentStep + 1)
     }
   }
 
   const handlePrev = () => {
-    if (currentStep > 0) {
+    if (currentStep > 0 && isEditable && !taskStatus) {
       setCurrentStep(currentStep - 1)
     }
   }
 
   const handleSaveDraft = async () => {
+    if (!isEditable) {
+      toast.error("امکان ویرایش اطلاعات وجود ندارد");
+      return;
+    }
+    
     setIsSaving(true)
     try {
       const response = await fetch('/api/account/draft', {
@@ -244,6 +331,11 @@ export default function AcoountPage() {
   }
 
   const handleSubmit = async () => {
+    if (!isEditable) {
+      toast.error("امکان ارسال مجدد اطلاعات وجود ندارد");
+      return;
+    }
+    
     setIsSubmitting(true)
     try {
       const response = await fetch('/api/account/submit', {
@@ -253,16 +345,23 @@ export default function AcoountPage() {
         },
         body: JSON.stringify({
           ...formData,
-          contractorId: 301 // Always update the existing record
+          contractorId: 301
         }),
       })
       
       const data = await response.json()
       
       if (response.ok) {
-        toast.success(data.message)
+        // Show success dialog
+        setShowSuccessDialog(true);
+        
+        // Fetch the latest task status after successful submission
+        await fetchTaskStatus();
+        
         // Move to the completed step
-        setCurrentStep(2)
+        setIsEditable(false);
+        setCurrentStep(2);
+        setStatusMessage("اطلاعات شما در حال بررسی است و امکان ویرایش وجود ندارد.");
       } else {
         toast.error(data.error || 'خطا در ثبت اطلاعات')
       }
@@ -275,19 +374,49 @@ export default function AcoountPage() {
   }
 
   const updateFormData = (field: string, value: string) => {
+    if (!isEditable) {
+      toast.error("امکان ویرایش اطلاعات وجود ندارد");
+      return;
+    }
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleFileChange = (documentId: string, file: File | null) => {
-    setUploadedFiles(prev => ({
-      ...prev,
-      [documentId]: file
-    }))
+    if (!file) {
+      // Remove file from uploadedFiles if null
+      setUploadedFiles(prev => {
+        const newFiles = { ...prev };
+        delete newFiles[documentId];
+        return newFiles;
+      });
+      // Reset progress
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[documentId];
+        return newProgress;
+      });
+    } else {
+      setUploadedFiles(prev => ({
+        ...prev,
+        [documentId]: file
+      }));
+      // Reset progress when new file is selected
+      setUploadProgress(prev => ({
+        ...prev,
+        [documentId]: 0
+      }));
+    }
   }
 
   const uploadFile = async (documentId: string) => {
     const file = uploadedFiles[documentId]
     if (!file) return
+    
+    // Don't upload if already uploaded
+    if (uploadProgress[documentId] === 100) {
+      toast.info("این فایل قبلاً بارگذاری شده است");
+      return;
+    }
     
     setUploadProgress(prev => ({ ...prev, [documentId]: 0 }))
     
@@ -295,7 +424,7 @@ export default function AcoountPage() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('documentType', documentId)
-      formData.append('contractorId', '301') // Always use the existing record
+      formData.append('contractorId', '301')
       
       const response = await fetch('/api/account/upload', {
         method: 'POST',
@@ -318,6 +447,43 @@ export default function AcoountPage() {
     }
   }
 
+  const deleteFile = async (documentId: string) => {
+    try {
+      const response = await fetch('/api/account/delete-file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          documentType: documentId,
+          contractorId: '301'
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        // Remove file from state
+        setUploadedFiles(prev => {
+          const newFiles = { ...prev };
+          delete newFiles[documentId];
+          return newFiles;
+        });
+        setUploadProgress(prev => {
+          const newProgress = { ...prev };
+          delete newProgress[documentId];
+          return newProgress;
+        });
+        toast.success('فایل با موفقیت حذف شد')
+      } else {
+        toast.error(data.error || 'خطا در حذف فایل')
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error)
+      toast.error('خطا در برقراری ارتباط با سرور')
+    }
+  }
+
   // Handle accordion state change
   const handleAccordionChange = (value: string[]) => {
     setOpenSections(value)
@@ -334,6 +500,20 @@ export default function AcoountPage() {
     )
   }
 
+  // Add status alert if form is not editable
+  const renderStatusAlert = () => {
+    if (!isEditable && statusMessage) {
+      return (
+        <Alert className={`mb-4 ${taskStatus === "COMPLETED" ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"}`}>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>وضعیت درخواست</AlertTitle>
+          <AlertDescription>{statusMessage}</AlertDescription>
+        </Alert>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6 px-4 lg:px-6">
       <div className="space-y-2">
@@ -343,9 +523,14 @@ export default function AcoountPage() {
         </p>
       </div>
 
-      <div className="bg-[#F6F6F6] rounded-2xl p-12">
-        {/* Stepper is now outside the Card */}
+      <div className="bg-[#F6F6F6] rounded-2xl p-4 md:p-8 lg:p-12">
+        {/* Stepper - show completed state when status is COMPLETED */}
         <Stepper steps={steps} currentStep={currentStep} />
+        
+        {/* Status alert */}
+        <div className="mt-4">
+        {renderStatusAlert()}
+        </div>
         
         {/* Title and description now outside the Card */}
         <div className="mt-6 mb-4">
@@ -357,8 +542,8 @@ export default function AcoountPage() {
           </p>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
+        <div>
+          <div className="pt-6">
             {/* Step 1: Combined Information Entry and Document Upload */}
             {currentStep === 0 && (
               <div className="space-y-4">
@@ -369,10 +554,12 @@ export default function AcoountPage() {
                   className="w-full"
                 >
                   {/* اطلاعات اصلی (Main Information) */}
-                  <AccordionItem value="section-1" className="border rounded-md">
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
+                  <AccordionItem value="section-1" className="border rounded-md bg-white p-4">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <Building className="h-5 w-5 text-muted-foreground" />
+                        <div className="p-2 bg-[#F6F6F6] rounded-full">
+                          <Building className="h-5 w-5 text-muted-foreground" />
+                        </div>
                         <h3 className="text-lg font-semibold">اطلاعات اصلی</h3>
                       </div>
                     </AccordionTrigger>
@@ -385,6 +572,7 @@ export default function AcoountPage() {
                             placeholder="نام شرکت خود را وارد کنید"
                             value={formData.companyName}
                             onChange={(e) => updateFormData("companyName", e.target.value)}
+                            disabled={!isEditable}
                           />
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
@@ -393,8 +581,9 @@ export default function AcoountPage() {
                             <Select
                               value={formData.companyType}
                               onValueChange={(value) => updateFormData("companyType", value)}
+                              disabled={!isEditable}
                             >
-                              <SelectTrigger id="companyType">
+                              <SelectTrigger id="companyType" className="w-full">
                                 <SelectValue placeholder="نوع شرکت را انتخاب کنید" />
                               </SelectTrigger>
                               <SelectContent>
@@ -411,6 +600,7 @@ export default function AcoountPage() {
                               value={formData.establishmentDate}
                               onChange={(date) => updateFormData("establishmentDate", date)}
                               placeholder="تاریخ تأسیس را انتخاب کنید"
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -422,6 +612,7 @@ export default function AcoountPage() {
                               placeholder="شماره ثبت شرکت"
                               value={formData.registrationNumber}
                               onChange={(e) => updateFormData("registrationNumber", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -431,6 +622,7 @@ export default function AcoountPage() {
                               placeholder="کد اقتصادی شرکت"
                               value={formData.economicCode}
                               onChange={(e) => updateFormData("economicCode", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -441,6 +633,7 @@ export default function AcoountPage() {
                             placeholder="شناسه ملی شرکت را وارد کنید"
                             value={formData.nationalId}
                             onChange={(e) => updateFormData("nationalId", e.target.value)}
+                            disabled={!isEditable}
                           />
                         </div>
                       </div>
@@ -448,10 +641,12 @@ export default function AcoountPage() {
                   </AccordionItem>
 
                   {/* اطلاعات مدیر عامل (CEO Information) */}
-                  <AccordionItem value="section-2" className="border rounded-md mt-3">
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
+                  <AccordionItem value="section-2" className="border rounded-md bg-white p-4 mt-3">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <User className="h-5 w-5 text-muted-foreground" />
+                        <div className="p-2 bg-[#F6F6F6] rounded-full">
+                          <User className="h-5 w-5 text-muted-foreground" />
+                        </div>
                         <h3 className="text-lg font-semibold">اطلاعات مدیر عامل</h3>
                       </div>
                     </AccordionTrigger>
@@ -465,6 +660,7 @@ export default function AcoountPage() {
                               placeholder="نام مدیر عامل"
                               value={formData.ceoFirstName}
                               onChange={(e) => updateFormData("ceoFirstName", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -474,6 +670,7 @@ export default function AcoountPage() {
                               placeholder="نام خانوادگی مدیر عامل"
                               value={formData.ceoLastName}
                               onChange={(e) => updateFormData("ceoLastName", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -485,6 +682,7 @@ export default function AcoountPage() {
                               placeholder="کد ملی مدیر عامل"
                               value={formData.ceoNationalId}
                               onChange={(e) => updateFormData("ceoNationalId", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -494,6 +692,7 @@ export default function AcoountPage() {
                               value={formData.ceoBirthDate}
                               onChange={(date) => updateFormData("ceoBirthDate", date)}
                               placeholder="تاریخ تولد را انتخاب کنید"
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -505,6 +704,7 @@ export default function AcoountPage() {
                               placeholder="شماره موبایل مدیر عامل"
                               value={formData.ceoMobile}
                               onChange={(e) => updateFormData("ceoMobile", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -514,6 +714,7 @@ export default function AcoountPage() {
                               placeholder="سمت مدیر عامل"
                               value={formData.ceoPosition}
                               onChange={(e) => updateFormData("ceoPosition", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -522,10 +723,12 @@ export default function AcoountPage() {
                   </AccordionItem>
 
                   {/* اطلاعات تماس (Contact Information) */}
-                  <AccordionItem value="section-3" className="border rounded-md mt-3">
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
+                  <AccordionItem value="section-3" className="border rounded-md bg-white p-4 mt-3">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <Phone className="h-5 w-5 text-muted-foreground" />
+                        <div className="p-2 bg-[#F6F6F6] rounded-full">
+                          <Phone className="h-5 w-5 text-muted-foreground" />
+                        </div>
                         <h3 className="text-lg font-semibold">اطلاعات تماس</h3>
                       </div>
                     </AccordionTrigger>
@@ -539,6 +742,7 @@ export default function AcoountPage() {
                               placeholder="شماره تلفن ثابت"
                               value={formData.phone}
                               onChange={(e) => updateFormData("phone", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -548,6 +752,7 @@ export default function AcoountPage() {
                               placeholder="شماره فکس"
                               value={formData.fax}
                               onChange={(e) => updateFormData("fax", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -558,6 +763,7 @@ export default function AcoountPage() {
                               placeholder="آدرس ایمیل"
                               value={formData.email}
                               onChange={(e) => updateFormData("email", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -569,6 +775,7 @@ export default function AcoountPage() {
                               placeholder="آدرس وب‌سایت"
                               value={formData.website}
                               onChange={(e) => updateFormData("website", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -578,6 +785,7 @@ export default function AcoountPage() {
                               placeholder="کد پستی ۱۰ رقمی"
                               value={formData.postalCode}
                               onChange={(e) => updateFormData("postalCode", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -589,6 +797,7 @@ export default function AcoountPage() {
                             value={formData.address}
                             onChange={(e) => updateFormData("address", e.target.value)}
                             rows={3}
+                            disabled={!isEditable}
                           />
                         </div>
                       </div>
@@ -596,10 +805,12 @@ export default function AcoountPage() {
                   </AccordionItem>
 
                   {/* اطلاعات بانکی (Banking Information) */}
-                  <AccordionItem value="section-4" className="border rounded-md mt-3">
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
+                  <AccordionItem value="section-4" className="border rounded-md bg-white p-4 mt-3">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
+                        <div className="p-2 bg-[#F6F6F6] rounded-full">
+                          <CreditCard className="h-5 w-5 text-muted-foreground" />
+                        </div>
                         <h3 className="text-lg font-semibold">اطلاعات بانکی</h3>
                       </div>
                     </AccordionTrigger>
@@ -613,6 +824,7 @@ export default function AcoountPage() {
                               placeholder="نام بانک"
                               value={formData.bankName}
                               onChange={(e) => updateFormData("bankName", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -622,6 +834,7 @@ export default function AcoountPage() {
                               placeholder="نام شعبه"
                               value={formData.branchName}
                               onChange={(e) => updateFormData("branchName", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -633,6 +846,7 @@ export default function AcoountPage() {
                               placeholder="کد شعبه"
                               value={formData.branchCode}
                               onChange={(e) => updateFormData("branchCode", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -642,6 +856,7 @@ export default function AcoountPage() {
                               placeholder="شماره حساب بانکی"
                               value={formData.accountNumber}
                               onChange={(e) => updateFormData("accountNumber", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -652,6 +867,7 @@ export default function AcoountPage() {
                             placeholder="IR شماره شبا با فرمت"
                             value={formData.ibanNumber}
                             onChange={(e) => updateFormData("ibanNumber", e.target.value)}
+                            disabled={!isEditable}
                           />
                         </div>
                       </div>
@@ -659,10 +875,12 @@ export default function AcoountPage() {
                   </AccordionItem>
 
                   {/* اطلاعات نماینده (Representative Information) */}
-                  <AccordionItem value="section-5" className="border rounded-md mt-3">
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
+                  <AccordionItem value="section-5" className="border rounded-md bg-white p-4 mt-3">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <UserCog className="h-5 w-5 text-muted-foreground" />
+                        <div className="p-2 bg-[#F6F6F6] rounded-full">
+                          <UserCog className="h-5 w-5 text-muted-foreground" />
+                        </div>
                         <h3 className="text-lg font-semibold">اطلاعات نماینده</h3>
                       </div>
                     </AccordionTrigger>
@@ -676,6 +894,7 @@ export default function AcoountPage() {
                               placeholder="نام نماینده"
                               value={formData.repFirstName}
                               onChange={(e) => updateFormData("repFirstName", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -685,6 +904,7 @@ export default function AcoountPage() {
                               placeholder="نام خانوادگی نماینده"
                               value={formData.repLastName}
                               onChange={(e) => updateFormData("repLastName", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -696,6 +916,7 @@ export default function AcoountPage() {
                               placeholder="کد ملی نماینده"
                               value={formData.repNationalId}
                               onChange={(e) => updateFormData("repNationalId", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -705,6 +926,7 @@ export default function AcoountPage() {
                               placeholder="شماره تماس نماینده"
                               value={formData.repPhone}
                               onChange={(e) => updateFormData("repPhone", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                           <div className="space-y-2">
@@ -714,6 +936,7 @@ export default function AcoountPage() {
                               placeholder="سمت نماینده"
                               value={formData.repPosition}
                               onChange={(e) => updateFormData("repPosition", e.target.value)}
+                              disabled={!isEditable}
                             />
                           </div>
                         </div>
@@ -725,6 +948,7 @@ export default function AcoountPage() {
                             placeholder="آدرس ایمیل نماینده"
                             value={formData.repEmail}
                             onChange={(e) => updateFormData("repEmail", e.target.value)}
+                            disabled={!isEditable}
                           />
                         </div>
                       </div>
@@ -732,10 +956,12 @@ export default function AcoountPage() {
                   </AccordionItem>
 
                   {/* Document Upload Section */}
-                  <AccordionItem value="section-6" className="border rounded-md mt-3">
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
+                  <AccordionItem value="section-6" className="border rounded-md bg-white p-4 mt-3">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <div className="p-2 bg-[#F6F6F6] rounded-full">
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                        </div>
                         <h3 className="text-lg font-semibold">مدارک مورد نیاز</h3>
                       </div>
                     </AccordionTrigger>
@@ -747,40 +973,24 @@ export default function AcoountPage() {
                         
                         <div className="grid gap-6 md:grid-cols-2">
                           {requiredDocuments.map((doc) => (
-                            <div key={doc.id} className="border rounded-lg p-4">
-                              <div className="flex flex-col space-y-1.5 mb-4">
-                                <Label htmlFor={`file-${doc.id}`} className="font-medium">
+                            <div key={doc.id} className="space-y-3">
+                              <div>
+                                <Label className="font-medium text-base">
                                   {doc.name}
                                 </Label>
-                                <p className="text-sm text-muted-foreground">{doc.description}</p>
+                                <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
                               </div>
-                              <div className="space-y-4">
-                                <Input
-                                  id={`file-${doc.id}`}
-                                  type="file"
-                                  accept=".pdf,.jpg,.jpeg,.png"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0] || null
-                                    handleFileChange(doc.id, file)
-                                  }}
-                                />
-                                {uploadedFiles[doc.id] && (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm truncate max-w-[200px]">
-                                      {uploadedFiles[doc.id]?.name}
-                                    </span>
-                                    <Button 
-                                      onClick={() => uploadFile(doc.id)}
-                                      disabled={uploadProgress[doc.id] > 0 && uploadProgress[doc.id] < 100}
-                                      size="sm"
-                                    >
-                                      {uploadProgress[doc.id] === 100 ? "بارگذاری شده" : 
-                                      uploadProgress[doc.id] > 0 ? `در حال بارگذاری ${uploadProgress[doc.id]}%` : 
-                                      "بارگذاری"}
-                                    </Button>
-                                  </div>
-                                )}
-                              </div>
+                              <FileUpload
+                                id={`file-${doc.id}`}
+                                onFileChange={(file) => handleFileChange(doc.id, file)}
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                disabled={!isEditable}
+                                maxSize={5}
+                                file={uploadedFiles[doc.id]}
+                                uploadProgress={uploadProgress[doc.id]}
+                                onUpload={() => uploadFile(doc.id)}
+                                onDelete={() => deleteFile(doc.id)}
+                              />
                             </div>
                           ))}
                         </div>
@@ -957,19 +1167,100 @@ export default function AcoountPage() {
               </div>
             )}
 
-            {/* Step 3: Completed (formerly step 4) */}
-            {currentStep === 2 && (
+            {/* Step 3: Completed - only show when status is COMPLETED */}
+            {currentStep === 3 && taskStatus === 'COMPLETED' && (
               <div className="space-y-6 text-center">
                 <div className="py-8">
                   <div className="mb-4 flex justify-center">
-                    <svg className="h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
+                      <svg className="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    اطلاعات شما با موفقیت تایید شد
+                  </h3>
+                  
+                  <p className="mt-4 text-base text-gray-600">
+                    حساب کاربری شما فعال شده است و می‌توانید از تمامی امکانات سامانه استفاده نمایید.
+                  </p>
+                  
+                  <div className="mt-8 flex justify-center gap-3">
+                    <Button
+                      onClick={() => window.location.href = '/dashboard'}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      رفتن به داشبورد
+                    </Button>
+                    <TaskStatusDialog contractorId={301} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Under Review - show when PENDING or IN_PROGRESS */}
+            {currentStep === 2 && (taskStatus === 'PENDING' || taskStatus === 'IN_PROGRESS' || taskStatus === null) && (
+              <div className="space-y-6 text-center">
+                <div className="py-8">
+                  <div className="mb-4 flex justify-center">
+                    <svg className="h-16 w-16 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                   </div>
-                  <h3 className="text-xl font-medium text-gray-900">درخواست شما با موفقیت ثبت شد</h3>
+                  
+                  <h3 className="text-xl font-medium text-gray-900">
+                    درخواست شما با موفقیت ثبت شد
+                  </h3>
+                  
                   <p className="mt-4 text-sm text-gray-500">
                     اطلاعات شما در حال بررسی توسط کارشناسان است. نتیجه بررسی از طریق ایمیل به اطلاع شما خواهد رسید.
                   </p>
+                  
+                  <div className="mt-6 flex justify-center gap-3">
+                    <TaskStatusDialog contractorId={301} />
+                    <Button
+                      onClick={fetchTaskStatus}
+                      variant="outline"
+                    >
+                      بررسی وضعیت
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Rejected - show when REJECTED */}
+            {currentStep === 2 && taskStatus === 'REJECTED' && (
+              <div className="space-y-6 text-center">
+                <div className="py-8">
+                  <div className="mb-4 flex justify-center">
+                    <svg className="h-16 w-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  
+                  <h3 className="text-xl font-medium text-gray-900">
+                    اطلاعات نیاز به اصلاح دارد
+                  </h3>
+                  
+                  <p className="mt-4 text-sm text-gray-500">
+                    لطفاً نظرات کارشناس را مطالعه و اطلاعات را اصلاح نمایید.
+                  </p>
+                  
+                  <div className="mt-6 flex justify-center gap-3">
+                    <TaskStatusDialog contractorId={301} />
+                    <Button
+                      onClick={() => {
+                        setCurrentStep(0);
+                        setIsEditable(true);
+                      }}
+                      variant="default"
+                    >
+                      ویرایش اطلاعات
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -979,18 +1270,18 @@ export default function AcoountPage() {
               <Button
                 variant="outline"
                 onClick={handlePrev}
-                disabled={currentStep === 0 || currentStep === 2}
+                disabled={currentStep === 0 || currentStep >= 2 || !isEditable}
               >
                 قبلی
               </Button>
               
               <div className="flex items-center gap-3">
                 {/* Save Draft Button - Secondary */}
-                {currentStep < 2 && (
+                {currentStep < 2 && isEditable && (
                   <Button
                     variant="outline"
                     onClick={handleSaveDraft}
-                    disabled={isSaving || isSubmitting}
+                    disabled={isSaving || isSubmitting || !isEditable}
                   >
                     {isSaving ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
                   </Button>
@@ -1000,18 +1291,49 @@ export default function AcoountPage() {
                 {currentStep === 1 ? (
                   <Button 
                     onClick={handleSubmit}
-                    disabled={isSubmitting || isSaving}
+                    disabled={isSubmitting || isSaving || !isEditable}
                   >
                     {isSubmitting ? "در حال ارسال..." : "ثبت نهایی و ارسال برای بررسی"}
                   </Button>
                 ) : currentStep < 1 ? (
-                  <Button onClick={handleNext}>بعدی</Button>
+                  <Button onClick={handleNext} disabled={!isEditable}>بعدی</Button>
                 ) : null}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100">
+                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </DialogTitle>
+            <DialogDescription className="text-center pt-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                درخواست شما با موفقیت ثبت شد
+              </h3>
+              <p className="text-sm text-gray-600">
+                تیم ما پس از ارزیابی مدارک ارسالی، در صورت واجد شرایط بودن، با شما تماس خواهد گرفت.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              onClick={() => setShowSuccessDialog(false)} 
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              متوجه شدم
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -1,9 +1,9 @@
 import oracledb from "oracledb";
 
 
-// Configure oracledb
+// Configure oracledb - remove autoCommit: true to allow manual transaction control
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
-oracledb.autoCommit = true;
+oracledb.fetchAsString = [oracledb.CLOB]; // Fetch CLOBs as strings
 
 interface PoolConfig {
     user: string;

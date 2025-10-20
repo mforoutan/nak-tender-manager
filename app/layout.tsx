@@ -77,7 +77,18 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <Toaster position="top-center" richColors />
+          <Toaster
+            position="top-center"
+            richColors
+            toastOptions={{
+              style: {
+                fontFamily: 'Vazirmatn, sans-serif', // Persian-friendly font
+                fontSize: '0.925rem',
+                direction: 'rtl',
+                textAlign: 'right'
+              },
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>

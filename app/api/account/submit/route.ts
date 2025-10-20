@@ -1,118 +1,204 @@
-import { NextResponse } from "next/server";
-import { getConnection } from "@/lib/db";
-import { ContractorFormData } from "@/types";
-import oracledb from "oracledb";
+import { NextRequest, NextResponse } from 'next/server';
+import { getConnection } from '@/lib/db';
 
-export async function POST(req: Request) {
-  const connection = await getConnection();
-  
+export async function POST(request: NextRequest) {
+  let connection;
   try {
-    // Start transaction
-    await connection.execute(`BEGIN`);
-    
-    const formData = await req.json();
-    
-    // Validate required fields
-    if (!formData.companyName) {
+    const data = await request.json();
+    const { contractorId, ...formData } = data;
+
+    if (!contractorId) {
+      return NextResponse.json({ error: 'Contractor ID is required' }, { status: 400 });
+    }
+
+    connection = await getConnection();
+
+    // Check if there's already a pending or completed task
+    const taskCheck = await connection.execute(
+      `SELECT STATUS FROM TASKS 
+       WHERE ENTITY_TYPE = 'CONTRACTOR' 
+       AND ENTITY_ID = :id 
+       AND STATUS IN ('PENDING', 'COMPLETED')
+       ORDER BY ACTION_DATE DESC
+       FETCH FIRST 1 ROWS ONLY`,
+      [contractorId]
+    );
+
+    if (taskCheck.rows && taskCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: "نام شرکت الزامی است" },
-        { status: 400 }
+        { error: 'Cannot submit: Form is already under review or completed' },
+        { status: 403 }
       );
     }
 
-    // Always use the fixed contractor ID (301)
-    const contractorId = 301;
-    const ceoName = `${formData.ceoFirstName || ''} ${formData.ceoLastName || ''}`.trim();
-    
-    // Update the existing contractor
+    // First, save all data (same as draft)
     await connection.execute(
-      `UPDATE CONTRACTORS SET 
-       COMPANY_NAME = :companyName, 
-       NATIONAL_ID = :nationalId,
-       ECONOMIC_CODE = :economicCode,
-       REGISTRATION_NUMBER = :registrationNumber,
-       ESTABLISHMENT_DATE = :establishmentDate,
-       CEO_NAME = :ceoName,
-       PHONE = :phone,
-       EMAIL = :email,
-       FAX = :fax,
-       WEBSITE = :website,
-       STATUS = :status
-       WHERE ID = :id`,
+      `UPDATE CONTRACTORS SET
+        COMPANY_NAME = :companyName,
+        NATIONAL_ID = :nationalId,
+        ECONOMIC_CODE = :economicCode,
+        REGISTRATION_NUMBER = :registrationNumber,
+        ESTABLISHMENT_DATE = TO_DATE(:establishmentDate, 'YYYY-MM-DD'),
+        PHONE = :phone,
+        FAX = :fax,
+        EMAIL = :email,
+        WEBSITE = :website,
+        ADDRESS = :address,
+        POSTAL_CODE = :postalCode,
+        BANK_ACCOUNT = :accountNumber,
+        SHABA_NUMBER = :ibanNumber,
+        BRANCH_ACCOUNT = :branchName,
+        MODIFIED_DATE = SYSDATE,
+        MODIFIED_BY = 'CONTRACTOR_PORTAL'
+       WHERE ID = :contractorId`,
       {
-        companyName: formData.companyName,
+        companyName: formData.companyName || null,
         nationalId: formData.nationalId || null,
         economicCode: formData.economicCode || null,
         registrationNumber: formData.registrationNumber || null,
-        establishmentDate: formData.establishmentDate ? new Date(formData.establishmentDate) : null,
-        ceoName: ceoName || null,
+        establishmentDate: formData.establishmentDate || null,
         phone: formData.phone || null,
-        email: formData.email || null,
         fax: formData.fax || null,
+        email: formData.email || null,
         website: formData.website || null,
-        status: 'SUBMITTED', // Mark as submitted
-        id: contractorId
+        address: formData.address || null,
+        postalCode: formData.postalCode || null,
+        accountNumber: formData.accountNumber || null,
+        ibanNumber: formData.ibanNumber || null,
+        branchName: formData.branchName || null,
+        contractorId,
       }
     );
 
-    // Create a task for reviewing the contractor registration
-    const taskDescription = `
-      اطلاعات شرکت: ${formData.companyName}
-      نام مدیرعامل: ${ceoName}
-      شماره ثبت: ${formData.registrationNumber || 'وارد نشده'}
-      کد اقتصادی: ${formData.economicCode || 'وارد نشده'}
-      کد ملی: ${formData.nationalId || 'وارد نشده'}
-      شماره تماس: ${formData.phone || 'وارد نشده'}
-      ایمیل: ${formData.email || 'وارد نشده'}
-    `;
+    // Update/Insert CEO and Representative (same logic as draft)
+    if (formData.ceoFirstName || formData.ceoLastName) {
+      const ceoCheck = await connection.execute(
+        `SELECT ID FROM CONTRACTOR_MEMBERS 
+         WHERE CONTRACTOR_ID = :contractorId 
+         AND POSITION_TITLE = 'CEO'`,
+        [contractorId]
+      );
 
+      if (ceoCheck.rows && ceoCheck.rows.length > 0) {
+        await connection.execute(
+          `UPDATE CONTRACTOR_MEMBERS SET
+            FIRST_NAME = :firstName,
+            LAST_NAME = :lastName,
+            NATIONAL_ID = :nationalId,
+            MOBILE = :mobile,
+            POSITION_TITLE = 'CEO',
+            MODIFIED_DATE = SYSDATE
+           WHERE ID = :id`,
+          {
+            firstName: formData.ceoFirstName || null,
+            lastName: formData.ceoLastName || null,
+            nationalId: formData.ceoNationalId || null,
+            mobile: formData.ceoMobile || null,
+            id: ceoCheck.rows[0].ID,
+          }
+        );
+      } else {
+        await connection.execute(
+          `INSERT INTO CONTRACTOR_MEMBERS 
+           (CONTRACTOR_ID, FIRST_NAME, LAST_NAME, NATIONAL_ID, MOBILE, POSITION_TITLE, IS_ACTIVE, CREATED_DATE)
+           VALUES (:contractorId, :firstName, :lastName, :nationalId, :mobile, 'CEO', 1, SYSDATE)`,
+          {
+            contractorId,
+            firstName: formData.ceoFirstName || null,
+            lastName: formData.ceoLastName || null,
+            nationalId: formData.ceoNationalId || null,
+            mobile: formData.ceoMobile || null,
+          }
+        );
+      }
+    }
+
+    if (formData.repFirstName || formData.repLastName) {
+      const repCheck = await connection.execute(
+        `SELECT ID FROM CONTRACTOR_MEMBERS 
+         WHERE CONTRACTOR_ID = :contractorId 
+         AND POSITION_TITLE = :position`,
+        [contractorId, formData.repPosition || 'REPRESENTATIVE']
+      );
+
+      if (repCheck.rows && repCheck.rows.length > 0) {
+        await connection.execute(
+          `UPDATE CONTRACTOR_MEMBERS SET
+            FIRST_NAME = :firstName,
+            LAST_NAME = :lastName,
+            NATIONAL_ID = :nationalId,
+            PHONE = :phone,
+            EMAIL = :email,
+            POSITION_TITLE = :position,
+            MODIFIED_DATE = SYSDATE
+           WHERE ID = :id`,
+          {
+            firstName: formData.repFirstName || null,
+            lastName: formData.repLastName || null,
+            nationalId: formData.repNationalId || null,
+            phone: formData.repPhone || null,
+            email: formData.repEmail || null,
+            position: formData.repPosition || 'REPRESENTATIVE',
+            id: repCheck.rows[0].ID,
+          }
+        );
+      } else {
+        await connection.execute(
+          `INSERT INTO CONTRACTOR_MEMBERS 
+           (CONTRACTOR_ID, FIRST_NAME, LAST_NAME, NATIONAL_ID, PHONE, EMAIL, POSITION_TITLE, IS_ACTIVE, CREATED_DATE)
+           VALUES (:contractorId, :firstName, :lastName, :nationalId, :phone, :email, :position, 1, SYSDATE)`,
+          {
+            contractorId,
+            firstName: formData.repFirstName || null,
+            lastName: formData.repLastName || null,
+            nationalId: formData.repNationalId || null,
+            phone: formData.repPhone || null,
+            email: formData.repEmail || null,
+            position: formData.repPosition || 'REPRESENTATIVE',
+          }
+        );
+      }
+    }
+
+    // Create task in TASKS table
     await connection.execute(
-      `INSERT INTO TASK (
-        ENTITY_TYPE,
-        ENTITY_ID,
-        ITEM_TYPE,
-        TITLE,
-        DESCRIPTION,
-        STATUS,
-        PRIORITY
-      ) VALUES (
-        :entityType,
-        :entityId,
-        :itemType,
-        :title,
-        :description,
-        :status,
-        :priority
-      )`,
+      `INSERT INTO TASKS 
+       (ENTITY_TYPE, ENTITY_ID, ITEM_TYPE, TITLE, DESCRIPTION, STATUS, PRIORITY, ASSIGNED_DATE, ACTION_DATE, TASK_TYPE)
+       VALUES ('CONTRACTOR', :contractorId, 'PROFILE_REVIEW', :title, :description, 'PENDING', 'MEDIUM', SYSDATE, SYSDATE, 'CONTRACTOR_VERIFICATION')`,
       {
-        entityType: 'CONTRACTOR',
-        entityId: contractorId,
-        itemType: 'REGISTRATION_REVIEW',
-        title: `بررسی اطلاعات پیمانکار: ${formData.companyName}`,
-        description: taskDescription,
-        status: 'PENDING',
-        priority: 'MEDIUM'
+        contractorId,
+        title: `بررسی اطلاعات پیمانکار: ${formData.companyName || 'نامشخص'}`,
+        description: 'بررسی و تایید اطلاعات پیمانکار جهت فعال‌سازی حساب کاربری',
       }
     );
 
-    // Commit transaction
-    await connection.execute(`COMMIT`);
-    
+    await connection.commit();
+
     return NextResponse.json({
+      message: 'اطلاعات با موفقیت ثبت و ارسال شد',
       success: true,
-      message: "اطلاعات با موفقیت ثبت شد و برای بررسی به کارشناس ارسال گردید",
-      contractorId
     });
+
   } catch (error) {
-    // Rollback in case of error
-    await connection.execute(`ROLLBACK`);
-    
-    console.error('Error submitting form:', error);
+    console.error('Database error:', error);
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error('Rollback error:', rollbackError);
+      }
+    }
     return NextResponse.json(
-      { error: "خطا در ثبت اطلاعات. لطفا مجددا تلاش کنید." },
+      { error: 'خطا در ثبت اطلاعات' },
       { status: 500 }
     );
   } finally {
-    await connection.close();
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
   }
 }
