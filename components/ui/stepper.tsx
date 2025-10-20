@@ -14,7 +14,7 @@ export function Stepper({ steps, currentStep }: StepperProps) {
     <div className="w-full">
       <div className="flex items-center justify-between">
         {steps.map((step, index) => {
-          const isCompleted = index <= currentStep
+          const isCompleted = index < currentStep
           const isCurrent = index === currentStep
           const isLast = index === steps.length - 1
 

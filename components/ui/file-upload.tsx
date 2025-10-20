@@ -119,9 +119,9 @@ export function FileUpload({
           onDrop={handleDrop}
           onClick={() => !disabled && inputRef.current?.click()}
           className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-            isDragging && "border-primary bg-primary/5",
-            !isDragging && "border-gray-300 hover:border-primary hover:bg-gray-50",
+            "bg-gray-50 rounded-lg p-8 text-center cursor-pointer transition-colors",
+            isDragging && "bg-primary/5",
+            !isDragging && "border-gray-300 hover:border-primary hover:bg-gray-150",
             disabled && "opacity-50 cursor-not-allowed"
           )}
         >
