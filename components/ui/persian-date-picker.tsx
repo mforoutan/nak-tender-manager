@@ -5,13 +5,14 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CalendarIcon
+  CalendarIcon,
+  ChevronsUpDownIcon
 } from "lucide-react"
 import { DayButton, getDefaultClassNames } from "react-day-picker"
 import { DayPicker } from "react-day-picker/persian"
 import { format, getYear as getJalaliYear } from "date-fns-jalali"
 
-import { cn } from "@/lib/utils"
+import { cn, toPersianNumbers } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Popover,
@@ -37,7 +38,7 @@ export function PersianDatePicker({
   disabled,
 }: PersianDatePickerProps) {
   const selectedDate = value ? new Date(value) : undefined
-  
+
   const formatDateToISO = (date: Date | undefined) => {
     if (!date) return ""
     // Create a new date in local timezone without offset adjustment
@@ -61,9 +62,10 @@ export function PersianDatePicker({
           )}
         >
           <CalendarIcon className="ml-2 h-4 w-4" />
-          {value ? 
-            format(new Date(value), "yyyy/MM/dd") : 
+          {value ?
+            toPersianNumbers(format(new Date(value), "yyyy/MM/dd")) :
             placeholder}
+          <ChevronsUpDownIcon />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -97,7 +99,7 @@ function Calendar({
   // Get Persian years for dropdown (current year +/- 10 years)
   const currentDate = new Date();
   const currentPersianYear = getJalaliYear(currentDate);
-  
+
   const years = React.useMemo(() => {
     return Array.from({ length: 21 }, (_, i) => currentPersianYear - 10 + i);
   }, [currentPersianYear]);
@@ -120,7 +122,7 @@ function Calendar({
           const persianYear = getJalaliYear(date);
           // Convert to Persian numerals without thousands separator
           // FIX: Use a direct number-to-string conversion to avoid separators
-          return persianYear.toString().split('').map(digit => 
+          return persianYear.toString().split('').map(digit =>
             '۰۱۲۳۴۵۶۷۸۹'[digit] || digit
           ).join('');
         },

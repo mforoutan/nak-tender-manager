@@ -50,7 +50,7 @@ export function NavMain({
     checkAccountStatus();
   }, []);
 
-  const needsAttention = accountStatus && 
+  const needsAttention = accountStatus &&
     (!accountStatus.hasTask || accountStatus.status === 'REJECTED');
 
   return (
@@ -62,21 +62,19 @@ export function NavMain({
           {items.map((item) => {
             const isAccountPage = item.url === "/dashboard/account";
             const showBadge = isAccountPage && needsAttention;
-            
+
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton 
-                  tooltip={item.title} 
-                  asChild 
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  asChild
                   isActive={pathname === item.url}
                 >
-                  <Link href={item.url} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {item.icon && <DynamicIcon name={item.icon} />}
-                      <span>{item.title}</span>
-                    </div>
+                  <Link href={item.url}>
+                    {item.icon && <DynamicIcon name={item.icon} />}
+                    <span>{item.title}</span>
                     {showBadge && (
-                      <Badge 
+                      <Badge
                         className="rounded-md text-xs bg-red-500/5 text-red-500 hover:bg-red-500/5"
                       >
                         غیر فعال

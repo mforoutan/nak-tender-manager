@@ -97,13 +97,23 @@ const data = {
   navTenders: [
     {
       title: "معاملات شما",
-      url: "/dashboard/tenders/my",
+      // url: "/dashboard/tenders/my",
       icon: "handshake",
       items: [
         {
-          title: "معاملات من",
-          url: "/dashboard/tenders/my/list",
-          icon: "camera",
+          title: "مناقصه",
+          url: "/dashboard/tenders/list",
+          icon: "award",
+        },
+        {
+          title: "استعلام‌ها",
+          url: "/dashboard/tenders/inquiries",
+          icon: "search-check",
+        },
+        {
+          title: "فراخوان‌ها",
+          url: "/dashboard/tenders/calls",
+          icon: "megaphone",
         },
       ]
     },
@@ -145,8 +155,8 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="offcanvas" side="right" {...props} className="bg-[url('../public/nav.svg')] bg-center bg-no-repeat">
-      <SidebarHeader>
+    <Sidebar collapsible="offcanvas" side="right" {...props} >
+      <SidebarHeader className="block lg:hidden">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
