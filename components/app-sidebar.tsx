@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
+
 import {
   IconCamera,
   IconFileAi,
@@ -15,7 +17,11 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar"
+import { NavUser } from "./nav-user"
 
 const data = {
   user: {
@@ -139,21 +145,18 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="offcanvas" side="right" {...props}>
+    <Sidebar collapsible="offcanvas" side="right" {...props} className="bg-[url('../public/nav.svg')] bg-center bg-no-repeat">
       <SidebarHeader>
-        {/* <SidebarMenu>
+        <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+            <NavUser user={data.user} />
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu> */}
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
@@ -161,8 +164,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       {/* <SidebarFooter>
-        <NavUser user={data.user} />
       </SidebarFooter> */}
+      {/* <div className="absolute inset-0">
+      <Image src="/nak.svg" width={100} height={100} alt="NAK" className="mx-auto mb-4" />
+      </div> */}
     </Sidebar>
   )
 }
