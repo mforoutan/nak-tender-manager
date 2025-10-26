@@ -13,6 +13,7 @@ import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import {
   Sidebar,
+  SidebarHeader,
   SidebarContent,
 } from "@/components/ui/sidebar"
 
@@ -139,8 +140,8 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" side="right" {...props}>
-      {/* <SidebarHeader>
-        <SidebarMenu>
+      <SidebarHeader>
+        {/* <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
@@ -152,8 +153,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader> */}
+        </SidebarMenu> */}
+      </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavTenders items={data.navTenders} />

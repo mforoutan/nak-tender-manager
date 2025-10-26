@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from 'uuid';
 import oracledb from 'oracledb';
-import { existsSync } from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import path from "path";
 
 export async function POST(req: Request) {
   let connection;
@@ -21,7 +19,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate that file is actually a File object with content
     if (!file.size || file.size === 0) {
       return NextResponse.json(
         { error: "فایل خالی است" },
@@ -36,8 +33,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: "حجم فایل نباید بیشتر از 5 مگابایت باشد" },
@@ -45,7 +41,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate file type
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
@@ -56,7 +51,6 @@ export async function POST(req: Request) {
 
     connection = await getConnection();
 
-    // Check if contractor can upload (no pending/completed task)
     const taskCheck = await connection.execute(
       `SELECT STATUS FROM TASKS 
        WHERE ENTITY_TYPE = 'CONTRACTOR' 
@@ -74,24 +68,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get file details
+    // Get file as buffer to store as BLOB
     const fileBytes = await file.arrayBuffer();
     const buffer = Buffer.from(fileBytes);
+    
+    // Generate unique filename
     const fileExtension = path.extname(file.name);
     const fileName = `${uuidv4()}${fileExtension}`;
-    
-    // Create upload directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-    
-    const filePath = path.join(uploadDir, fileName);
-    
-    // Save file to disk
-    await writeFile(filePath, buffer);
 
-    // Map document type to certificate type
     let certificateType = 'OTHER';
     let certificateName = file.name;
     
@@ -115,7 +99,6 @@ export async function POST(req: Request) {
     }
     
     try {
-      // Check if document already exists for this type
       const existingDoc = await connection.execute(
         `SELECT cc.ID, cc.CERTIFICATE_FILE_ID 
          FROM CONTRACTOR_CERTIFICATES cc
@@ -133,13 +116,13 @@ export async function POST(req: Request) {
       let fileId;
 
       if (existingDoc.rows && existingDoc.rows.length > 0) {
-        // Update existing document
         const oldFileId = existingDoc.rows[0].CERTIFICATE_FILE_ID;
         
-        // Insert new file
+        // Insert new file with BLOB data
         const fileResult = await connection.execute(
           `INSERT INTO FILE_STORE (
-            FILE_NAME, 
+            FILE_NAME,
+            FILE_CONTENT,
             ORIGINAL_NAME, 
             MIME_TYPE, 
             FILE_SIZE,
@@ -148,6 +131,7 @@ export async function POST(req: Request) {
             UPLOADED_BY
           ) VALUES (
             :fileName,
+            :fileContent,
             :originalName,
             :mimeType,
             :fileSize,
@@ -157,6 +141,7 @@ export async function POST(req: Request) {
           ) RETURNING ID INTO :fileId`,
           {
             fileName,
+            fileContent: buffer,
             originalName: file.name,
             mimeType: file.type,
             fileSize: file.size,
@@ -169,7 +154,6 @@ export async function POST(req: Request) {
         
         fileId = fileResult.outBinds.fileId[0];
         
-        // Update certificate with new file ID
         await connection.execute(
           `UPDATE CONTRACTOR_CERTIFICATES 
            SET CERTIFICATE_FILE_ID = :fileId,
@@ -181,7 +165,6 @@ export async function POST(req: Request) {
           }
         );
         
-        // Optionally, mark old file as inactive or delete it
         if (oldFileId) {
           await connection.execute(
             `UPDATE FILE_STORE 
@@ -191,10 +174,11 @@ export async function POST(req: Request) {
           );
         }
       } else {
-        // Insert new file
+        // Insert new file with BLOB data
         const fileResult = await connection.execute(
           `INSERT INTO FILE_STORE (
-            FILE_NAME, 
+            FILE_NAME,
+            FILE_CONTENT,
             ORIGINAL_NAME, 
             MIME_TYPE, 
             FILE_SIZE,
@@ -203,6 +187,7 @@ export async function POST(req: Request) {
             UPLOADED_BY
           ) VALUES (
             :fileName,
+            :fileContent,
             :originalName,
             :mimeType,
             :fileSize,
@@ -212,6 +197,7 @@ export async function POST(req: Request) {
           ) RETURNING ID INTO :fileId`,
           {
             fileName,
+            fileContent: buffer,
             originalName: file.name,
             mimeType: file.type,
             fileSize: file.size,
@@ -224,7 +210,6 @@ export async function POST(req: Request) {
         
         fileId = fileResult.outBinds.fileId[0];
         
-        // Insert new certificate
         await connection.execute(
           `INSERT INTO CONTRACTOR_CERTIFICATES (
             CONTRACTOR_ID,
@@ -257,11 +242,11 @@ export async function POST(req: Request) {
       
       return NextResponse.json({
         success: true,
+        fileId,
         fileName,
         originalName: file.name,
         fileSize: file.size,
         documentType,
-        path: `/uploads/${fileName}`,
         message: 'فایل با موفقیت بارگذاری شد'
       });
       

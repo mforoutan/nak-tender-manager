@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Upload, File, X, RefreshCw } from "lucide-react"
+import { Upload, File, X, Download } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -15,6 +15,7 @@ interface FileUploadProps {
   uploadProgress?: number
   onUpload?: () => void
   onDelete?: () => void
+  fileId?: number // Add fileId for preview
 }
 
 export function FileUpload({
@@ -26,7 +27,8 @@ export function FileUpload({
   file,
   uploadProgress = 0,
   onUpload,
-  onDelete
+  onDelete,
+  fileId
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -70,6 +72,7 @@ export function FileUpload({
       return
     }
 
+    // First update the file state
     onFileChange(selectedFile)
   }
 
@@ -87,18 +90,36 @@ export function FileUpload({
     }
   }
 
-  const handleReplace = () => {
-    if (inputRef.current) {
+  const handleClick = (e: React.MouseEvent) => {
+    if (!disabled && inputRef.current) {
       inputRef.current.click()
     }
   }
 
-  const handleDelete = () => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    // Just call the onDelete callback, don't remove the file yet
+    // The parent component will handle showing the dialog and actual deletion
     if (onDelete) {
       onDelete()
     }
-    handleRemove()
   }
+
+  const handleDownload = () => {
+    if (file) {
+      const blob = new Blob([file], { type: file.type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else if (fileId) {
+      window.open(`/api/files/download/${fileId}`, '_blank');
+    }
+  };
 
   return (
     <div className="w-full">
@@ -117,7 +138,7 @@ export function FileUpload({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={() => !disabled && inputRef.current?.click()}
+          onClick={handleClick}
           className={cn(
             "bg-gray-50 rounded-lg p-8 text-center cursor-pointer transition-colors",
             isDragging && "bg-primary/5",
@@ -140,7 +161,11 @@ export function FileUpload({
           </div>
         </div>
       ) : (
-        <div className="border rounded-lg p-4 bg-gray-50">
+        <div 
+          className={cn(
+            "border rounded-lg p-4 bg-gray-50 transition-colors"
+          )}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="p-2 bg-white rounded border">
@@ -158,27 +183,20 @@ export function FileUpload({
                 <>
                   <span className="text-xs text-green-600 font-medium whitespace-nowrap">بارگذاری شده ✓</span>
                   <Button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleReplace()
-                    }}
+                    onClick={handleDownload}
                     variant="outline"
-                    size="sm"
-                    className="h-8"
-                    disabled={disabled}
-                    title="جایگزینی فایل"
-                  >
-                    <RefreshCw className="h-3.5 w-3.5 ml-1" />
-                    جایگزینی
-                  </Button>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDelete()
-                    }}
-                    variant="destructive"
                     size="icon"
                     className="h-8 w-8"
+                    disabled={disabled}
+                    title="دانلود فایل"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={handleDeleteClick}
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                     disabled={disabled}
                     title="حذف فایل"
                   >
@@ -186,32 +204,20 @@ export function FileUpload({
                   </Button>
                 </>
               ) : uploadProgress > 0 ? (
-                <span className="text-xs text-blue-600">{uploadProgress}%</span>
+                <span className="text-xs text-blue-600 font-medium">{uploadProgress}%</span>
               ) : (
-                <>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onUpload?.()
-                    }}
-                    size="sm"
-                    disabled={disabled}
-                  >
-                    بارگذاری
-                  </Button>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleRemove()
-                    }}
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={disabled}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleRemove()
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={disabled}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               )}
             </div>
           </div>

@@ -8,7 +8,8 @@ import {
   CreditCard, 
   UserCog, 
   FileText, 
-  AlertCircle 
+  AlertCircle,
+  XCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -54,7 +55,15 @@ const requiredDocuments = [
   { id: "certificate", name: "گواهینامه صلاحیت", description: "گواهینامه تأیید صلاحیت از مراجع ذیصلاح" },
 ]
 
-export default function AccountPage() {
+interface AccountPageProps {
+  accountStatus?: {
+    hasTask: boolean;
+    status: string | null;
+  };
+  isCheckingStatus?: boolean;
+}
+
+export default function AccountPage({ accountStatus, isCheckingStatus }: AccountPageProps) {
 
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -62,8 +71,9 @@ export default function AccountPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File | null}>({})
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({})
-  // Keep track of open accordion items
   const [openSections, setOpenSections] = useState<string[]>(["section-1"])
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null)
   
   const [formData, setFormData] = useState<ContractorFormData>({
     // اطلاعات اصلی (Main Information)
@@ -110,7 +120,14 @@ export default function AccountPage() {
   const [isEditable, setIsEditable] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  
+  const [showRejectedDialog, setShowRejectedDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<{
+    documentId: string;
+    fileId?: number;
+  } | null>(null);
+  const [uploadedFileIds, setUploadedFileIds] = useState<{[key: string]: number}>({});
+
   // Fetch contractor data on component mount
   useEffect(() => {
     const fetchContractorData = async () => {
@@ -185,6 +202,7 @@ export default function AccountPage() {
             // Handle documents
             if (data.documents && Array.isArray(data.documents)) {
               const filesMap = {};
+              const fileIdsMap = {};
               
               data.documents.forEach(doc => {
                 let docType = '';
@@ -205,6 +223,7 @@ export default function AccountPage() {
                     size: doc.FILE_SIZE || 0,
                     type: doc.MIME_TYPE || 'application/octet-stream',
                   };
+                  fileIdsMap[docType] = doc.CERTIFICATE_FILE_ID;
                   
                   setUploadProgress(prev => ({ ...prev, [docType]: 100 }));
                 }
@@ -212,6 +231,7 @@ export default function AccountPage() {
               
               if (Object.keys(filesMap).length > 0) {
                 setUploadedFiles(prev => ({ ...prev, ...filesMap }));
+                setUploadedFileIds(prev => ({ ...prev, ...fileIdsMap }));
               }
             }
             
@@ -228,11 +248,12 @@ export default function AccountPage() {
                 setStatusMessage("اطلاعات شما در حال بررسی است و امکان ویرایش وجود ندارد.");
               } else if (status === 'COMPLETED') {
                 setIsEditable(false);
-                setCurrentStep(3); // Set to completed step (step 4 which is index 3)
+                setCurrentStep(3);
                 setStatusMessage("اطلاعات شما تایید شده است.");
               } else if (status === 'REJECTED') {
                 setIsEditable(true);
-                setCurrentStep(0);
+                setCurrentStep(2); // Show rejection page first
+                setShowRejectedDialog(true);
                 setStatusMessage("اطلاعات شما نیاز به اصلاح دارد. لطفا موارد را بررسی و مجددا ارسال نمایید.");
               }
             }
@@ -273,7 +294,7 @@ export default function AccountPage() {
             setCurrentStep(3);
           } else if (status === "REJECTED") {
             setIsEditable(true);
-            setCurrentStep(0);
+            setCurrentStep(2); // Show rejection page
             setStatusMessage("اطلاعات شما نیاز به اصلاح دارد. لطفا موارد را بررسی و مجددا ارسال نمایید.");
           }
         }
@@ -291,14 +312,16 @@ export default function AccountPage() {
   }
 
   const handlePrev = () => {
-    if (currentStep > 0 && isEditable && !taskStatus) {
+    if (currentStep > 0 && isEditable) {
       setCurrentStep(currentStep - 1)
     }
   }
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (silent: boolean = false) => {
     if (!isEditable) {
-      toast.error("امکان ویرایش اطلاعات وجود ندارد");
+      if (!silent) {
+        toast.error("امکان ویرایش اطلاعات وجود ندارد");
+      }
       return;
     }
     
@@ -311,20 +334,31 @@ export default function AccountPage() {
         },
         body: JSON.stringify({
           ...formData,
-          contractorId: 301 // Always update the existing record
+          contractorId: 301
         }),
       })
       
       const data = await response.json()
       
       if (response.ok) {
-        toast.success(data.message)
+        if (!silent) {
+          toast.success(data.message || 'تغییرات ذخیره شد')
+        } else {
+          // Show toast for silent saves too
+          toast.success('تغییرات ذخیره شد', {
+            duration: 2000,
+          })
+        }
       } else {
-        toast.error(data.error || 'خطا در ذخیره پیش‌نویس')
+        if (!silent) {
+          toast.error(data.error || 'خطا در ذخیره پیش‌نویس')
+        }
       }
     } catch (error) {
       console.error("Error saving draft:", error)
-      toast.error('خطا در برقراری ارتباط با سرور')
+      if (!silent) {
+        toast.error('خطا در برقراری ارتباط با سرور')
+      }
     } finally {
       setIsSaving(false)
     }
@@ -333,6 +367,12 @@ export default function AccountPage() {
   const handleSubmit = async () => {
     if (!isEditable) {
       toast.error("امکان ارسال مجدد اطلاعات وجود ندارد");
+      return;
+    }
+    
+    // Validate required field
+    if (!formData.companyName || formData.companyName.trim() === '') {
+      toast.error("لطفاً نام شرکت را وارد کنید");
       return;
     }
     
@@ -379,6 +419,7 @@ export default function AccountPage() {
       return;
     }
     setFormData((prev) => ({ ...prev, [field]: value }))
+    setHasUnsavedChanges(true)
   }
 
   const handleFileChange = (documentId: string, file: File | null) => {
@@ -405,26 +446,26 @@ export default function AccountPage() {
         ...prev,
         [documentId]: 0
       }));
+      
+      // Auto-upload the file immediately with the file object directly
+      setTimeout(() => {
+        uploadFileDirectly(documentId, file);
+      }, 100);
     }
   }
 
-  const uploadFile = async (documentId: string) => {
-    const file = uploadedFiles[documentId]
-    if (!file) return
-    
-    // Don't upload if already uploaded
-    if (uploadProgress[documentId] === 100) {
-      toast.info("این فایل قبلاً بارگذاری شده است");
-      return;
-    }
-    
-    setUploadProgress(prev => ({ ...prev, [documentId]: 0 }))
+  const uploadFileDirectly = async (documentId: string, file: File) => {
+    // Simulate initial progress
+    setUploadProgress(prev => ({ ...prev, [documentId]: 10 }))
     
     try {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('documentType', documentId)
       formData.append('contractorId', '301')
+      
+      // Update progress to 50% before sending
+      setUploadProgress(prev => ({ ...prev, [documentId]: 50 }))
       
       const response = await fetch('/api/account/upload', {
         method: 'POST',
@@ -435,28 +476,63 @@ export default function AccountPage() {
       
       if (response.ok) {
         setUploadProgress(prev => ({ ...prev, [documentId]: 100 }))
+        // Store the fileId returned from server
+        if (data.fileId) {
+          setUploadedFileIds(prev => ({ ...prev, [documentId]: data.fileId }));
+        }
         toast.success(`${file.name} با موفقیت بارگذاری شد`)
       } else {
         setUploadProgress(prev => ({ ...prev, [documentId]: 0 }))
         toast.error(data.error || 'خطا در بارگذاری فایل')
+        // Remove the file from state if upload failed
+        setUploadedFiles(prev => {
+          const newFiles = { ...prev };
+          delete newFiles[documentId];
+          return newFiles;
+        });
       }
     } catch (error) {
       console.error("Error uploading file:", error)
       setUploadProgress(prev => ({ ...prev, [documentId]: 0 }))
       toast.error('خطا در برقراری ارتباط با سرور')
+      // Remove the file from state if upload failed
+      setUploadedFiles(prev => {
+        const newFiles = { ...prev };
+        delete newFiles[documentId];
+        return newFiles;
+      });
     }
   }
 
+  const uploadFile = async (documentId: string) => {
+    const file = uploadedFiles[documentId]
+    if (!file) return
+    
+    // Don't upload if already uploaded
+    if (uploadProgress[documentId] === 100) {
+      return;
+    }
+    
+    await uploadFileDirectly(documentId, file);
+  }
+
   const deleteFile = async (documentId: string) => {
+    const fileId = uploadedFileIds[documentId];
+    if (!fileId) {
+      toast.error('شناسه فایل یافت نشد');
+      setShowDeleteDialog(false);
+      setFileToDelete(null);
+      return;
+    }
+
     try {
-      const response = await fetch('/api/account/delete-file', {
+      const response = await fetch('/api/files/delete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          documentType: documentId,
-          contractorId: '301'
+          fileId: fileId
         }),
       })
       
@@ -474,6 +550,13 @@ export default function AccountPage() {
           delete newProgress[documentId];
           return newProgress;
         });
+        setUploadedFileIds(prev => {
+          const newIds = { ...prev };
+          delete newIds[documentId];
+          return newIds;
+        });
+        setShowDeleteDialog(false);
+        setFileToDelete(null);
         toast.success('فایل با موفقیت حذف شد')
       } else {
         toast.error(data.error || 'خطا در حذف فایل')
@@ -489,6 +572,32 @@ export default function AccountPage() {
     setOpenSections(value)
   }
 
+  // Auto-save draft when form changes (with debounce)
+  useEffect(() => {
+    if (!isEditable || !hasUnsavedChanges) return;
+
+    // Clear existing timeout
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+
+    // Set new timeout for auto-save (3 seconds after last change)
+    const timeout = setTimeout(async () => {
+      await handleSaveDraft(true); // true = silent save
+      setHasUnsavedChanges(false);
+    }, 3000);
+
+    setAutoSaveTimeout(timeout);
+
+    // Cleanup
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, isEditable]); // Remove hasUnsavedChanges and autoSaveTimeout from deps
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -500,17 +609,48 @@ export default function AccountPage() {
     )
   }
 
-  // Add status alert if form is not editable
+  // Render alert based on status passed from layout
   const renderStatusAlert = () => {
-    if (!isEditable && statusMessage) {
+    if (isCheckingStatus) return null;
+    
+    if (!accountStatus?.hasTask || accountStatus.status === 'REJECTED') {
       return (
-        <Alert className={`mb-4 ${taskStatus === "COMPLETED" ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"}`}>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>وضعیت درخواست</AlertTitle>
-          <AlertDescription>{statusMessage}</AlertDescription>
+        <Alert className="mb-4 bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-700" />
+          <AlertTitle className="text-amber-700">تکمیل اطلاعات حساب کاربری</AlertTitle>
+          <AlertDescription className="text-amber-600">
+            {accountStatus?.status === 'REJECTED' 
+              ? 'اطلاعات شما نیاز به اصلاح دارد. لطفاً موارد را بررسی و مجدداً ارسال کنید.'
+              : 'لطفاً اطلاعات حساب کاربری خود را تکمیل کنید تا بتوانید از امکانات سامانه استفاده نمایید.'}
+          </AlertDescription>
         </Alert>
       );
     }
+
+    if (accountStatus.status === 'PENDING' || accountStatus.status === 'IN_PROGRESS') {
+      return (
+        <Alert className="mb-4 bg-blue-50 border-blue-200">
+          <AlertCircle className="h-4 w-4 text-blue-700" />
+          <AlertTitle className="text-blue-700">در حال بررسی</AlertTitle>
+          <AlertDescription className="text-blue-600">
+            اطلاعات شما در حال بررسی توسط کارشناسان است. امکان ویرایش وجود ندارد.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (accountStatus.status === 'COMPLETED') {
+      return (
+        <Alert className="mb-4 bg-green-50 border-green-200">
+          <AlertCircle className="h-4 w-4 text-green-700" />
+          <AlertTitle className="text-green-700">حساب فعال</AlertTitle>
+          <AlertDescription className="text-green-600">
+            حساب کاربری شما تأیید شده و فعال است.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
     return null;
   };
 
@@ -523,14 +663,12 @@ export default function AccountPage() {
         </p>
       </div>
 
+      {/* Show alert here - below h1 */}
+      {renderStatusAlert()}
+
       <div className="bg-[#F6F6F6] rounded-2xl p-4 md:p-8 lg:p-12">
         {/* Stepper - show completed state when status is COMPLETED */}
         <Stepper steps={steps} currentStep={currentStep} />
-        
-        {/* Status alert */}
-        <div className="mt-4">
-        {renderStatusAlert()}
-        </div>
         
         {/* Title and description now outside the Card */}
         <div className="mt-6 mb-4">
@@ -566,14 +704,22 @@ export default function AccountPage() {
                     <AccordionContent className="px-4 py-3">
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="companyName">نام شرکت</Label>
+                          <Label htmlFor="companyName">
+                            نام شرکت
+                            <span className="text-red-500 mr-1">*</span>
+                          </Label>
                           <Input
                             id="companyName"
                             placeholder="نام شرکت خود را وارد کنید"
                             value={formData.companyName}
                             onChange={(e) => updateFormData("companyName", e.target.value)}
                             disabled={!isEditable}
+                            required
+                            className={!formData.companyName && formData.companyName !== '' ? 'border-red-300' : ''}
                           />
+                          {!formData.companyName && (
+                            <p className="text-xs text-red-500">این فیلد الزامی است</p>
+                          )}
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="space-y-2">
@@ -956,7 +1102,7 @@ export default function AccountPage() {
                   </AccordionItem>
 
                   {/* Document Upload Section */}
-                  <AccordionItem value="section-6" className="border rounded-md bg-white p-4 mt-3">
+                  <AccordionItem value="section-6" className="border border-b rounded-md bg-white p-4 mt-3">
                     <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-[#F6F6F6] rounded-full">
@@ -989,7 +1135,14 @@ export default function AccountPage() {
                                 file={uploadedFiles[doc.id]}
                                 uploadProgress={uploadProgress[doc.id]}
                                 onUpload={() => uploadFile(doc.id)}
-                                onDelete={() => deleteFile(doc.id)}
+                                onDelete={() => {
+                                  setFileToDelete({ 
+                                    documentId: doc.id, 
+                                    fileId: uploadedFileIds[doc.id] 
+                                  });
+                                  setShowDeleteDialog(true);
+                                }}
+                                fileId={uploadedFileIds[doc.id]}
                               />
                             </div>
                           ))}
@@ -1231,35 +1384,35 @@ export default function AccountPage() {
               </div>
             )}
 
-            {/* Step 2: Rejected - show when REJECTED */}
+            {/* Step 2: Rejected - show rejection page */}
             {currentStep === 2 && taskStatus === 'REJECTED' && (
               <div className="space-y-6 text-center">
                 <div className="py-8">
                   <div className="mb-4 flex justify-center">
-                    <svg className="h-16 w-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+                    <div className="flex items-center justify-center w-20 h-20 rounded-full bg-red-100">
+                      <XCircle className="h-12 w-12 text-red-600" />
+                    </div>
                   </div>
                   
-                  <h3 className="text-xl font-medium text-gray-900">
+                  <h3 className="text-2xl font-bold text-red-900">
                     اطلاعات نیاز به اصلاح دارد
                   </h3>
                   
-                  <p className="mt-4 text-sm text-gray-500">
-                    لطفاً نظرات کارشناس را مطالعه و اطلاعات را اصلاح نمایید.
+                  <p className="mt-4 text-base text-gray-600">
+                    متأسفانه اطلاعات ارسالی شما مورد تأیید قرار نگرفت و نیاز به اصلاح دارد.
                   </p>
                   
-                  <div className="mt-6 flex justify-center gap-3">
-                    <TaskStatusDialog contractorId={301} />
+                  <div className="mt-8 flex justify-center gap-3">
                     <Button
                       onClick={() => {
                         setCurrentStep(0);
                         setIsEditable(true);
                       }}
-                      variant="default"
+                      className="bg-red-600 hover:bg-red-700"
                     >
-                      ویرایش اطلاعات
+                      اصلاح اطلاعات
                     </Button>
+                    <TaskStatusDialog contractorId={301} />
                   </div>
                 </div>
               </div>
@@ -1270,21 +1423,24 @@ export default function AccountPage() {
               <Button
                 variant="outline"
                 onClick={handlePrev}
-                disabled={currentStep === 0 || currentStep >= 2 || !isEditable}
+                disabled={currentStep === 0 || currentStep >= 2}
               >
                 قبلی
               </Button>
               
               <div className="flex items-center gap-3">
-                {/* Save Draft Button - Secondary */}
-                {currentStep < 2 && isEditable && (
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveDraft}
-                    disabled={isSaving || isSubmitting || !isEditable}
-                  >
-                    {isSaving ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
-                  </Button>
+                {/* Auto-save indicator */}
+                {currentStep < 2 && isEditable && isSaving && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Spinner className="h-3 w-3" />
+                    در حال ذخیره...
+                  </span>
+                )}
+                
+                {currentStep < 2 && isEditable && !isSaving && hasUnsavedChanges && (
+                  <span className="text-xs text-muted-foreground">
+                    تغییرات ذخیره نشده
+                  </span>
                 )}
 
                 {/* Submit/Next Button - Primary */}
@@ -1330,6 +1486,40 @@ export default function AccountPage() {
               className="w-full bg-primary hover:bg-primary/90"
             >
               متوجه شدم
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              حذف فایل
+            </DialogTitle>
+            <DialogDescription className="pt-4 text-base">
+              آیا از حذف این فایل اطمینان دارید؟ این عملیات قابل بازگشت نیست.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setFileToDelete(null);
+              }}
+            >
+              انصراف
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => fileToDelete && deleteFile(fileToDelete.documentId)}
+            >
+              حذف فایل
             </Button>
           </DialogFooter>
         </DialogContent>

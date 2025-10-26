@@ -25,6 +25,7 @@ interface PersianDatePickerProps {
   placeholder: string
   className?: string
   id?: string
+  disabled?: boolean
 }
 
 export function PersianDatePicker({
@@ -33,18 +34,17 @@ export function PersianDatePicker({
   placeholder,
   className,
   id,
+  disabled,
 }: PersianDatePickerProps) {
-  // Parse date string to Date object (if value exists)
   const selectedDate = value ? new Date(value) : undefined
   
-  // Convert a Date object to ISO date string (YYYY-MM-DD)
-  // FIX: Add timezone offset correction to prevent wrong day selection
   const formatDateToISO = (date: Date | undefined) => {
     if (!date) return ""
-    // Add timezone offset to ensure correct day is selected
-    const tzoffset = date.getTimezoneOffset() * 60000 // offset in milliseconds
-    const localDate = new Date(date.getTime() - tzoffset)
-    return localDate.toISOString().split('T')[0]
+    // Create a new date in local timezone without offset adjustment
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   return (
@@ -53,6 +53,7 @@ export function PersianDatePicker({
         <Button
           id={id}
           variant="outline"
+          disabled={disabled}
           className={cn(
             "w-full justify-start text-right font-normal",
             !value && "text-muted-foreground",
@@ -72,6 +73,7 @@ export function PersianDatePicker({
           onSelect={(date) => onChange(formatDateToISO(date))}
           initialFocus
           captionLayout="dropdown"
+          disabled={disabled}
         />
       </PopoverContent>
     </Popover>
