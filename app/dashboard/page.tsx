@@ -77,7 +77,7 @@ export default function DashboardPage({ accountStatus, isCheckingStatus }: Dashb
       <div className="px-4 lg:px-6">
         <ChartAreaInteractive />
       </div> */}
-      <DataTable data={data} />
+      <DataTable data={data} itemsPerPage={4} />
     </>
   )
 }
