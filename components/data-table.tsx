@@ -73,37 +73,39 @@ function toPersianDate(dateString: string): string {
 
 function DataCard({ item }: { item: z.infer<typeof schema> }) {
   return (
-    <Card className="overflow-hidden pr-16 relative gap-1 hover:bg-[#FFF4F0]">
-      <div className="absolute inset-y-0 right-0 flex items-center pr-6">
+    <Card className="overflow-hidden pl-14 pr-14  py-6 lg:pr-22 relative gap-1 hover:bg-[#FFF4F0]">
+      <div className="absolute inset-y-0 right-0 hidden lg:flex items-center pr-6">
         <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
-        <AwardIcon />
+          <AwardIcon />
         </div>
       </div>
-      <CardHeader>
+      <CardHeader className="px-0">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 space-x-2">
-            <Link href={`/tenders/${item.id}`} className="text-lg font-semibold hover:underline">
-            <h3 className="inline">
-              {item.title}
-            </h3>
+          <div className="flex flex-wrap flex-1 gap-2">
+            <Link href={`/tenders/${item.id}`} className="w-full lg:flex-none text-lg font-semibold hover:underline">
+              <h3 className="inline">
+                {item.title}
+              </h3>
             </Link>
-            <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
-              {item.type}
-            </Badge>
-            <Badge variant="outline" className="text-black rounded-md px-2">
-              {toPersianNumbers(item.code)}
-            </Badge>
+            <div className="flex flex-1 gap-2 order-first lg:order-last">
+              <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
+                {item.type}
+              </Badge>
+              <Badge variant="outline" className="text-black rounded-md px-2">
+                {toPersianNumbers(item.code)}
+              </Badge>
+            </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex gap-4">
+      <CardContent className="flex gap-4 px-0">
         <div className="flex items-center gap-1 text-sm text-neutral-800">
           <MilestoneIcon size={14} />
           <span>{item.category}</span>
         </div>
         <div className="flex items-center gap-1 text-sm text-neutral-800">
           <Calendar1Icon size={14} />
-          <span>پایان مهلت تحویل اسناد و شرکت در معامله تا</span>
+          <span className="hidden lg:inline">پایان مهلت تحویل اسناد و شرکت در معامله تا</span>
           <span className="font-bold">{toPersianDate(item.endDate)}</span>
         </div>
       </CardContent>
@@ -113,26 +115,28 @@ function DataCard({ item }: { item: z.infer<typeof schema> }) {
 
 export function DataTable({
   data: initialData,
+  itemsPerPage = 10,
 }: {
   data: z.infer<typeof schema>[]
+  itemsPerPage?: number
 }) {
   const [data, setData] = React.useState(() => initialData)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedDate, setSelectedDate] = React.useState("")
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: itemsPerPage,
   })
 
   const filteredData = React.useMemo(() => {
     return data.filter((item) => {
-      const matchesSearch = searchQuery === "" || 
+      const matchesSearch = searchQuery === "" ||
         item.title.includes(searchQuery) ||
         item.code.includes(searchQuery) ||
         item.category.includes(searchQuery)
-      
+
       const matchesDate = selectedDate === "" || item.endDate === selectedDate
-      
+
       return matchesSearch && matchesDate
     })
   }, [data, searchQuery, selectedDate])
@@ -151,7 +155,7 @@ export function DataTable({
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = []
     const currentPage = pagination.pageIndex + 1
-    
+
     if (pageCount <= 7) {
       // Show all pages if 7 or fewer
       for (let i = 1; i <= pageCount; i++) {
@@ -160,27 +164,27 @@ export function DataTable({
     } else {
       // Always show first page
       pages.push(1)
-      
+
       if (currentPage > 3) {
         pages.push('ellipsis')
       }
-      
+
       // Show pages around current page
       const start = Math.max(2, currentPage - 1)
       const end = Math.min(pageCount - 1, currentPage + 1)
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i)
       }
-      
+
       if (currentPage < pageCount - 2) {
         pages.push('ellipsis')
       }
-      
+
       // Always show last page
       pages.push(pageCount)
     }
-    
+
     return pages
   }
 
@@ -194,22 +198,7 @@ export function DataTable({
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
-        <Select defaultValue="all">
-          <SelectTrigger
-            className="flex w-fit @4xl/main:hidden"
-            size="sm"
-            id="view-selector"
-          >
-            <SelectValue placeholder="Select a view" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">همه</SelectItem>
-            <SelectItem value="tender">مناقصه</SelectItem>
-            <SelectItem value="inquiry">استعلام</SelectItem>
-            <SelectItem value="evaluation">ارزیابی</SelectItem>
-          </SelectContent>
-        </Select>
-        <TabsList className="bg-transparent hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
+        <TabsList className="bg-transparent flex mx-auto lg:mx-0 **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1">
           <TabsTrigger value="all">همه</TabsTrigger>
           <TabsTrigger value="tender">
             مناقصه
@@ -219,7 +208,7 @@ export function DataTable({
           </TabsTrigger>
           <TabsTrigger value="evaluation">ارزیابی</TabsTrigger>
         </TabsList>
-        <div className="flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <PersianDatePicker
             value={selectedDate}
             onChange={setSelectedDate}
@@ -227,8 +216,8 @@ export function DataTable({
             className="w-auto"
           />
           <InputGroup className="w-64">
-            <InputGroupInput 
-              placeholder="جستجو در معاملات..." 
+            <InputGroupInput
+              placeholder="جستجو در معاملات..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -240,11 +229,39 @@ export function DataTable({
       </div>
       <TabsContent
         value="all"
-        className="relative flex flex-col gap-4 overflow-auto mx-4 p-4 lg:mx-6 lg:p-6 bg-[#F6F6F6] rounded-lg"
+        className="relative flex flex-col gap-4 overflow-auto mx-4 p-7 space-y-10 lg:mx-6 lg:p-6 bg-[#F6F6F6] rounded-lg"
       >
-         <div className="text-primary hidden flex-1 lg:flex justify-end">
+        <div className="flex justify-center lg:justify-between">
+
+          <Tabs defaultValue="ongoing" dir="rtl">
+            <TabsList className="bg-white mx-auto lg:mx-0">
+              <TabsTrigger className="data-[state=active]:bg-black" value="ongoing">در حال برگزاری</TabsTrigger>
+              <TabsTrigger className="data-[state=active]:bg-black" value="upcoming">در انتظار برگزاری</TabsTrigger>
+              <TabsTrigger className="data-[state=active]:bg-black" value="completed">برگزارشده</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="text-primary hidden flex-1 lg:flex justify-end">
             {toPersianNumbers(data.length.toString())} معامله
           </div>
+        </div>
+        <div className="flex lg:hidden items-center justify-between gap-2">
+          <PersianDatePicker
+            value={selectedDate}
+            onChange={setSelectedDate}
+            placeholder="تاریخ"
+            className="w-auto"
+          />
+          <InputGroup className="w-64 bg-white">
+            <InputGroupInput
+              placeholder="جستجو در معاملات..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <InputGroupAddon className="pr-3 pl-1">
+              <Search />
+            </InputGroupAddon>
+          </InputGroup>
+        </div>
         <div className="flex flex-col gap-4">
           {paginatedData.length > 0 ? (
             paginatedData.map((item) => (
@@ -258,10 +275,13 @@ export function DataTable({
         </div>
         <div className="flex items-center justify-end px-4">
           <div className="flex w-full items-center gap-8 lg:w-fit">
-            <Pagination dir="ltr">
+            <div className="text-primary flex-1 flex lg:hidden justify-start">
+            {toPersianNumbers(data.length.toString())} معامله
+          </div>
+            <Pagination dir="ltr" className="w-auto justify-start">
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
+                  <PaginationPrevious
                     onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
                     aria-disabled={!canPreviousPage}
                     className={`border border-[#E4E4E7] ${!canPreviousPage ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
@@ -283,7 +303,7 @@ export function DataTable({
                   </PaginationItem>
                 ))}
                 <PaginationItem>
-                  <PaginationNext 
+                  <PaginationNext
                     onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
                     aria-disabled={!canNextPage}
                     className={`border border-[#E4E4E7] ${!canNextPage ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
