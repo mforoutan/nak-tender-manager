@@ -1,33 +1,19 @@
 "use client"
 
 import * as React from "react"
-import {
-  IconCircleCheckFilled,
-  IconLoader,
-} from "@tabler/icons-react"
-import { AwardIcon, MilestoneIcon, Calendar1Icon, Search } from "lucide-react"
+import { AwardIcon, MilestoneIcon, Calendar1Icon, Search, SearchCheckIcon, GavelIcon, StickerIcon, Clock, MegaphoneIcon } from "lucide-react"
+
 import { z } from "zod"
 
 import { toPersianNumbers } from "@/lib/utils"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardHeader,
 } from "@/components/ui/card"
-import {
-  ChartConfig,
-} from "@/components/ui/chart"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Tabs,
   TabsContent,
@@ -61,6 +47,13 @@ export const schema = z.object({
   code: z.string(),
 })
 
+
+export type TabConfig = {
+  value: string
+  label: string
+  typeFilter?: string
+}
+
 // Helper function to convert Gregorian date to Persian calendar
 function toPersianDate(dateString: string): string {
   const date = new Date(dateString)
@@ -71,28 +64,79 @@ function toPersianDate(dateString: string): string {
   }).format(date)
 }
 
+function CardIcon({ type, status }: { type: string, status: string }) {
+  if (type === "قرارداد") {
+    return (
+      <div className="bg-[#FF00DD] text-white rounded-full p-3">
+        <StickerIcon />
+      </div>
+    )
+  }
+  if (type === "ارزیابی") {
+    return (
+      <div className="bg-[#0088FF] text-white rounded-full p-3">
+        <Clock />
+      </div>
+    )
+  }
+  if (type === "فراخوان") {
+    return (
+      <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
+        <MegaphoneIcon />
+      </div>
+    )
+  }
+  if (type === "استعلام") {
+    return (
+      <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
+        <SearchCheckIcon />
+      </div>
+    )
+  }
+  if (type === "مزایده") {
+    return (
+      <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
+        <GavelIcon />
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
+      <AwardIcon />
+    </div>
+  )
+}
+
 function DataCard({ item }: { item: z.infer<typeof schema> }) {
   return (
     <Card className="overflow-hidden pl-14 pr-14  py-6 lg:pr-22 relative gap-1 hover:bg-[#FFF4F0]">
       <div className="absolute inset-y-0 right-0 hidden lg:flex items-center pr-6">
-        <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
-          <AwardIcon />
-        </div>
+        <CardIcon type={item.type} status={item.status} />
       </div>
       <CardHeader className="px-0">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-wrap flex-1 gap-2">
-            <Link href={`/tenders/${item.id}`} className="w-full lg:flex-none text-lg font-semibold hover:underline">
-              <h3 className="inline">
-                {item.title}
-              </h3>
-            </Link>
-            <div className="flex flex-1 gap-2 order-first lg:order-last">
-              <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
-                {item.type}
-              </Badge>
-              <Badge variant="outline" className="text-black rounded-md px-2">
-                {toPersianNumbers(item.code)}
+          <div className="flex flex-1 justify-between">
+            <div className="flex flex-col lg:flex-row flex-1 gap-2">
+              <Link href={`/tenders/${item.id}`} className="text-lg font-semibold hover:underline">
+                <h3 className="inline">
+                  {item.title}
+                </h3>
+              </Link>
+              <div className="flex gap-2 order-first lg:order-last">
+                {/* item type is one of these three مناقصه استعلام فراخوان */}
+                <Badge variant="outline" className={`${item.type in ["مناقصه", "استعلام", "فراخوان"] ?'text-primary border-[#FFDED0] bg-[#FFF4F0]': 'text-black border border-[#E4E4E7] bg-white'} rounded-md px-2`}>
+                  {item.type}
+                </Badge>
+                <Badge variant="outline" className="text-black rounded-md px-2">
+                  {toPersianNumbers(item.code)}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <p className="text-sm">وضعیت معامله: </p>
+              <Badge variant="outline" className={`text-white rounded-md px-2`}>
+                {item.status}
               </Badge>
             </div>
           </div>
@@ -116,13 +160,23 @@ function DataCard({ item }: { item: z.infer<typeof schema> }) {
 export function DataTable({
   data: initialData,
   itemsPerPage = 10,
+  tabs = [
+    { value: "all", label: "همه" },
+    { value: "tender", label: "مناقصه", typeFilter: "مناقصه عمومی" },
+    { value: "inquiry", label: "استعلام", typeFilter: "استعلام" },
+    { value: "call", label: "فراخوان", typeFilter: "فراخوان" },
+    { value: "evaluation", label: "ارزیابی", typeFilter: "ارزیابی" },
+  ],
 }: {
   data: z.infer<typeof schema>[]
   itemsPerPage?: number
+  tabs?: TabConfig[]
 }) {
   const [data, setData] = React.useState(() => initialData)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedDate, setSelectedDate] = React.useState("")
+  const [statusFilter, setStatusFilter] = React.useState<string>("ongoing")
+  const [typeFilter, setTypeFilter] = React.useState<string>(tabs[0]?.value || "all")
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: itemsPerPage,
@@ -136,16 +190,26 @@ export function DataTable({
         item.category.includes(searchQuery)
 
       const matchesDate = selectedDate === "" || item.endDate === selectedDate
+      const matchesStatus = item.status === statusFilter
 
-      return matchesSearch && matchesDate
+      // Find the current tab configuration
+      const currentTab = tabs.find(tab => tab.value === typeFilter)
+      const matchesType = !currentTab?.typeFilter || item.type === currentTab.typeFilter
+
+      return matchesSearch && matchesDate && matchesStatus && matchesType
     })
-  }, [data, searchQuery, selectedDate])
+  }, [data, searchQuery, selectedDate, statusFilter, typeFilter, tabs])
 
   const paginatedData = React.useMemo(() => {
     const start = pagination.pageIndex * pagination.pageSize
     const end = start + pagination.pageSize
     return filteredData.slice(start, end)
   }, [filteredData, pagination])
+
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+  }, [searchQuery, selectedDate, statusFilter, typeFilter])
 
   const pageCount = Math.ceil(filteredData.length / pagination.pageSize)
   const canPreviousPage = pagination.pageIndex > 0
@@ -191,7 +255,9 @@ export function DataTable({
   return (
     <Tabs
       dir="rtl"
-      defaultValue="all"
+      defaultValue={tabs[0]?.value || "all"}
+      value={typeFilter}
+      onValueChange={setTypeFilter}
       className="w-full flex-col justify-start gap-6"
     >
       <div className="flex items-center justify-between px-4 lg:px-6">
@@ -199,14 +265,11 @@ export function DataTable({
           View
         </Label>
         <TabsList className="bg-transparent flex mx-auto lg:mx-0 **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1">
-          <TabsTrigger value="all">همه</TabsTrigger>
-          <TabsTrigger value="tender">
-            مناقصه
-          </TabsTrigger>
-          <TabsTrigger value="inquiry">
-            استعلام
-          </TabsTrigger>
-          <TabsTrigger value="evaluation">ارزیابی</TabsTrigger>
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
         <div className="hidden lg:flex items-center gap-2">
           <PersianDatePicker
@@ -227,129 +290,97 @@ export function DataTable({
           </InputGroup>
         </div>
       </div>
-      <TabsContent
-        value="all"
-        className="relative flex flex-col gap-4 overflow-auto mx-4 p-7 space-y-10 lg:mx-6 lg:p-6 bg-[#F6F6F6] rounded-lg"
-      >
-        <div className="flex justify-center lg:justify-between">
-
-          <Tabs defaultValue="ongoing" dir="rtl">
-            <TabsList className="bg-white mx-auto lg:mx-0">
-              <TabsTrigger className="data-[state=active]:bg-black" value="ongoing">در حال برگزاری</TabsTrigger>
-              <TabsTrigger className="data-[state=active]:bg-black" value="upcoming">در انتظار برگزاری</TabsTrigger>
-              <TabsTrigger className="data-[state=active]:bg-black" value="completed">برگزارشده</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="text-primary hidden flex-1 lg:flex justify-end">
-            {toPersianNumbers(data.length.toString())} معامله
-          </div>
-        </div>
-        <div className="flex lg:hidden items-center justify-between gap-2">
-          <PersianDatePicker
-            value={selectedDate}
-            onChange={setSelectedDate}
-            placeholder="تاریخ"
-            className="w-auto"
-          />
-          <InputGroup className="w-64 bg-white">
-            <InputGroupInput
-              placeholder="جستجو در معاملات..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <InputGroupAddon className="pr-3 pl-1">
-              <Search />
-            </InputGroupAddon>
-          </InputGroup>
-        </div>
-        <div className="flex flex-col gap-4">
-          {paginatedData.length > 0 ? (
-            paginatedData.map((item) => (
-              <DataCard key={item.id} item={item} />
-            ))
-          ) : (
-            <div className="col-span-full flex h-24 items-center justify-center rounded-lg border border-dashed">
-              <p className="text-muted-foreground">نتیجه‌ای یافت نشد.</p>
+      {tabs.map((tab) => (
+        <TabsContent
+          key={tab.value}
+          value={tab.value}
+          className="relative flex flex-col gap-4 overflow-auto mx-4 p-7 space-y-10 lg:mx-6 lg:p-6 bg-[#F6F6F6] rounded-lg"
+        >
+          <div className="flex justify-center lg:justify-between">
+            <Tabs value={statusFilter} onValueChange={setStatusFilter} dir="rtl">
+              <TabsList className="bg-white mx-auto lg:mx-0">
+                <TabsTrigger className="data-[state=active]:bg-black" value="ongoing">در حال برگزاری</TabsTrigger>
+                <TabsTrigger className="data-[state=active]:bg-black" value="upcoming">در انتظار برگزاری</TabsTrigger>
+                <TabsTrigger className="data-[state=active]:bg-black" value="completed">برگزارشده</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="text-primary hidden flex-1 lg:flex justify-end">
+              {toPersianNumbers(filteredData.length.toString())} معامله
             </div>
-          )}
-        </div>
-        <div className="flex items-center justify-end px-4">
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="text-primary flex-1 flex lg:hidden justify-start">
-            {toPersianNumbers(data.length.toString())} معامله
           </div>
-            <Pagination dir="ltr" className="w-auto justify-start">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
-                    aria-disabled={!canPreviousPage}
-                    className={`border border-[#E4E4E7] ${!canPreviousPage ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
-                  />
-                </PaginationItem>
-                {getPageNumbers().map((page, index) => (
-                  <PaginationItem key={index}>
-                    {page === 'ellipsis' ? (
-                      <PaginationEllipsis />
-                    ) : (
-                      <PaginationLink
-                        onClick={() => setPagination((prev) => ({ ...prev, pageIndex: page - 1 }))}
-                        isActive={pagination.pageIndex + 1 === page}
-                        className={`border border-[#E4E4E7]  cursor-pointer aria-[current=page]:bg-primary aria-[current=page]:text-white`}
-                      >
-                        {toPersianNumbers(page.toString())}
-                      </PaginationLink>
-                    )}
+          <div className="flex lg:hidden items-center justify-between gap-2">
+            <PersianDatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+              placeholder="تاریخ"
+              className="w-auto"
+            />
+            <InputGroup className="w-64 bg-white">
+              <InputGroupInput
+                placeholder="جستجو در معاملات..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <InputGroupAddon className="pr-3 pl-1">
+                <Search />
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
+          <div className="flex flex-col gap-4">
+            {paginatedData.length > 0 ? (
+              paginatedData.map((item) => (
+                <DataCard key={item.id} item={item} />
+              ))
+            ) : (
+              <div className="col-span-full flex h-24 items-center justify-center rounded-lg border border-dashed">
+                <p className="text-muted-foreground">نتیجه‌ای یافت نشد.</p>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center justify-end px-4">
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              <div className="text-primary flex-1 flex lg:hidden justify-start">
+                {toPersianNumbers(filteredData.length.toString())} معامله
+              </div>
+              <Pagination dir="ltr" className="w-auto justify-start">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
+                      aria-disabled={!canPreviousPage}
+                      className={`border border-[#E4E4E7] ${!canPreviousPage ? "hidden" : "cursor-pointer"}`}
+                    />
                   </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
-                    aria-disabled={!canNextPage}
-                    className={`border border-[#E4E4E7] ${!canNextPage ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+                  {getPageNumbers().map((page, index) => (
+                    <PaginationItem key={index}>
+                      {page === 'ellipsis' ? (
+                        <PaginationEllipsis />
+                      ) : (
+                        <PaginationLink
+                          onClick={() => setPagination((prev) => ({ ...prev, pageIndex: page - 1 }))}
+                          isActive={pagination.pageIndex + 1 === page}
+                          className={`border border-[#E4E4E7]  cursor-pointer aria-[current=page]:bg-primary aria-[current=page]:text-white`}
+                        >
+                          {toPersianNumbers(page.toString())}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
+                      aria-disabled={!canNextPage}
+                      className={`border border-[#E4E4E7] ${!canNextPage ? "hidden" : "cursor-pointer"}`}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
-        </div>
-      </TabsContent>
-      <TabsContent
-        value="tender"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="inquiry" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent
-        value="evaluation"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
+        </TabsContent>
+      ))}
     </Tabs>
   )
 }
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig
 
