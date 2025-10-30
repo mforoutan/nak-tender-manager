@@ -70,9 +70,9 @@ export function NavMain({
                   asChild
                   isActive={pathname === item.url}
                 >
-                  <Link href={item.url}>
-                    {item.icon && <DynamicIcon name={item.icon} />}
-                    <span>{item.title}</span>
+                  <Link href={item.url} className='flex justify-between'>
+                      {item.icon && <DynamicIcon name={item.icon} />}
+                      <span className='flex-1 text-right'>{item.title}</span>
                     {showBadge && (
                       <Badge
                         className="rounded-md text-xs bg-red-500/5 text-red-500 hover:bg-red-500/5"

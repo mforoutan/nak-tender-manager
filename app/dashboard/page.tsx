@@ -9,9 +9,10 @@ import { TaskStatusDialog } from "@/components/task-status-dialog"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
+import { YourDeals } from "@/components/your-deals"
+import { NewsEvents } from "@/components/news-events"
 
 import data from "./data.json"
-import YourDeals from "@/components/your-deals"
 
 interface DashboardPageProps {
   accountStatus?: {
@@ -27,9 +28,9 @@ export default function DashboardPage({ accountStatus, isCheckingStatus }: Dashb
   const isVerified = !isCheckingStatus && accountStatus && accountStatus.status === 'COMPLETED';
 
   return (
-    <>
+    <section className="space-y-10">
       <h1 className="px-4 lg:px-6 font-medium text-xl">داشبورد</h1>
-      
+
       <div className="px-4 lg:px-6">
         {showAlert && (
           <Alert className="text-red-700 bg-red-50 border-red-200">
@@ -37,12 +38,12 @@ export default function DashboardPage({ accountStatus, isCheckingStatus }: Dashb
             <AlertTitle>حساب کاربری غیرفعال</AlertTitle>
             <AlertDescription>
               <p className="mb-3">
-                {accountStatus?.status === 'REJECTED' 
+                {accountStatus?.status === 'REJECTED'
                   ? 'حساب کاربری شما غیرفعال است. اطلاعات ارسالی نیاز به اصلاح دارد.'
                   : 'حساب کاربری شما غیرفعال است. برای فعال‌سازی، لطفاً اطلاعات خود را تکمیل کنید.'}
               </p>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="default"
                 onClick={() => window.location.href = "/dashboard/account"}
               >
@@ -73,14 +74,11 @@ export default function DashboardPage({ accountStatus, isCheckingStatus }: Dashb
         )}
       </div>
 
-      
+
       <SectionCards />
       <YourDeals />
-      {/*
-      <div className="px-4 lg:px-6">
-        <ChartAreaInteractive />
-      </div> */}
       <DataTable data={data} itemsPerPage={4} />
-    </>
+      <NewsEvents />
+    </section>
   )
 }
