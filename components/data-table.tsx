@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/pagination"
 import Link from "next/link"
 import { PersianDatePicker } from "@/components/ui/persian-date-picker"
+import { tr } from "date-fns/locale"
 
 export const schema = z.object({
   id: z.number(),
@@ -108,7 +109,45 @@ function CardIcon({ type, status }: { type: string, status: string }) {
   )
 }
 
-function DataCard({ item }: { item: z.infer<typeof schema> }) {
+function StatusBadge({ status, type }: { status: string, type: string }) {
+  if (type === "ارزیابی") {
+    return (
+      <div className="flex items-center gap-1">
+        <Badge variant="outline" className={`bg-[#0088FF] text-white rounded-full px-2`}>
+          {status}
+        </Badge>
+      </div>
+    );
+  }
+  if (status === "واجد شرایط" || status === "جاری") {
+    return (
+      <div className="flex items-center gap-1">
+        <Badge variant="outline" className={`bg-[#0088FF] text-white rounded-full px-2`}>
+          {status}
+        </Badge>
+      </div>
+    );
+  }
+  if (status === "منعقد") {
+    return (
+      <div className="flex items-center gap-1">
+        <Badge variant="outline" className={`bg-[#FF00DD] text-white rounded-full px-2`}>
+          {status}
+        </Badge>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <Badge variant="outline" className={`bg-gray-500 text-white rounded-full px-2`}>
+        {status}
+      </Badge>
+    </div>
+  );
+}
+
+function DataCard({ item, showStatus = false }: { item: z.infer<typeof schema>, showStatus: boolean }) {
   return (
     <Card className="overflow-hidden pl-14 pr-14  py-6 lg:pr-22 relative gap-1 hover:bg-[#FFF4F0]">
       <div className="absolute inset-y-0 right-0 hidden lg:flex items-center pr-6">
@@ -124,8 +163,7 @@ function DataCard({ item }: { item: z.infer<typeof schema> }) {
                 </h3>
               </Link>
               <div className="flex gap-2 order-first lg:order-last">
-                {/* item type is one of these three مناقصه استعلام فراخوان */}
-                <Badge variant="outline" className={`${item.type in ["مناقصه", "استعلام", "فراخوان"] ?'text-primary border-[#FFDED0] bg-[#FFF4F0]': 'text-black border border-[#E4E4E7] bg-white'} rounded-md px-2`}>
+                <Badge variant="outline" className={`${item.type in ["مناقصه", "استعلام", "فراخوان"] ? 'text-primary border-[#FFDED0] bg-[#FFF4F0]' : 'text-black border border-[#E4E4E7] bg-transparent'} rounded-md px-2`}>
                   {item.type}
                 </Badge>
                 <Badge variant="outline" className="text-black rounded-md px-2">
@@ -133,12 +171,9 @@ function DataCard({ item }: { item: z.infer<typeof schema> }) {
                 </Badge>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              <p className="text-sm">وضعیت معامله: </p>
-              <Badge variant="outline" className={`text-white rounded-md px-2`}>
-                {item.status}
-              </Badge>
-            </div>
+            {showStatus && (
+              <StatusBadge status={item.status} type={item.type} />
+            )}
           </div>
         </div>
       </CardHeader>
@@ -329,7 +364,7 @@ export function DataTable({
           <div className="flex flex-col gap-4">
             {paginatedData.length > 0 ? (
               paginatedData.map((item) => (
-                <DataCard key={item.id} item={item} />
+                <DataCard key={item.id} item={item} showStatus={true} />
               ))
             ) : (
               <div className="col-span-full flex h-24 items-center justify-center rounded-lg border border-dashed">

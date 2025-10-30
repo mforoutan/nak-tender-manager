@@ -173,11 +173,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavTenders items={data.navTenders} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      {/* <SidebarFooter>
-      </SidebarFooter> */}
-      {/* <div className="absolute inset-0">
-      <Image src="/nak.svg" width={100} height={100} alt="NAK" className="mx-auto mb-4" />
-      </div> */}
     </Sidebar>
   )
 }

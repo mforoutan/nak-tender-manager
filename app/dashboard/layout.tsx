@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Toaster } from "sonner"
 import React from "react"
+import Image from "next/image"
 
 export default function DashboardLayout({ children }: React.PropsWithChildren<{}>) {
   const [accountStatus, setAccountStatus] = useState<{
@@ -19,7 +20,7 @@ export default function DashboardLayout({ children }: React.PropsWithChildren<{}
     status: null
   });
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
-  
+
   useEffect(() => {
     const checkAccountStatus = async () => {
       try {
@@ -40,7 +41,7 @@ export default function DashboardLayout({ children }: React.PropsWithChildren<{}
 
     checkAccountStatus();
   }, []);
-  
+
   return (
     <SidebarProvider
       style={
@@ -50,8 +51,9 @@ export default function DashboardLayout({ children }: React.PropsWithChildren<{}
         } as React.CSSProperties
       }
     >
+      
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="bg-[url(/bg.svg)] bg-no-repeat bg-left-top">
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
@@ -66,9 +68,9 @@ export default function DashboardLayout({ children }: React.PropsWithChildren<{}
           </div>
         </div>
       </SidebarInset>
-      <Toaster 
-        position="top-center" 
-        richColors 
+      <Toaster
+        position="top-center"
+        richColors
         toastOptions={{
           style: {
             fontFamily: 'Vazirmatn, sans-serif',

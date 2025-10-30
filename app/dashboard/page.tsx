@@ -11,6 +11,7 @@ import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
 
 import data from "./data.json"
+import YourDeals from "@/components/your-deals"
 
 interface DashboardPageProps {
   accountStatus?: {
@@ -73,7 +74,9 @@ export default function DashboardPage({ accountStatus, isCheckingStatus }: Dashb
       </div>
 
       
-      {/* <SectionCards />
+      <SectionCards />
+      <YourDeals />
+      {/*
       <div className="px-4 lg:px-6">
         <ChartAreaInteractive />
       </div> */}
