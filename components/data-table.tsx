@@ -202,10 +202,14 @@ export function DataTable({
     { value: "call", label: "فراخوان", typeFilter: "فراخوان" },
     { value: "evaluation", label: "ارزیابی", typeFilter: "ارزیابی" },
   ],
+  showStatusFilter = true,
+  showStatus = true,
 }: {
   data: z.infer<typeof schema>[]
   itemsPerPage?: number
-  tabs?: TabConfig[]
+  tabs?: TabConfig[],
+  showStatusFilter?: boolean,
+  showStatus?: boolean
 }) {
   const [data, setData] = React.useState(() => initialData)
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -329,20 +333,22 @@ export function DataTable({
         <TabsContent
           key={tab.value}
           value={tab.value}
-          className="relative flex flex-col gap-4 overflow-auto mx-4 p-7 space-y-10 lg:mx-6 lg:p-6 bg-[#F6F6F6] rounded-lg"
+          className="relative flex flex-col gap-4 overflow-auto mx-4 p-7 space-y-10 lg:mx-6 lg:p-12 bg-[#F6F6F6] rounded-lg"
         >
-          <div className="flex justify-center lg:justify-between">
-            <Tabs value={statusFilter} onValueChange={setStatusFilter} dir="rtl">
-              <TabsList className="bg-white mx-auto lg:mx-0">
-                <TabsTrigger className="data-[state=active]:bg-black" value="ongoing">در حال برگزاری</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-black" value="upcoming">در انتظار برگزاری</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-black" value="completed">برگزارشده</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="text-primary hidden flex-1 lg:flex justify-end">
-              {toPersianNumbers(filteredData.length.toString())} معامله
+          {showStatusFilter && (
+            <div className="flex justify-center lg:justify-between">
+              <Tabs value={statusFilter} onValueChange={setStatusFilter} dir="rtl">
+                <TabsList className="bg-white mx-auto lg:mx-0">
+                  <TabsTrigger className="data-[state=active]:bg-black" value="ongoing">در حال برگزاری</TabsTrigger>
+                  <TabsTrigger className="data-[state=active]:bg-black" value="upcoming">در انتظار برگزاری</TabsTrigger>
+                  <TabsTrigger className="data-[state=active]:bg-black" value="completed">برگزارشده</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <div className="text-primary hidden flex-1 lg:flex justify-end">
+                {toPersianNumbers(filteredData.length.toString())} معامله
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex lg:hidden items-center justify-between gap-2">
             <PersianDatePicker
               value={selectedDate}
@@ -364,7 +370,7 @@ export function DataTable({
           <div className="flex flex-col gap-4">
             {paginatedData.length > 0 ? (
               paginatedData.map((item) => (
-                <DataCard key={item.id} item={item} showStatus={true} />
+                <DataCard key={item.id} item={item} showStatus={showStatus} />
               ))
             ) : (
               <div className="col-span-full flex h-24 items-center justify-center rounded-lg border border-dashed">
@@ -373,8 +379,8 @@ export function DataTable({
             )}
           </div>
           <div className="flex items-center justify-end px-4">
-            <div className="flex w-full items-center gap-8 lg:w-fit">
-              <div className="text-primary flex-1 flex lg:hidden justify-start">
+            <div className={`flex w-full items-center gap-8 ${showStatusFilter ? "lg:w-fit" : ""}`}>
+              <div className={`text-primary flex-1 ${showStatusFilter ? "flex lg:hidden" : "flex"} justify-start`}>
                 {toPersianNumbers(filteredData.length.toString())} معامله
               </div>
               <Pagination dir="ltr" className="w-auto justify-start">
