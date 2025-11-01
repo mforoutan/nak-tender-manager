@@ -8,7 +8,7 @@ function NewsEvents() {
                 اخبار و رویدادها
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4 h-96">
-                <Card className="relative overflow-hidden rounded-lg bg-[url(/news-bg.png)] bg-no-repeat bg-center py-13 px-7">
+                <Card className="relative overflow-hidden rounded-lg bg-[url(/news-bg.png)] bg-cover bg-no-repeat bg-center py-13 px-7">
                     <div className="absolute inset-0 bg-linear-to-br from-[#FDB24A] to-[#EF4844]/90" />
                     <CardHeader className="z-10 p-0">
                         <CardTitle className="text-white text-3xl">
