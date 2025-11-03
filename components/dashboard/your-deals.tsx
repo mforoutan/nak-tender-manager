@@ -1,4 +1,4 @@
-import { Empty, EmptyTitle } from "./ui/empty";
+import { Empty, EmptyTitle } from "../ui/empty";
 
 function YourDeals() {
     return (

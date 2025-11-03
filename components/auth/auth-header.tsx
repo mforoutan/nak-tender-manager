@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LoginDialog } from "@/components/auth/login-dialog";
 
 
-function MainHeader() {
+function AuthHeader() {
     return (
         <div className="relative">
             <div className=" bg-gradient-to-r from-[#FBA149] to-[#C13558] absolute inset-x-0 -z-9 h-4" >
@@ -24,20 +24,12 @@ function MainHeader() {
                         </Link>
                     </div>
                     <div className="flex items-center gap-x-8 text-sm">
-                        <nav dir="rtl" className="flex gap-x-8 text-white">
+                        <nav dir="rtl" className="flex gap-x-8 text-black">
                             <Link href="/">صفحه اصلی</Link>
                             <Link href="/terms">قوانین و مقررات</Link>
                             <Link href="/faq" className="hidden lg:inline">پرسش‌های متداول</Link>
                             <Link href="/en" className="hidden lg:inline">تغییر زبان به EN</Link>
                         </nav>
-                        <div className="hidden lg:flex gap-x-4">
-                            <Link href="/auth" className="block">
-                                <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 shadow-lg">
-                                    ثبت نام
-                                </Button>
-                            </Link>
-                            <LoginDialog />
-                        </div>
                     </div>
                 </header>
             </div>
@@ -45,4 +37,4 @@ function MainHeader() {
     );
 }
 
-export { MainHeader };
+export { AuthHeader };

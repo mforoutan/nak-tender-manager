@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Empty, EmptyContent, EmptyTitle } from "./ui/empty";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
 
 function NewsEvents() {
     return (

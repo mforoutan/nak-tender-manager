@@ -68,10 +68,9 @@ export async function POST(request: NextRequest) {
         NATIONAL_ID as "nationalId",
         EMAIL,
         PHONE,
-        IS_ACTIVE as "isActive"
+        STATUS as "isActive"
       FROM CONTRACTORS
-      WHERE ID = :contractorId
-      AND IS_ACTIVE = 1`,
+      WHERE ID = :contractorId`,
       { contractorId: loginData.contractorId }
     );
 

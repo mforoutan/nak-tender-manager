@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TaskStatusDialog } from "@/components/task-status-dialog"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
-import { YourDeals } from "@/components/your-deals"
-import { NewsEvents } from "@/components/news-events"
+import { TaskStatusDialog } from "@/components/dashboard/task-status-dialog"
+import { ChartAreaInteractive } from "@/components/dashboard/chart-area-interactive"
+import { DataTable } from "@/components/dashboard/data-table"
+import { SectionCards } from "@/components/dashboard/section-cards"
+import { YourDeals } from "@/components/dashboard/your-deals"
+import { NewsEvents } from "@/components/dashboard/news-events"
 
 import data from "./data.json"
 

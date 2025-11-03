@@ -70,12 +70,12 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body className={`${vazirmatn.className} antialiased`}>
-        <ThemeProvider
+        {/* <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-        >
+        > */}
           {children}
           <Toaster
             position="top-center"
@@ -89,7 +89,7 @@ export default function RootLayout({
               },
             }}
           />
-        </ThemeProvider>
+        {/* </ThemeProvider> */}
       </body>
     </html>
   );

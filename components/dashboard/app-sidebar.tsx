@@ -10,9 +10,9 @@ import {
 } from "@tabler/icons-react"
 
 
-import { NavTenders } from "@/components/nav-tenders"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
+import { NavTenders } from "@/components/dashboard/nav-tenders"
+import { NavMain } from "@/components/dashboard/nav-main"
+import { NavSecondary } from "@/components/dashboard/nav-secondary"
 import {
   Sidebar,
   SidebarHeader,

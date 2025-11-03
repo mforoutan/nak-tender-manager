@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/accordion"
 import { Spinner } from "@/components/ui/spinner"
 import { PersianDatePicker } from "@/components/ui/persian-date-picker"
-import { TaskStatusDialog } from "@/components/task-status-dialog"
+import { TaskStatusDialog } from "@/components/dashboard/task-status-dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Dialog,

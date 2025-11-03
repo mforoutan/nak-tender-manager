@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Input } from "@/components/ui/input";
 import { ModeToggle } from "@/components/mode-toggle";
-import { NavUser } from "@/components/nav-user";
+import { NavUser } from "@/components/dashboard/nav-user";
 import Image from "next/image";
 import { DynamicIcon } from "lucide-react/dynamic";
 
