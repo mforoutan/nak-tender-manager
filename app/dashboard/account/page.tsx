@@ -142,6 +142,7 @@ export default function AccountPage({ accountStatus, isCheckingStatus }: Account
             
             setFormData({
               companyName: contractor.COMPANY_NAME || '',
+              companyNameEN: contractor.COMPANY_NAME_EN || '',
               nationalId: contractor.NATIONAL_ID || '',
               economicCode: contractor.ECONOMIC_CODE || '',
               registrationNumber: contractor.REGISTRATION_NUMBER || '',
@@ -159,6 +160,7 @@ export default function AccountPage({ accountStatus, isCheckingStatus }: Account
               branchName: contractor.BRANCH_ACCOUNT || '',
               branchCode: '',
               companyType: '',
+              companyCategory: '',
               ceoFirstName: '',
               ceoLastName: '',
               ceoNationalId: '',

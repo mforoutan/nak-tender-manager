@@ -29,46 +29,45 @@ export interface SessionUser {
 // New interfaces for the contractor registration form
 export interface ContractorMainInfo {
     companyName: string;
+    companyNameEN: string;
     companyType: string;
-    registrationNumber: string;
-    economicCode: string;
+    companyCategory: string;
     nationalId: string;
     establishmentDate: string;
+    economicCode: string;
+    registrationNumber: string;
+    registrationPlace: string;
+    insuranceBranch: string;
 }
 
 export interface ContractorCeoInfo {
-    ceoFirstName: string;
-    ceoLastName: string;
+    ceoFullName: string;
     ceoNationalId: string;
-    ceoBirthDate: string;
     ceoMobile: string;
-    ceoPosition: string;
 }
 
 export interface ContractorContactInfo {
     phone: string;
+    mobile: string;
     fax: string;
-    email: string;
-    address: string;
-    postalCode: string;
     website: string;
+    email: string;
+    province: string;
+    city: string;
+    postalCode: string;
 }
 
 export interface ContractorBankingInfo {
     bankName: string;
+    bankBranch: string;
     accountNumber: string;
-    ibanNumber: string;
-    branchName: string;
-    branchCode: string;
+    shabaNumber: string;
 }
 
 export interface ContractorRepresentativeInfo {
-    repFirstName: string;
-    repLastName: string;
-    repNationalId: string;
+    repFullName: string;
     repPhone: string;
     repEmail: string;
-    repPosition: string;
 }
 
 export interface ContractorFormData extends 

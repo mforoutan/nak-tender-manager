@@ -9,7 +9,7 @@ export function AuthTabs() {
     const [activeTab, setActiveTab] = useState("login");
 
     return (
-        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="login" className="w-full flex-col justify-start gap-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="register" className="w-full flex-col justify-start gap-6">
             <TabsList className="bg-[#EFEFEF] flex mx-auto **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1">
                 <TabsTrigger className="text-lg font-normal py-1.5 px-3" value="register">ثبت‌نام</TabsTrigger>
                 <TabsTrigger className="text-lg font-normal py-1.5 px-3" value="login">ورود</TabsTrigger>
