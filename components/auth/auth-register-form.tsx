@@ -3,10 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
 import { useState } from "react";
-import { CompanyInfoForm } from "@/components/contractor-form";
 import { ContractorFormData } from "@/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+    ContractorFormStep,
+    MobileVerificationStep,
+    FinalConfirmationStep,
+} from "./register-step-cards";
 
 export function AuthRegisterForm() {
     const [currentStep, setCurrentStep] = useState(0);
@@ -117,75 +121,43 @@ export function AuthRegisterForm() {
             setCurrentStep(prev => prev - 1);
         }
     };
+
+    const handleSubmit = () => {
+        // Implement registration submission logic
+        toast.success("ثبت نام با موفقیت انجام شد");
+    };
     
     return (
         <>
             <h1 className="text-center text-2xl font-bold">به سیستم ثبت نام ناک خوش آمدید</h1>
             <div dir="rtl" className="w-full flex flex-col items-center gap-y-10">
-                <Stepper steps={["اطلاعات شرکت", "تایید شماره موبایل", "تایید نهایی"]} currentStep={currentStep} />
+                <Stepper className="max-w-lg" steps={["اطلاعات شرکت", "تایید شماره موبایل", "انتخاب رمز ورود"]} currentStep={currentStep} />
                 <Card className="w-full p-12" dir="rtl">
                     <CardContent className="p-0">
                         {currentStep === 0 && (
-                            <>
-                                <CardHeader className="text-right">
-                                    <CardTitle>اطلاعات شرکت</CardTitle>
-                                </CardHeader>
-                                <CompanyInfoForm
-                                    formData={formData}
-                                    onFormDataChange={handleFormDataChange}
-                                    isEditable={true}
-                                    uploadedFiles={uploadedFiles}
-                                    uploadProgress={uploadProgress}
-                                    uploadedFileIds={uploadedFileIds}
-                                    onFileChange={handleFileChange}
-                                    onUploadFile={handleUploadFile}
-                                    onDeleteFile={handleDeleteFile}
-                                />
-                                <div className="flex justify-between mt-6">
-                                    <Button variant="outline" disabled>
-                                        مرحله قبل
-                                    </Button>
-                                    <Button onClick={handleNextStep}>
-                                        مرحله بعد
-                                    </Button>
-                                </div>
-                            </>
+                            <ContractorFormStep
+                                formData={formData}
+                                onFormDataChange={handleFormDataChange}
+                                uploadedFiles={uploadedFiles}
+                                uploadProgress={uploadProgress}
+                                uploadedFileIds={uploadedFileIds}
+                                onFileChange={handleFileChange}
+                                onUploadFile={handleUploadFile}
+                                onDeleteFile={handleDeleteFile}
+                                onNext={handleNextStep}
+                            />
                         )}
                         {currentStep === 1 && (
-                            <>
-                                <CardHeader className="text-right">
-                                    <CardTitle>تایید شماره موبایل</CardTitle>
-                                </CardHeader>
-                                <div className="flex items-center justify-center py-12">
-                                    <p className="text-muted-foreground">مرحله تایید شماره موبایل</p>
-                                </div>
-                                <div className="flex justify-between mt-6">
-                                    <Button variant="outline" onClick={handlePreviousStep}>
-                                        مرحله قبل
-                                    </Button>
-                                    <Button onClick={handleNextStep}>
-                                        مرحله بعد
-                                    </Button>
-                                </div>
-                            </>
+                            <MobileVerificationStep
+                                onNext={handleNextStep}
+                                onPrevious={handlePreviousStep}
+                            />
                         )}
                         {currentStep === 2 && (
-                            <>
-                                <CardHeader className="text-right">
-                                    <CardTitle>تایید نهایی</CardTitle>
-                                </CardHeader>
-                                <div className="flex items-center justify-center py-12">
-                                    <p className="text-muted-foreground">مرحله تایید نهایی</p>
-                                </div>
-                                <div className="flex justify-between mt-6">
-                                    <Button variant="outline" onClick={handlePreviousStep}>
-                                        مرحله قبل
-                                    </Button>
-                                    <Button>
-                                        ثبت نام
-                                    </Button>
-                                </div>
-                            </>
+                            <FinalConfirmationStep
+                                onSubmit={handleSubmit}
+                                onPrevious={handlePreviousStep}
+                            />
                         )}
                     </CardContent>
                 </Card>

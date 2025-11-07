@@ -23,7 +23,7 @@ import {
 interface PersianDatePickerProps {
   value: string
   onChange: (date: string) => void
-  placeholder: string
+  placeholder?: string
   className?: string
   id?: string
   disabled?: boolean
@@ -56,7 +56,7 @@ export function PersianDatePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full justify-start text-right font-normal",
+            "w-full justify-between text-right font-normal",
             !value && "text-muted-foreground",
             className
           )}

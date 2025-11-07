@@ -2,16 +2,17 @@
 
 import * as React from "react"
 import { Check } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, toPersianNumbers } from "@/lib/utils"
 
 interface StepperProps {
   steps: string[]
   currentStep: number
+  className?: string
 }
 
-export function Stepper({ steps, currentStep }: StepperProps) {
+export function Stepper({ steps, currentStep, className }: StepperProps) {
   return (
-    <div className="w-full">
+    <div className={cn("w-full", className)}>
       <div className="flex items-center justify-between">
         {steps.map((step, index) => {
           const isCompleted = index < currentStep
@@ -23,22 +24,22 @@ export function Stepper({ steps, currentStep }: StepperProps) {
               <div className="flex flex-col items-center flex-1">
                 <div
                   className={cn(
-                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors",
+                    "flex items-center justify-center w-10 h-10 rounded-full shadow-md border-2 transition-colors",
                     isCompleted && "bg-green-500 border-green-500 text-white",
-                    isCurrent && !isCompleted && "border-primary bg-primary text-primary-foreground",
-                    !isCurrent && !isCompleted && "border-gray-300 bg-white text-gray-400"
+                    isCurrent && !isCompleted && "border-transparent bg-green-100 text-black",
+                    !isCurrent && !isCompleted && "border-transparent bg-white text-muted-foreground"
                   )}
                 >
                   {isCompleted ? (
                     <Check className="h-5 w-5" />
                   ) : (
-                    <span className="text-sm font-medium">{index + 1}</span>
+                    <span className="text-sm font-medium">{toPersianNumbers((index + 1).toString())}</span>
                   )}
                 </div>
                 <p
                   className={cn(
-                    "mt-2 text-xs text-center transition-colors",
-                    (isCurrent || isCompleted) ? "text-foreground font-medium" : "text-muted-foreground"
+                    "mt-2 font-bold text-xs text-center transition-colors",
+                    isCompleted ? "text-green-500" : isCurrent ? "text-black" : "text-muted-foreground"
                   )}
                 >
                   {step}

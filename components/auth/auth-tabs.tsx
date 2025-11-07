@@ -6,7 +6,7 @@ import { AuthLoginForm } from "@/components/auth/auth-login-form";
 import { AuthRegisterForm } from "@/components/auth/auth-register-form";
 
 export function AuthTabs() {
-    const [activeTab, setActiveTab] = useState("login");
+    const [activeTab, setActiveTab] = useState("register");
 
     return (
         <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="register" className="w-full flex-col justify-start gap-6">
