@@ -35,13 +35,13 @@ function SectionCards() {
     return (
         <div className="mx-auto max-w-full flex flex-col lg:flex-row justify-center gap-x-12 gap-y-3">
             {data.map((section) => (
-                <div className="bg-white py-6 px-16 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.07)]" key={section.name}>
+                <div className="bg-white py-6 px-16 rounded-xl shadow-card-small" key={section.name}>
                     <div className="space-y-5">
                         <div className="flex flex-col gap-y-5 items-center font-bold">
-                            <div className={`w-fit p-4 rounded-lg text-white shadow-lg`} style={{ backgroundColor: section.color }}>
+                            <div className={`w-fit p-4 rounded-lg text-white shadow-icon`} style={{ backgroundColor: section.color }}>
                                 <section.icon size={24} />
                             </div>
-                            <span>
+                            <span className="text-tertiary-color">
                                 {section.name}
                             </span>
                         </div>

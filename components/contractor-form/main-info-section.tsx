@@ -137,7 +137,7 @@ export function MainInfoSection({
                                 id="establishmentDate"
                                 value={formData.establishmentDate}
                                 onChange={(date) => onFormDataChange("establishmentDate", date)}
-
+                                className="h-full"
                                 disabled={!isEditable}
                             />
                         </Field>

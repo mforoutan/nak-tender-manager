@@ -66,7 +66,7 @@ function LoginDialog({ buttonSize = "default" }: { buttonSize?: "sm" | "default"
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button size={buttonSize} variant="default" className={`bg-white text-black hover:bg-white/90 shadow-lg`}>
+                <Button size={buttonSize} variant="default" className={`bg-white text-black hover:bg-white/90 shadow-drop`}>
                     ورود
                 </Button>
             </DialogTrigger>

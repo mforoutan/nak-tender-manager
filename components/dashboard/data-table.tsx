@@ -157,7 +157,7 @@ function DataCard({ item, showStatus = false }: { item: z.infer<typeof schema>, 
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-1 justify-between">
             <div className="flex flex-col lg:flex-row flex-1 gap-2">
-              <Link href={`/tenders/${item.id}`} className="text-lg font-semibold hover:underline">
+              <Link href={`/tenders/${item.id}`} className="text-sm font-bold">
                 <h3 className="inline">
                   {item.title}
                 </h3>
@@ -303,9 +303,9 @@ export function DataTable({
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
-        <TabsList className="bg-transparent flex mx-auto lg:mx-0 **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1">
+        <TabsList className="bg-transparent flex mx-auto gap-[18px] lg:mx-0 **:data-[slot=tabs-trigger]:rounded-lg **:data-[slot=tabs-trigger]:px-xs **:data-[slot=tabs-trigger]:py-1.5">
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
+            <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:shadow-sm flex font-semibold box-content text-lg text-muted-foreground leading-7">
               {tab.label}
             </TabsTrigger>
           ))}
@@ -315,16 +315,17 @@ export function DataTable({
             value={selectedDate}
             onChange={setSelectedDate}
             placeholder="تاریخ"
-            className="w-auto"
+            className="w-auto gap-x-2 min-h-input-sm rounded-input px-sm py-2.5"
           />
-          <InputGroup className="w-64">
+          <InputGroup className="w-64" size="lg">
             <InputGroupInput
               placeholder="جستجو در معاملات..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="p-0 leading-7 h-7"
             />
-            <InputGroupAddon className="pr-3 pl-1">
-              <Search />
+            <InputGroupAddon className="pl-2 py-0">
+              <Search className="size-4" />
             </InputGroupAddon>
           </InputGroup>
         </div>

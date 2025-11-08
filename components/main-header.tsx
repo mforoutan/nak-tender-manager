@@ -32,7 +32,7 @@ function MainHeader() {
                         </nav>
                         <div className="hidden lg:flex gap-x-4">
                             <Link href="/auth" className="block">
-                                <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 shadow-lg">
+                                <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 shadow-icon">
                                     ثبت نام
                                 </Button>
                             </Link>

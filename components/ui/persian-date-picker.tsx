@@ -20,6 +20,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
+type DatePickerSize = "sm" | "md" | "lg"
+
 interface PersianDatePickerProps {
   value: string
   onChange: (date: string) => void
@@ -27,6 +29,7 @@ interface PersianDatePickerProps {
   className?: string
   id?: string
   disabled?: boolean
+  size?: DatePickerSize
 }
 
 export function PersianDatePicker({
@@ -36,6 +39,7 @@ export function PersianDatePicker({
   className,
   id,
   disabled,
+  size = "sm",
 }: PersianDatePickerProps) {
   const selectedDate = value ? new Date(value) : undefined
 
@@ -48,6 +52,18 @@ export function PersianDatePicker({
     return `${year}-${month}-${day}`
   }
 
+  const sizeClasses = {
+    sm: "h-9 text-sm",
+    md: "h-10 text-base",
+    lg: "h-11 text-lg",
+  }
+
+  const iconSizeClasses = {
+    sm: "size-4",
+    md: "size-4",
+    lg: "size-5",
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -56,16 +72,20 @@ export function PersianDatePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full justify-between text-right font-normal",
+            "w-full font-normal items-center justify-start",
+            sizeClasses[size],
+            // "data-[state=open]:ring-border-primary-default data-[state=open]:ring-2 ring-offset-2",
             !value && "text-muted-foreground",
             className
           )}
         >
-          <CalendarIcon className="ml-2 h-4 w-4" />
-          {value ?
-            toPersianNumbers(format(new Date(value), "yyyy/MM/dd")) :
-            placeholder}
-          <ChevronsUpDownIcon />
+          <CalendarIcon className={iconSizeClasses[size]} />
+          <span>
+            {value ?
+              toPersianNumbers(format(new Date(value), "yyyy/MM/dd")) :
+              placeholder}
+          </span>
+          <ChevronsUpDownIcon className={iconSizeClasses[size]} />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="end">
@@ -122,9 +142,10 @@ function Calendar({
           const persianYear = getJalaliYear(date);
           // Convert to Persian numerals without thousands separator
           // FIX: Use a direct number-to-string conversion to avoid separators
-          return persianYear.toString().split('').map(digit =>
-            '۰۱۲۳۴۵۶۷۸۹'[digit] || digit
-          ).join('');
+          return persianYear.toString().split('').map(digit => {
+            const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+            return persianDigits[parseInt(digit)] || digit;
+          }).join('');
         },
         ...formatters,
       }}
@@ -136,7 +157,7 @@ function Calendar({
         ),
         month: cn("flex flex-col w-full gap-4", defaultClassNames.month),
         nav: cn(
-          "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
+          "flex items-center gap-1 w-full absolute top-2 inset-x-0 justify-between",
           defaultClassNames.nav
         ),
         button_previous: cn(

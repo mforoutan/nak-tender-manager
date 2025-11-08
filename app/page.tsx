@@ -19,7 +19,10 @@ export default function Home() {
       <MainHero />
       <main className="max-w-6xl mx-auto my-20 space-y-24">
         <div className="space-y-10">
-          <DataTable data={data} showStatusFilter={false} showStatus={false} itemsPerPage={4} />
+          <div className="space-y-12">
+            <h3 className="font-medium text-lg px-4 lg:px-6">معاملات موجود</h3>
+            <DataTable data={data} showStatusFilter={false} showStatus={false} itemsPerPage={4} />
+          </div>
           <NewsEvents />
         </div>
       </main>

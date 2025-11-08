@@ -8,23 +8,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
+function InputGroup({ size="md", className, ...props }: {size?: "sm" | "md" | "lg"} & React.ComponentProps<"div">) {
+  const sizes = {
+    sm: "min-h-input-sm h-10 **:[data-slot=input-group-control]:h-5 text-sm",
+    md: "min-h-input-sm h-11 **:[data-slot=input-group-control]:h-6 text-base",
+    lg: "min-h-input-sm h-12 **:[data-slot=input-group-control]:h-7 text-lg",
+  }
+
   return (
     <div
       data-slot="input-group"
       role="group"
       className={cn(
-        "group/input-group border-input dark:bg-input/30 relative flex w-full items-center rounded-md border shadow-xs transition-[color,box-shadow] outline-none",
-        "h-9 min-w-0 has-[>textarea]:h-auto",
-
-        // Variants based on alignment.
-        "has-[>[data-align=inline-start]]:[&>input]:pl-2",
-        "has-[>[data-align=inline-end]]:[&>input]:pr-2",
-        "has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-start]]:[&>input]:pb-3",
-        "has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3",
+        "group/input-group border-border-default dark:bg-input/30 relative flex w-full items-center rounded-input border transition-[color,box-shadow] outline-none ring-offset-2 py-2.5 px-xs gap-2",
+        "min-w-0 has-[>textarea]:h-auto",
+        sizes[size],
 
         // Focus state.
-        "has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot=input-group-control]:focus-visible]:ring-[3px]",
+        "has-[[data-slot=input-group-control]:focus-visible]:ring-border-primary-default has-[[data-slot=input-group-control]:focus-visible]:ring-2",
 
         // Error state.
         "has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-[[data-slot][aria-invalid=true]]:border-destructive dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40",
