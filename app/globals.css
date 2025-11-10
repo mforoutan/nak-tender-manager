@@ -118,10 +118,13 @@
   --color-border-default: rgba(228, 228, 231, 1);
   --color-border-primary-default: rgba(161, 161, 170, 1);
   
+  --text-2.5xl: 28px;
+  
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-input: 6px;
 
+  --spacing-4.5: 18px;
   --spacing-xxs: 2px;
   --spacing-xs: 12px;
   --spacing-sm: 16px;
@@ -132,6 +135,7 @@
   --shadow-card-large: 0px 25px 39.85px 0px rgba(0, 0, 0, 0.2);
   --shadow-icon: 0px 4px 6px -4px rgba(0, 0, 0, 0.1), 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 0px 0px 0px rgba(0, 0, 0, 0), 0px 0px 0px 0px rgba(0, 0, 0, 0);
   --shadow-drop: 0px 1px 2px 0px rgba(0, 0, 0, 0.05), 0px 0px 0px 0px rgba(0, 0, 0, 0), 0px 4px 13.2px 0px rgba(0, 0, 0, 0.07);
+  --shadow-auth-card: 0px 25px 39.85px 0px #00000033;
 }
 
 .text-tertiary-color {
@@ -165,6 +169,23 @@
   .data-\[active\=true\]\:text-sidebar-accent-foreground[data-active="true"] {
     background-color: #000 !important;
     color: #fff !important;
+  }
+
+  /* Shake animation for wrong OTP */
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-4px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(4px);
+    }
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
   }
 
   /* Add to app/globals.css or a component CSS file */

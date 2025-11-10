@@ -109,9 +109,48 @@ export function AuthRegisterForm() {
         toast.success("فایل حذف شد");
     };
 
-    const handleNextStep = () => {
-        // Add validation here before moving to next step
-        if (currentStep < 2) {
+    const handleNextStep = async () => {
+        // Step 0: Send OTP before moving to mobile verification step
+        if (currentStep === 0) {
+            // Validate repPhone before sending OTP
+            if (!formData.repPhone) {
+                toast.error("لطفا شماره همراه نماینده را وارد کنید");
+                return;
+            }
+            
+            if (!/^09\d{9}$/.test(formData.repPhone)) {
+                toast.error("شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد");
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/auth/send-otp", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ mobile: formData.repPhone }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toast.error(data.message || "خطا در ارسال کد تایید");
+                    return;
+                }
+
+                toast.success("کد تایید با موفقیت ارسال شد");
+                
+                // Show dev OTP in development mode
+                if (data.dev_otp) {
+                    toast.info(`کد تایید (توسعه): ${data.dev_otp}`, { duration: 10000 });
+                }
+                
+                setCurrentStep(prev => prev + 1);
+            } catch (error) {
+                toast.error("خطا در اتصال به سرور");
+            }
+        } else if (currentStep < 2) {
             setCurrentStep(prev => prev + 1);
         }
     };
@@ -132,7 +171,7 @@ export function AuthRegisterForm() {
             <h1 className="text-center text-2xl font-bold">به سیستم ثبت نام ناک خوش آمدید</h1>
             <div dir="rtl" className="w-full flex flex-col items-center gap-y-10">
                 <Stepper className="max-w-lg" steps={["اطلاعات شرکت", "تایید شماره موبایل", "انتخاب رمز ورود"]} currentStep={currentStep} />
-                <Card className="w-full p-12" dir="rtl">
+                <Card className="w-full p-12 shadow-auth-card" dir="rtl">
                     <CardContent className="p-0">
                         {currentStep === 0 && (
                             <ContractorFormStep
@@ -149,6 +188,7 @@ export function AuthRegisterForm() {
                         )}
                         {currentStep === 1 && (
                             <MobileVerificationStep
+                                mobile={formData.repPhone}
                                 onNext={handleNextStep}
                                 onPrevious={handlePreviousStep}
                             />

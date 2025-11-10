@@ -72,7 +72,7 @@ export function PersianDatePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full font-normal items-center justify-start",
+            "w-full font-normal items-center justify-between",
             sizeClasses[size],
             // "data-[state=open]:ring-border-primary-default data-[state=open]:ring-2 ring-offset-2",
             !value && "text-muted-foreground",
@@ -80,7 +80,7 @@ export function PersianDatePicker({
           )}
         >
           <CalendarIcon className={iconSizeClasses[size]} />
-          <span>
+          <span className="flex-1 text-right">
             {value ?
               toPersianNumbers(format(new Date(value), "yyyy/MM/dd")) :
               placeholder}
