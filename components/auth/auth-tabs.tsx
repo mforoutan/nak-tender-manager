@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuthLoginForm } from "@/components/auth/auth-login-form";
 import { AuthRegisterForm } from "@/components/auth/auth-register-form";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function AuthTabs() {
     const [activeTab, setActiveTab] = useState("register");
@@ -16,6 +18,9 @@ export function AuthTabs() {
             </TabsList>
             <TabsContent value="login" className="relative flex flex-col items-center gap-4 overflow-auto p-7 space-y-10 lg:mx-6 lg:p-12">
                 <AuthLoginForm onSwitchToRegister={() => setActiveTab("register")} />
+                <Link href={`/`}>
+                    <Button variant={`outline`} className="bg-transparent font-semibold">بازگشت به صفحه اصلی</Button>
+                </Link>
             </TabsContent>
             <TabsContent value="register" className="relative flex flex-col items-center gap-4 overflow-auto p-7 space-y-10 lg:mx-6 lg:p-12">
                 <AuthRegisterForm />

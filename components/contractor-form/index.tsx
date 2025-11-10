@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useImperativeHandle, forwardRef } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ContractorFormData } from "@/types";
 import { MainInfoSection } from "./main-info-section";
@@ -19,9 +19,14 @@ interface CompanyInfoFormProps {
     onFileChange?: (documentId: string, file: File | null) => void;
     onUploadFile?: (documentId: string) => void;
     onDeleteFile?: (documentId: string, fileId?: number) => void;
+    repPhoneInvalid?: boolean;
 }
 
-export function CompanyInfoForm({
+export interface CompanyInfoFormRef {
+    openRepresentativeSection: () => void;
+}
+
+export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormProps>(({
     formData,
     onFormDataChange,
     isEditable = true,
@@ -31,12 +36,24 @@ export function CompanyInfoForm({
     onFileChange,
     onUploadFile,
     onDeleteFile,
-}: CompanyInfoFormProps) {
+    repPhoneInvalid = false,
+}, ref) => {
     const [openSections, setOpenSections] = useState<string[]>(["section-1"]);
 
     const handleAccordionChange = (value: string[]) => {
         setOpenSections(value);
     };
+
+    useImperativeHandle(ref, () => ({
+        openRepresentativeSection: () => {
+            setOpenSections(prev => {
+                if (!prev.includes("section-5")) {
+                    return [...prev, "section-5"];
+                }
+                return prev;
+            });
+        },
+    }));
 
     return (
         <div className="gap-y-4">
@@ -80,12 +97,11 @@ export function CompanyInfoForm({
                     formData={formData}
                     onFormDataChange={onFormDataChange}
                     isEditable={isEditable}
+                    repPhoneInvalid={repPhoneInvalid}
                 />
             </Accordion>
-
-            <div className="text-sm text-slate-500 mt-6">
-                <p>برای تکمیل فرم، لطفاً تمامی بخش‌ها را باز کرده و اطلاعات خواسته شده را تکمیل نمایید.</p>
-            </div>
         </div>
     );
-}
+});
+
+CompanyInfoForm.displayName = "CompanyInfoForm";

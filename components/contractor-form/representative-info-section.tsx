@@ -1,7 +1,7 @@
 "use client";
 
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { UserCog } from "lucide-react";
 import { ContractorFormData } from "@/types";
@@ -10,12 +10,14 @@ interface RepresentativeInfoSectionProps {
     formData: ContractorFormData;
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
+    repPhoneInvalid?: boolean;
 }
 
 export function RepresentativeInfoSection({
     formData,
     onFormDataChange,
     isEditable = true,
+    repPhoneInvalid = false,
 }: RepresentativeInfoSectionProps) {
     return (
         <AccordionItem value="section-5" className="border rounded-md bg-white p-4 mt-3">
@@ -41,14 +43,23 @@ export function RepresentativeInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="repPhone">شماره تماس نماینده</FieldLabel>
+                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="repPhone">
+                                شماره تماس نماینده
+                                <span className="text-red-500 ml-1">*</span>
+                            </FieldLabel>
                             <Input
                                 id="repPhone"
-                                
                                 value={formData.repPhone}
                                 onChange={(e) => onFormDataChange("repPhone", e.target.value)}
                                 disabled={!isEditable}
+                                aria-invalid={repPhoneInvalid}
+                                className={repPhoneInvalid ? "border-destructive" : ""}
                             />
+                            {repPhoneInvalid && (
+                                <FieldDescription className="text-right text-sm text-destructive mt-1">
+                                    لطفا شماره همراه نماینده را وارد کنید
+                                </FieldDescription>
+                            )}
                         </Field>
                     </div>
 

@@ -58,7 +58,7 @@ export function AuthLoginForm({ onSwitchToRegister }: AuthLoginFormProps) {
     };
 
     return (
-        <Card className="w-sm p-12 shadow-auth-card" dir="rtl">
+        <Card className="w-md p-12 shadow-auth-card" dir="rtl">
             <CardContent className="p-0">
                 <CardHeader className="sm:text-center">
                     <CardTitle>ورود به ناک</CardTitle>

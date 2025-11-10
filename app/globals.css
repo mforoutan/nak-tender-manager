@@ -115,6 +115,8 @@
 @theme {
   --color-nak-primary: var(--primary);
   --color-logo-gradient: linear-gradient(116.49deg, #FBA149 16.63%, #C13558 81.53%);
+  --color-success: #34C759;
+  
   --color-border-default: rgba(228, 228, 231, 1);
   --color-border-primary-default: rgba(161, 161, 170, 1);
   

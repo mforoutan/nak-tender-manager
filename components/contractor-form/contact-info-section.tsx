@@ -6,6 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone } from "lucide-react";
 import { ContractorFormData } from "@/types";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+interface Province {
+    id: number;
+    code: string;
+    name: string;
+    isActive: boolean;
+}
+
+interface City {
+    id: number;
+    code: string;
+    name: string;
+    provinceId: number;
+    isActive: boolean;
+}
 
 interface ContactInfoSectionProps {
     formData: ContractorFormData;
@@ -18,6 +35,68 @@ export function ContactInfoSection({
     onFormDataChange,
     isEditable = true,
 }: ContactInfoSectionProps) {
+    const [provinces, setProvinces] = useState<Province[]>([]);
+    const [cities, setCities] = useState<City[]>([]);
+    const [loadingProvinces, setLoadingProvinces] = useState(false);
+    const [loadingCities, setLoadingCities] = useState(false);
+
+    // Fetch provinces on mount
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            setLoadingProvinces(true);
+            try {
+                const response = await fetch("/api/locations/provinces");
+                const data = await response.json();
+
+                if (response.ok) {
+                    setProvinces(data.data);
+                } else {
+                    toast.error(data.error || "خطا در دریافت لیست استان‌ها");
+                }
+            } catch (error) {
+                toast.error("خطا در اتصال به سرور");
+            } finally {
+                setLoadingProvinces(false);
+            }
+        };
+
+        fetchProvinces();
+    }, []);
+
+    // Fetch cities when province changes
+    useEffect(() => {
+        if (!formData.province) {
+            setCities([]);
+            return;
+        }
+
+        const fetchCities = async () => {
+            setLoadingCities(true);
+            try {
+                const response = await fetch(`/api/locations/cities?provinceId=${formData.province}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    setCities(data.data);
+                } else {
+                    toast.error(data.error || "خطا در دریافت لیست شهرها");
+                }
+            } catch (error) {
+                toast.error("خطا در اتصال به سرور");
+            } finally {
+                setLoadingCities(false);
+            }
+        };
+
+        fetchCities();
+    }, [formData.province]);
+
+    // Clear city when province changes
+    const handleProvinceChange = (value: string) => {
+        onFormDataChange("province", value);
+        onFormDataChange("city", ""); // Reset city selection
+    };
+
     return (
         <AccordionItem value="section-3" className="border rounded-md bg-white p-4 mt-3">
             <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
@@ -95,17 +174,18 @@ export function ContactInfoSection({
                             </FieldLabel>
                             <Select
                                 value={formData.province}
-                                onValueChange={(value) => onFormDataChange("province", value)}
-                                disabled={!isEditable}
+                                onValueChange={handleProvinceChange}
+                                disabled={!isEditable || loadingProvinces}
                             >
                                 <SelectTrigger id="province">
-                                    <SelectValue  />
+                                    <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "انتخاب کنید"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="tehran">تهران</SelectItem>
-                                    <SelectItem value="isfahan">اصفهان</SelectItem>
-                                    <SelectItem value="shiraz">شیراز</SelectItem>
-                                    {/* Add more provinces */}
+                                    {provinces.map((province) => (
+                                        <SelectItem key={province.id} value={String(province.id)}>
+                                            {province.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </Field>
@@ -120,15 +200,23 @@ export function ContactInfoSection({
                             <Select
                                 value={formData.city}
                                 onValueChange={(value) => onFormDataChange("city", value)}
-                                disabled={!isEditable}
+                                disabled={!isEditable || !formData.province || loadingCities}
                             >
                                 <SelectTrigger id="city">
-                                    <SelectValue  />
+                                    <SelectValue placeholder={
+                                        loadingCities 
+                                            ? "در حال بارگذاری..." 
+                                            : !formData.province 
+                                                ? "ابتدا استان را انتخاب کنید" 
+                                                : "انتخاب کنید"
+                                    } />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="tehran">تهران</SelectItem>
-                                    <SelectItem value="karaj">کرج</SelectItem>
-                                    {/* Cities should be filtered based on selected province */}
+                                    {cities.map((city) => (
+                                        <SelectItem key={city.id} value={String(city.id)}>
+                                            {city.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </Field>

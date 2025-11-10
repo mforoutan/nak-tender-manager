@@ -17,6 +17,7 @@ export function AuthRegisterForm() {
     const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File | null}>({});
     const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
     const [uploadedFileIds, setUploadedFileIds] = useState<{[key: string]: number}>({});
+    const [repPhoneInvalid, setRepPhoneInvalid] = useState(false);
     
     const [formData, setFormData] = useState<ContractorFormData>({
         // اطلاعات اصلی (Main Information)
@@ -114,14 +115,18 @@ export function AuthRegisterForm() {
         if (currentStep === 0) {
             // Validate repPhone before sending OTP
             if (!formData.repPhone) {
+                setRepPhoneInvalid(true);
                 toast.error("لطفا شماره همراه نماینده را وارد کنید");
                 return;
             }
             
             if (!/^09\d{9}$/.test(formData.repPhone)) {
+                setRepPhoneInvalid(true);
                 toast.error("شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد");
                 return;
             }
+
+            setRepPhoneInvalid(false);
 
             try {
                 const response = await fetch("/api/auth/send-otp", {
@@ -184,6 +189,7 @@ export function AuthRegisterForm() {
                                 onUploadFile={handleUploadFile}
                                 onDeleteFile={handleDeleteFile}
                                 onNext={handleNextStep}
+                                repPhoneInvalid={repPhoneInvalid}
                             />
                         )}
                         {currentStep === 1 && (
