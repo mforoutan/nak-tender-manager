@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import oracledb from "oracledb";
+import { createSession, setSessionCookie } from "@/lib/auth";
+import { SessionUser } from "@/types";
 
 export async function POST(request: NextRequest) {
   let connection;
 
   try {
     const body = await request.json();
+    
+    // Log received data for debugging
+    console.log("=== Signup Request Data ===");
+    console.log(JSON.stringify(body, null, 2));
+    console.log("===========================");
+    
     const {
       // Main Information
       companyName,
@@ -101,11 +110,52 @@ export async function POST(request: NextRequest) {
       return value;
     };
 
+    // Helper function to safely parse integers
+    const parseIntOrNull = (value: any) => {
+      if (!value || value === '') {
+        return null;
+      }
+      const parsed = parseInt(value);
+      return isNaN(parsed) ? null : parsed;
+    };
+
     // Prepare establishment date - handle null/empty values
     let establishmentDateValue = null;
     if (establishmentDate && establishmentDate.trim() !== '') {
       establishmentDateValue = establishmentDate;
     }
+
+    // Prepare bind parameters
+    const bindParams = {
+      companyName: toNullIfEmpty(companyName),
+      companyNameEN: toNullIfEmpty(companyNameEN) || { val: null, type: oracledb.STRING },
+      companyType: parseIntOrNull(companyType) || { val: null, type: oracledb.NUMBER },
+      companyCategory: parseIntOrNull(companyCategory) || { val: null, type: oracledb.NUMBER },
+      nationalId: toNullIfEmpty(nationalId),
+      ...(establishmentDateValue && { establishmentDate: establishmentDateValue }),
+      economicCode: toNullIfEmpty(economicCode) || { val: null, type: oracledb.STRING },
+      registrationNumber: toNullIfEmpty(registrationNumber) || { val: null, type: oracledb.STRING },
+      registrationDate: toNullIfEmpty(registrationPlace) || { val: null, type: oracledb.STRING },
+      insuranceBranch: toNullIfEmpty(insuranceBranch) || { val: null, type: oracledb.STRING },
+      ceoName: toNullIfEmpty(ceoFullName) || { val: null, type: oracledb.STRING },
+      phone: toNullIfEmpty(phone) || { val: null, type: oracledb.STRING },
+      mobile: toNullIfEmpty(repPhone),
+      fax: toNullIfEmpty(fax) || { val: null, type: oracledb.STRING },
+      website: toNullIfEmpty(website) || { val: null, type: oracledb.STRING },
+      email: toNullIfEmpty(repEmail) || { val: null, type: oracledb.STRING },
+      province: parseIntOrNull(province) || { val: null, type: oracledb.NUMBER },
+      city: parseIntOrNull(city) || { val: null, type: oracledb.NUMBER },
+      postalCode: toNullIfEmpty(postalCode) || { val: null, type: oracledb.STRING },
+      bankId: parseIntOrNull(bankName) || { val: null, type: oracledb.NUMBER },
+      branchAccount: toNullIfEmpty(bankBranch) || { val: null, type: oracledb.STRING },
+      bankAccount: toNullIfEmpty(accountNumber) || { val: null, type: oracledb.STRING },
+      shabaNumber: toNullIfEmpty(shabaNumber) || { val: null, type: oracledb.STRING },
+      id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+    };
+
+    console.log("=== Bind Parameters ===");
+    console.log(JSON.stringify(bindParams, null, 2));
+    console.log("=======================");
 
     // Insert contractor - using actual CONTRACTORS table schema
     const contractorResult = await connection.execute(
@@ -159,36 +209,15 @@ export async function POST(request: NextRequest) {
         :branchAccount,
         :bankAccount,
         :shabaNumber,
-        0,
+        1, -- STATUS: 1 = "در انتظار تایید" (Pending Approval) - New contractors await admin approval
         SYSDATE
       ) RETURNING ID INTO :id`,
-      {
-        companyName: toNullIfEmpty(companyName),
-        companyNameEN: toNullIfEmpty(companyNameEN),
-        companyType: companyType && companyType !== '' ? parseInt(companyType) : null,
-        companyCategory: companyCategory && companyCategory !== '' ? parseInt(companyCategory) : null,
-        nationalId: toNullIfEmpty(nationalId),
-        ...(establishmentDateValue && { establishmentDate: establishmentDateValue }),
-        economicCode: toNullIfEmpty(economicCode),
-        registrationNumber: toNullIfEmpty(registrationNumber),
-        registrationDate: toNullIfEmpty(registrationPlace), // Note: registrationPlace from form maps to REGISTRATION_DATE in DB
-        insuranceBranch: toNullIfEmpty(insuranceBranch),
-        ceoName: toNullIfEmpty(ceoFullName),
-        phone: toNullIfEmpty(phone),
-        mobile: toNullIfEmpty(repPhone), // Using representative phone as main mobile
-        fax: toNullIfEmpty(fax),
-        website: toNullIfEmpty(website),
-        email: toNullIfEmpty(repEmail), // Using representative email as main email
-        province: province && province !== '' ? parseInt(province) : null,
-        city: city && city !== '' ? parseInt(city) : null,
-        postalCode: toNullIfEmpty(postalCode),
-        bankId: bankName && bankName !== '' ? parseInt(bankName) : null, // bankName from form should be bank ID
-        branchAccount: toNullIfEmpty(bankBranch),
-        bankAccount: toNullIfEmpty(accountNumber),
-        shabaNumber: toNullIfEmpty(shabaNumber),
-        id: { dir: 3003, type: 2010 }, // OUT parameter for ID
-      }
+      bindParams
     );
+
+    console.log("=== Contractor Insert Successful ===");
+    console.log("Contractor ID:", (contractorResult.outBinds as any)?.id?.[0]);
+    console.log("====================================");
 
     const contractorId = (contractorResult.outBinds as any)?.id?.[0];
 
@@ -315,11 +344,27 @@ export async function POST(request: NextRequest) {
 
     await connection.commit();
 
+    // Create session user object
+    const sessionUser: SessionUser = {
+      id: contractorId,
+      contractorId: contractorId,
+      username: repPhone,
+      firstName: toNullIfEmpty(repFirstName) || 'نام',
+      lastName: toNullIfEmpty(repLastName) || 'نام خانوادگی',
+      companyName: toNullIfEmpty(companyName) || 'شرکت',
+      companyStatus: 1, // 1 = "در انتظار تایید" (Pending Approval)
+    };
+
+    // Create session and set cookie
+    const token = await createSession(sessionUser);
+    await setSessionCookie(token);
+
     return NextResponse.json(
       {
         success: true,
         message: "ثبت نام با موفقیت انجام شد",
         contractorId,
+        user: sessionUser,
       },
       { status: 201 }
     );

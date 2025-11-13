@@ -24,6 +24,7 @@ export interface SessionUser {
     firstName: string;
     lastName: string;
     companyName: string;
+    companyStatus: number;
 }
 
 // New interfaces for the contractor registration form
@@ -114,3 +115,6 @@ export interface ContractorTask {
     actionDate?: string;
     taskType?: string;
 }
+
+// Export alert types
+export * from './alert';

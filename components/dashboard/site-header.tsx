@@ -7,14 +7,6 @@ import { NavUser } from "@/components/dashboard/nav-user";
 import Image from "next/image";
 import { DynamicIcon } from "lucide-react/dynamic";
 
-const data = {
-  user: {
-    name: "محمد فروتن",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  }
-};
-
 export function SiteHeader() {
   return (
     <header className="space-y-3">
@@ -24,7 +16,7 @@ export function SiteHeader() {
           <SidebarTrigger className="-mr-1" />
             </div>
           <div className="hidden lg:block">
-            <NavUser user={data.user} />
+            <NavUser />
           </div>
           <div className="mr-auto flex items-center gap-2">
             

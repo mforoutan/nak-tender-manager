@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         NATIONAL_ID as "nationalId",
         EMAIL,
         PHONE,
-        STATUS as "isActive"
+        STATUS
       FROM CONTRACTORS
       WHERE ID = :contractorId`,
       { contractorId: loginData.contractorId }
@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
       firstName: loginData.firstName,
       lastName: loginData.lastName,
       companyName: contractor.companyName,
+      companyStatus: (contractor as any).STATUS || 1,
     };
 
     const token = await createSession(sessionUser);

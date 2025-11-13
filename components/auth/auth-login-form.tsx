@@ -2,7 +2,7 @@
 
 import { FieldDescription, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { EyeClosedIcon, EyeIcon, MailIcon, UserIcon } from "lucide-react";
+import { EyeClosedIcon, EyeIcon, MailIcon, PhoneIcon, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -67,11 +67,11 @@ export function AuthLoginForm({ onSwitchToRegister }: AuthLoginFormProps) {
                     <form className="space-y-4" onSubmit={handleLoginSubmit}>
                         <FieldGroup>
                             <FieldSet className="gap-y-4">
-                                <FieldGroup className="gap-y-1">
-                                    <FieldLabel className="text-xs text-muted-foreground">ایمیل یا نام کاربری</FieldLabel>
+                                <FieldGroup>
+                                    <FieldLabel className="text-xs text-muted-foreground">شماره یا نام کاربری</FieldLabel>
                                     <InputGroup>
-                                        <InputGroupAddon className=" pr-3">
-                                            <MailIcon className="text-black size-5" />
+                                        <InputGroupAddon>
+                                            <PhoneIcon className="text-black size-5" />
                                         </InputGroupAddon>
                                         <InputGroupInput
                                             type="text"
@@ -82,10 +82,10 @@ export function AuthLoginForm({ onSwitchToRegister }: AuthLoginFormProps) {
                                         />
                                     </InputGroup>
                                 </FieldGroup>
-                                <FieldGroup className="gap-y-1 mt-4">
+                                <FieldGroup className="mt-4">
                                     <FieldLabel className="text-xs text-muted-foreground">رمز عبور</FieldLabel>
                                     <InputGroup>
-                                        <InputGroupAddon className="pr-3">
+                                        <InputGroupAddon>
                                             <UserIcon className="text-black size-5" />
                                         </InputGroupAddon>
                                         <InputGroupInput
@@ -95,7 +95,7 @@ export function AuthLoginForm({ onSwitchToRegister }: AuthLoginFormProps) {
                                             onChange={(e) => setPassword(e.target.value)}
                                             disabled={isLoading}
                                         />
-                                        <InputGroupAddon align={`inline-end`} className="pl-3">
+                                        <InputGroupAddon align={`inline-end`}>
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}

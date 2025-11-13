@@ -10,7 +10,7 @@ import { toPersianNumbers } from "@/lib/utils"
 export function SectionCards() {
   return (
     <div className="grid grid-cols-2 gap-4 px-4 *:data-[slot=card]:bg-white *:data-[slot=card]:border-none *:data-[slot=card]:shadow-[0px 1px 2px 0px rgba(0, 0, 0, 0.05)] lg:px-6 lg:grid-cols-4">
-      <Card className="@container/card col-span-2 lg:col-span-1">
+      <Card className="@container/card col-span-2 lg:col-span-1 shadow-card-small">
         <CardHeader>
           <div className="w-fit bg-[#0088FF] text-white p-3 rounded-md">
             <ScanSearchIcon />
@@ -25,7 +25,7 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
-      <Card className="@container/card col-span-2 lg:col-span-1">
+      <Card className="@container/card col-span-2 lg:col-span-1 shadow-card-small">
         <CardHeader>
           <div className="w-fit bg-[#FFB800] text-white p-3 rounded-md">
             <TrophyIcon />
@@ -40,7 +40,7 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
-      <Card className="@container/card col-span-2 lg:col-span-1">
+      <Card className="@container/card col-span-2 lg:col-span-1 shadow-card-small">
         <CardHeader>
           <div className="w-fit bg-[#FF00DD] text-white p-3 rounded-md">
             <StickerIcon />

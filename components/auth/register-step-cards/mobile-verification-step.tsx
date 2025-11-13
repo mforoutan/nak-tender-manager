@@ -148,10 +148,10 @@ export function MobileVerificationStep({
             <CardHeader className="p-0 text-center lg:text-right">
                 <CardTitle className="font-bold text-xl">تایید شماره موبایل</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col lg:max-w-xl lg:mx-auto items-center justify-center p-0">
+            <CardContent className="flex flex-col lg:w-xl lg:self-center items-center justify-center p-0">
                 <FieldGroup>
                     <Field>
-                        <FieldDescription className="flex flex-col lg:flex-row gap-2 items-center">
+                        <FieldDescription className="flex flex-col lg:flex-row gap-2 items-center justify-center">
                             <span>
                                 کد پیامک شده به شماره
                                 <span dir="ltr">

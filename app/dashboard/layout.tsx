@@ -10,76 +10,93 @@ import {
 import { Toaster } from "sonner"
 import React from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { AlertProvider } from "@/contexts/alert-context"
+import { AlertContainer } from "@/components/alert-container"
 
 export default function DashboardLayout({ children }: React.PropsWithChildren<{}>) {
-  const [accountStatus, setAccountStatus] = useState<{
-    hasTask: boolean;
-    status: string | null;
-  }>({
-    hasTask: false,
-    status: null
-  });
-  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const router = useRouter();
+  const [companyStatus, setCompanyStatus] = useState<number | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
+  // Check authentication status and get company status
   useEffect(() => {
-    const checkAccountStatus = async () => {
+    const checkAuth = async () => {
       try {
-        const response = await fetch('/api/tasks/status?contractorId=301');
-        if (response.ok) {
-          const data = await response.json();
-          setAccountStatus({
-            hasTask: data.hasTask,
-            status: data.task?.status || null
-          });
+        const response = await fetch('/api/auth/verify');
+        if (!response.ok) {
+          toast.error('لطفا وارد حساب کاربری خود شوید');
+          router.push('/auth');
+          return;
         }
+        
+        const data = await response.json();
+        setCompanyStatus(data.user.companyStatus);
+        setIsCheckingAuth(false);
       } catch (error) {
-        console.error('Error checking account status:', error);
-      } finally {
-        setIsCheckingStatus(false);
+        console.error('Error checking authentication:', error);
+        toast.error('خطا در بررسی احراز هویت');
+        router.push('/auth');
       }
     };
 
-    checkAccountStatus();
-  }, []);
+    checkAuth();
+  }, [router]);
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 32)",
-        } as React.CSSProperties
-      }
-    >
-      
-      <AppSidebar variant="inset" />
-      <SidebarInset className="bg-[url(/bg.svg)] bg-no-repeat bg-left-top">
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              {React.Children.map(children, child => {
-                if (React.isValidElement(child)) {
-                  return React.cloneElement(child, { accountStatus, isCheckingStatus } as any);
-                }
-                return child;
-              })}
+    <AlertProvider>
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 32)",
+          } as React.CSSProperties
+        }
+      >
+        
+        <AppSidebar variant="inset" />
+        <SidebarInset className="bg-[url(/bg.svg)] bg-no-repeat bg-left-top">
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                {React.Children.map(children, child => {
+                  if (React.isValidElement(child)) {
+                    return React.cloneElement(child, { companyStatus } as any);
+                  }
+                  return child;
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      </SidebarInset>
-      <Toaster
-        position="top-center"
-        richColors
-        toastOptions={{
-          style: {
-            fontFamily: 'Vazirmatn, sans-serif',
-            fontSize: '0.925rem',
-            direction: 'rtl',
-            textAlign: 'right'
-          },
-        }}
-      />
-    </SidebarProvider>
+        </SidebarInset>
+        <AlertContainer />
+        <Toaster
+          position="top-center"
+          richColors
+          toastOptions={{
+            style: {
+              fontFamily: 'Vazirmatn, sans-serif',
+              fontSize: '0.925rem',
+              direction: 'rtl',
+              textAlign: 'right'
+            },
+          }}
+        />
+      </SidebarProvider>
+    </AlertProvider>
   )
 }

@@ -5,6 +5,7 @@ import { Stepper } from "@/components/ui/stepper";
 import { useState } from "react";
 import { ContractorFormData } from "@/types";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import {
     ContractorFormStep,
     MobileVerificationStep,
@@ -12,6 +13,7 @@ import {
 } from "./register-step-cards";
 
 export function AuthRegisterForm() {
+    const router = useRouter();
     const [currentStep, setCurrentStep] = useState(0);
     const [repPhoneInvalid, setRepPhoneInvalid] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,8 +146,10 @@ export function AuthRegisterForm() {
 
             toast.success("ثبت نام با موفقیت انجام شد");
 
-            // Redirect to login or dashboard
-            // router.push('/auth/login');
+            // Redirect to dashboard after successful signup
+            setTimeout(() => {
+                router.push('/dashboard');
+            }, 1000);
         } catch (error) {
             toast.error("خطا در اتصال به سرور");
         } finally {

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-function InputGroup({ size="md", className, ...props }: {size?: "sm" | "md" | "lg"} & React.ComponentProps<"div">) {
+function InputGroup({ size = "md", className, ...props }: { size?: "sm" | "md" | "lg" } & React.ComponentProps<"div">) {
   const sizes = {
     sm: "min-h-input-sm h-10 **:[data-slot=input-group-control]:h-5 text-sm",
     md: "min-h-input-sm h-11 **:[data-slot=input-group-control]:h-6 text-base",
@@ -43,13 +43,22 @@ const inputGroupAddonVariants = cva(
     variants: {
       align: {
         "inline-start":
-          "order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem]",
+          cn("order-first p-0",
+            // "pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem]"
+          ),
         "inline-end":
-          "order-last pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem]",
+          cn("order-last p-0",
+            // " pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem]"
+          ),
         "block-start":
-          "order-first w-full justify-start px-3 pt-3 [.border-b]:pb-3 group-has-[>input]/input-group:pt-2.5",
+          cn("order-first w-full justify-start p-0",
+            // "px-3 pt-3 [.border-b]:pb-3 group-has-[>input]/input-group:pt-2.5"
+          ),
         "block-end":
-          "order-last w-full justify-start px-3 pb-3 [.border-t]:pt-3 group-has-[>input]/input-group:pb-2.5",
+          cn(
+            "order-last w-full justify-start p-0",
+            // "px-3 pb-3 [.border-t]:pt-3 group-has-[>input]/input-group:pb-2.5"
+          ),
       },
     },
     defaultVariants: {
@@ -137,7 +146,7 @@ function InputGroupInput({
     <Input
       data-slot="input-group-control"
       className={cn(
-        "flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent",
+        "flex-1 p-0 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent",
         className
       )}
       {...props}
