@@ -3,8 +3,18 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreditCard } from "lucide-react";
 import { ContractorFormData } from "@/types";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+interface Bank {
+    id: number;
+    code: string;
+    name: string;
+    isActive: boolean;
+}
 
 interface BankingInfoSectionProps {
     formData: ContractorFormData;
@@ -17,6 +27,32 @@ export function BankingInfoSection({
     onFormDataChange,
     isEditable = true,
 }: BankingInfoSectionProps) {
+    const [banks, setBanks] = useState<Bank[]>([]);
+    const [loadingBanks, setLoadingBanks] = useState(false);
+
+    // Fetch banks on mount
+    useEffect(() => {
+        const fetchBanks = async () => {
+            setLoadingBanks(true);
+            try {
+                const response = await fetch("/api/banks");
+                const data = await response.json();
+
+                if (response.ok) {
+                    setBanks(data);
+                } else {
+                    toast.error(data.error || "خطا در دریافت لیست بانک‌ها");
+                }
+            } catch (error) {
+                toast.error("خطا در اتصال به سرور");
+            } finally {
+                setLoadingBanks(false);
+            }
+        };
+
+        fetchBanks();
+    }, []);
+
     return (
         <AccordionItem value="section-4" className="border rounded-md bg-white p-4 mt-3">
             <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
@@ -31,17 +67,26 @@ export function BankingInfoSection({
                 <FieldGroup className="gap-y-4">
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="bankName">نام بانک</FieldLabel>
-                            <Input
-                                id="bankName"
-                                
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="bankName">نام بانک</FieldLabel>
+                            <Select
                                 value={formData.bankName}
-                                onChange={(e) => onFormDataChange("bankName", e.target.value)}
-                                disabled={!isEditable}
-                            />
+                                onValueChange={(value) => onFormDataChange("bankName", value)}
+                                disabled={!isEditable || loadingBanks}
+                            >
+                                <SelectTrigger id="bankName">
+                                    <SelectValue placeholder={loadingBanks ? "در حال بارگذاری..." : "انتخاب کنید"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {banks.map((bank) => (
+                                        <SelectItem key={bank.id} value={String(bank.id)}>
+                                            {bank.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="bankBranch">نام شعبه</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="bankBranch">نام شعبه</FieldLabel>
                             <Input
                                 id="bankBranch"
                                 
@@ -54,7 +99,7 @@ export function BankingInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="accountNumber">شماره حساب</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="accountNumber">شماره حساب</FieldLabel>
                             <Input
                                 id="accountNumber"
                                 
@@ -64,7 +109,7 @@ export function BankingInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="shabaNumber">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="shabaNumber">
                                 <span className="text-red-500 ml-1">*</span>
                                 شماره شبا
                             </FieldLabel>

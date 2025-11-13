@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
@@ -145,13 +145,13 @@ export function MobileVerificationStep({
 
     return (
         <>
-            <CardHeader className="text-right">
+            <CardHeader className="p-0 text-center lg:text-right">
                 <CardTitle className="font-bold text-xl">تایید شماره موبایل</CardTitle>
             </CardHeader>
-            <div className="flex flex-col max-w-xl mx-auto items-center justify-center py-12">
+            <CardContent className="flex flex-col lg:max-w-xl lg:mx-auto items-center justify-center p-0">
                 <FieldGroup>
                     <Field>
-                        <FieldDescription className="space-x-2">
+                        <FieldDescription className="flex flex-col lg:flex-row gap-2 items-center">
                             <span>
                                 کد پیامک شده به شماره
                                 <span dir="ltr">
@@ -210,12 +210,12 @@ export function MobileVerificationStep({
                         </FieldDescription>
                     </FieldGroup>
                 </FieldGroup>
-            </div>
-            <div className="flex justify-between mt-6">
+            </CardContent>
+            <CardFooter className="p-0 flex justify-between mt-6">
                 <Button variant="outline" onClick={onPrevious}>
                     مرحله قبل
                 </Button>
-            </div>
+            </CardFooter>
         </>
     );
 }

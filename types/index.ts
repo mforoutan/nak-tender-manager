@@ -41,7 +41,8 @@ export interface ContractorMainInfo {
 }
 
 export interface ContractorCeoInfo {
-    ceoFullName: string;
+    ceoFirstName: string;
+    ceoLastName: string;
     ceoNationalId: string;
     ceoMobile: string;
 }
@@ -65,7 +66,8 @@ export interface ContractorBankingInfo {
 }
 
 export interface ContractorRepresentativeInfo {
-    repFullName: string;
+    repFirstName: string;
+    repLastName: string;
     repPhone: string;
     repEmail: string;
 }
@@ -76,6 +78,11 @@ export interface ContractorFormData extends
     ContractorContactInfo,
     ContractorBankingInfo,
     ContractorRepresentativeInfo {}
+
+export interface ContractorSignupData extends ContractorFormData {
+    password: string;
+    uploadedFileIds?: { [key: string]: number };
+}
 
 export interface ContractorDocument {
     id: number;

@@ -5,20 +5,33 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PersianDatePicker } from "@/components/ui/persian-date-picker";
-import { FileUpload } from "@/components/ui/file-upload";
 import { Building } from "lucide-react";
 import { ContractorFormData } from "@/types";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+interface ContractorType {
+    id: number;
+    code: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+}
+
+interface ContractorCategory {
+    id: number;
+    code: string;
+    name: string;
+    description: string;
+    parentId: number | null;
+    isActive: boolean;
+    displayOrder: number;
+}
 
 interface MainInfoSectionProps {
     formData: ContractorFormData;
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
-    uploadedFiles?: { [key: string]: File | null };
-    uploadProgress?: { [key: string]: number };
-    uploadedFileIds?: { [key: string]: number };
-    onFileChange?: (documentId: string, file: File | null) => void;
-    onUploadFile?: (documentId: string) => void;
-    onDeleteFile?: (documentId: string, fileId?: number) => void;
 }
 
 const requiredDocuments = [
@@ -29,13 +42,58 @@ export function MainInfoSection({
     formData,
     onFormDataChange,
     isEditable = true,
-    uploadedFiles = {},
-    uploadProgress = {},
-    uploadedFileIds = {},
-    onFileChange,
-    onUploadFile,
-    onDeleteFile,
 }: MainInfoSectionProps) {
+    const [contractorTypes, setContractorTypes] = useState<ContractorType[]>([]);
+    const [contractorCategories, setContractorCategories] = useState<ContractorCategory[]>([]);
+    const [loadingTypes, setLoadingTypes] = useState(false);
+    const [loadingCategories, setLoadingCategories] = useState(false);
+
+    // Fetch contractor types on mount
+    useEffect(() => {
+        const fetchContractorTypes = async () => {
+            setLoadingTypes(true);
+            try {
+                const response = await fetch("/api/contractor-types");
+                const data = await response.json();
+
+                if (response.ok) {
+                    setContractorTypes(data);
+                } else {
+                    toast.error(data.error || "خطا در دریافت انواع شرکت");
+                }
+            } catch (error) {
+                toast.error("خطا در اتصال به سرور");
+            } finally {
+                setLoadingTypes(false);
+            }
+        };
+
+        fetchContractorTypes();
+    }, []);
+
+    // Fetch contractor categories (main categories only)
+    useEffect(() => {
+        const fetchContractorCategories = async () => {
+            setLoadingCategories(true);
+            try {
+                const response = await fetch("/api/contractor-categories?parentId=null");
+                const data = await response.json();
+
+                if (response.ok) {
+                    setContractorCategories(data);
+                } else {
+                    toast.error(data.error || "خطا در دریافت دسته‌بندی‌ها");
+                }
+            } catch (error) {
+                toast.error("خطا در اتصال به سرور");
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+
+        fetchContractorCategories();
+    }, []);
+
     return (
         <AccordionItem value="section-1" className="border rounded-md bg-white p-4">
             <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
@@ -50,9 +108,9 @@ export function MainInfoSection({
                 <FieldGroup className="gap-y-4">
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="companyName">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="companyName">
                                 نام شرکت
-                                <span className="text-red-500 ml-1">*</span>
+                                <span className="text-red-500">*</span>
                             </FieldLabel>
                             <Input
                                 id="companyName"
@@ -64,7 +122,7 @@ export function MainInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="companyNameEN">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="companyNameEN">
                                 نام شرکت (انگلیسی)
                             </FieldLabel>
                             <Input
@@ -79,42 +137,43 @@ export function MainInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="companyType">نوع شرکت</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="companyType">نوع شرکت</FieldLabel>
                             <Select
                                 value={formData.companyType}
                                 onValueChange={(value) => onFormDataChange("companyType", value)}
-                                disabled={!isEditable}
+                                disabled={!isEditable || loadingTypes}
                             >
                                 <SelectTrigger id="companyType">
-                                    <SelectValue />
+                                    <SelectValue placeholder={loadingTypes ? "در حال بارگذاری..." : "انتخاب کنید"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="private">خصوصی</SelectItem>
-                                    <SelectItem value="public">سهامی عام</SelectItem>
-                                    <SelectItem value="limited">با مسئولیت محدود</SelectItem>
-                                    <SelectItem value="cooperative">تعاونی</SelectItem>
+                                    {contractorTypes.map((type) => (
+                                        <SelectItem key={type.id} value={String(type.id)}>
+                                            {type.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="companyCategory">
-                                <span className="text-red-500 ml-1">*</span>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="companyCategory">
+                                <span className="text-red-500">*</span>
                                 نوع فعالیت
                             </FieldLabel>
                             <Select
                                 value={formData.companyCategory}
                                 onValueChange={(value) => onFormDataChange("companyCategory", value)}
-                                disabled={!isEditable}
+                                disabled={!isEditable || loadingCategories}
                             >
                                 <SelectTrigger id="companyCategory">
-                                    <SelectValue />
+                                    <SelectValue placeholder={loadingCategories ? "در حال بارگذاری..." : "انتخاب کنید"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="1">طبقه ۱</SelectItem>
-                                    <SelectItem value="2">طبقه ۲</SelectItem>
-                                    <SelectItem value="3">طبقه ۳</SelectItem>
-                                    <SelectItem value="4">طبقه ۴</SelectItem>
-                                    <SelectItem value="5">طبقه ۵</SelectItem>
+                                    {contractorCategories.map((category) => (
+                                        <SelectItem key={category.id} value={String(category.id)}>
+                                            {category.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </Field>
@@ -122,7 +181,7 @@ export function MainInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="nationalId">شناسه ملی شرکت</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="nationalId">شناسه ملی شرکت</FieldLabel>
                             <Input
                                 id="nationalId"
 
@@ -132,7 +191,7 @@ export function MainInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="establishmentDate">تاریخ تأسیس</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="establishmentDate">تاریخ تأسیس</FieldLabel>
                             <PersianDatePicker
                                 id="establishmentDate"
                                 value={formData.establishmentDate}
@@ -144,7 +203,7 @@ export function MainInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="economicCode">کد اقتصادی</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="economicCode">کد اقتصادی</FieldLabel>
                             <Input
                                 id="economicCode"
 
@@ -154,8 +213,8 @@ export function MainInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="registrationNumber">
-                                <span className="text-red-500 ml-1">*</span>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="registrationNumber">
+                                <span className="text-red-500">*</span>
                                 شماره ثبت
                             </FieldLabel>
                             <Input
@@ -171,7 +230,7 @@ export function MainInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="registrationPlace">محل ثبت</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="registrationPlace">محل ثبت</FieldLabel>
                             <Input
                                 id="registrationPlace"
 
@@ -182,7 +241,7 @@ export function MainInfoSection({
                             <FieldDescription>در دست توسعه</FieldDescription>
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="insuranceBranch">شعبه بیمه</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="insuranceBranch">شعبه بیمه</FieldLabel>
                             <Input
                                 id="insuranceBranch"
 
@@ -191,27 +250,6 @@ export function MainInfoSection({
                                 disabled={!isEditable}
                             />
                         </Field>
-                    </div>
-
-                    <div>
-                        <div className="grid gap-6 md:grid-cols-2">
-                            {requiredDocuments.map((doc) => (
-                                <Field className="gap-1 col-span-2" key={doc.id}>
-                                    <FileUpload
-                                        id={`file-${doc.id}`}
-                                        onFileChange={(file) => onFileChange?.(doc.id, file)}
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        disabled={!isEditable}
-                                        maxSize={500}
-                                        file={uploadedFiles[doc.id]}
-                                        uploadProgress={uploadProgress[doc.id]}
-                                        onUpload={() => onUploadFile?.(doc.id)}
-                                        onDelete={() => onDeleteFile?.(doc.id, uploadedFileIds[doc.id])}
-                                        fileId={uploadedFileIds[doc.id]}
-                                    />
-                                </Field>
-                            ))}
-                        </div>
                     </div>
                 </FieldGroup>
             </AccordionContent>

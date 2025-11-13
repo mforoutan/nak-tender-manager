@@ -13,12 +13,6 @@ interface CompanyInfoFormProps {
     formData: ContractorFormData;
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
-    uploadedFiles?: { [key: string]: File | null };
-    uploadProgress?: { [key: string]: number };
-    uploadedFileIds?: { [key: string]: number };
-    onFileChange?: (documentId: string, file: File | null) => void;
-    onUploadFile?: (documentId: string) => void;
-    onDeleteFile?: (documentId: string, fileId?: number) => void;
     repPhoneInvalid?: boolean;
 }
 
@@ -30,12 +24,6 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
     formData,
     onFormDataChange,
     isEditable = true,
-    uploadedFiles = {},
-    uploadProgress = {},
-    uploadedFileIds = {},
-    onFileChange,
-    onUploadFile,
-    onDeleteFile,
     repPhoneInvalid = false,
 }, ref) => {
     const [openSections, setOpenSections] = useState<string[]>(["section-1"]);
@@ -67,12 +55,6 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
                     formData={formData}
                     onFormDataChange={onFormDataChange}
                     isEditable={isEditable}
-                    uploadedFiles={uploadedFiles}
-                    uploadProgress={uploadProgress}
-                    uploadedFileIds={uploadedFileIds}
-                    onFileChange={onFileChange}
-                    onUploadFile={onUploadFile}
-                    onDeleteFile={onDeleteFile}
                 />
 
                 <CeoInfoSection

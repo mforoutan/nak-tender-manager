@@ -3,7 +3,7 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { UserCog } from "lucide-react";
+import { FileBadge2Icon } from "lucide-react";
 import { ContractorFormData } from "@/types";
 
 interface RepresentativeInfoSectionProps {
@@ -24,7 +24,7 @@ export function RepresentativeInfoSection({
             <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-[#F6F6F6] rounded-full">
-                        <UserCog className="h-5 w-5 text-muted-foreground" />
+                        <FileBadge2Icon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <h3 className="text-lg font-semibold">اطلاعات نماینده</h3>
                 </div>
@@ -33,17 +33,28 @@ export function RepresentativeInfoSection({
                 <FieldGroup className="gap-y-4">
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="repFullName">نام و نام خانوادگی نماینده</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repFirstName">نام نماینده</FieldLabel>
                             <Input
-                                id="repFullName"
-                                
-                                value={formData.repFullName}
-                                onChange={(e) => onFormDataChange("repFullName", e.target.value)}
+                                id="repFirstName"
+                                value={formData.repFirstName}
+                                onChange={(e) => onFormDataChange("repFirstName", e.target.value)}
                                 disabled={!isEditable}
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="repPhone">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repLastName">نام خانوادگی نماینده</FieldLabel>
+                            <Input
+                                id="repLastName"
+                                value={formData.repLastName}
+                                onChange={(e) => onFormDataChange("repLastName", e.target.value)}
+                                disabled={!isEditable}
+                            />
+                        </Field>
+                    </div>
+
+                    <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
+                        <Field className="gap-1">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repPhone">
                                 شماره تماس نماینده
                                 <span className="text-red-500 ml-1">*</span>
                             </FieldLabel>
@@ -61,11 +72,8 @@ export function RepresentativeInfoSection({
                                 </FieldDescription>
                             )}
                         </Field>
-                    </div>
-
-                    <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="repEmail">ایمیل نماینده</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repEmail">ایمیل نماینده</FieldLabel>
                             <Input
                                 id="repEmail"
                                 type="email"

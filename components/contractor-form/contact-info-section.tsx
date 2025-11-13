@@ -111,7 +111,7 @@ export function ContactInfoSection({
                 <FieldGroup className="gap-y-4">
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="phone">شماره تلفن ثابت</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="phone">شماره تلفن ثابت</FieldLabel>
                             <Input
                                 id="phone"
                                 
@@ -121,7 +121,7 @@ export function ContactInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="mobile">شماره موبایل</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="mobile">شماره موبایل</FieldLabel>
                             <Input
                                 id="mobile"
                                 
@@ -134,7 +134,7 @@ export function ContactInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="fax">شماره فکس</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="fax">شماره فکس</FieldLabel>
                             <Input
                                 id="fax"
                                 
@@ -144,7 +144,7 @@ export function ContactInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="website">وب‌سایت</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="website">وب‌سایت</FieldLabel>
                             <Input
                                 id="website"
                                 
@@ -157,7 +157,7 @@ export function ContactInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="email">ایمیل</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="email">ایمیل</FieldLabel>
                             <Input
                                 id="email"
                                 type="email"
@@ -168,7 +168,7 @@ export function ContactInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="province">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="province">
                                 <span className="text-red-500 ml-1">*</span>
                                 استان
                             </FieldLabel>
@@ -193,7 +193,7 @@ export function ContactInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="city">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="city">
                                 <span className="text-red-500 ml-1">*</span>
                                 شهر
                             </FieldLabel>
@@ -221,7 +221,7 @@ export function ContactInfoSection({
                             </Select>
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="postalCode">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="postalCode">
                                 <span className="text-red-500 ml-1">*</span>
                                 کد پستی
                             </FieldLabel>

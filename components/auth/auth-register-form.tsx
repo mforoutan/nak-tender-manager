@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
 import { useState } from "react";
 import { ContractorFormData } from "@/types";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
     ContractorFormStep,
@@ -14,11 +13,9 @@ import {
 
 export function AuthRegisterForm() {
     const [currentStep, setCurrentStep] = useState(0);
-    const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File | null}>({});
-    const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
-    const [uploadedFileIds, setUploadedFileIds] = useState<{[key: string]: number}>({});
     const [repPhoneInvalid, setRepPhoneInvalid] = useState(false);
-    
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [formData, setFormData] = useState<ContractorFormData>({
         // اطلاعات اصلی (Main Information)
         companyName: "",
@@ -33,7 +30,8 @@ export function AuthRegisterForm() {
         insuranceBranch: "",
 
         // اطلاعات مدیر عامل (CEO Information)
-        ceoFullName: "",
+        ceoFirstName: "",
+        ceoLastName: "",
         ceoNationalId: "",
         ceoMobile: "",
 
@@ -54,7 +52,8 @@ export function AuthRegisterForm() {
         shabaNumber: "",
 
         // اطلاعات نماینده (Representative Information)
-        repFullName: "",
+        repFirstName: "",
+        repLastName: "",
         repPhone: "",
         repEmail: "",
     });
@@ -63,52 +62,8 @@ export function AuthRegisterForm() {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleFileChange = (documentId: string, file: File | null) => {
-        setUploadedFiles(prev => ({ ...prev, [documentId]: file }));
-    };
 
-    const handleUploadFile = async (documentId: string) => {
-        const file = uploadedFiles[documentId];
-        if (!file) {
-            toast.error("لطفا ابتدا فایل را انتخاب کنید");
-            return;
-        }
 
-        // Simulated upload - replace with actual API call
-        setUploadProgress(prev => ({ ...prev, [documentId]: 0 }));
-        
-        // Simulate progress
-        const interval = setInterval(() => {
-            setUploadProgress(prev => {
-                const current = prev[documentId] || 0;
-                if (current >= 100) {
-                    clearInterval(interval);
-                    return prev;
-                }
-                return { ...prev, [documentId]: current + 10 };
-            });
-        }, 200);
-
-        // Simulated API call
-        setTimeout(() => {
-            clearInterval(interval);
-            setUploadProgress(prev => ({ ...prev, [documentId]: 100 }));
-            setUploadedFileIds(prev => ({ ...prev, [documentId]: Math.floor(Math.random() * 1000) }));
-            toast.success("فایل با موفقیت آپلود شد");
-        }, 2000);
-    };
-
-    const handleDeleteFile = (documentId: string, fileId?: number) => {
-        // Implement delete logic here
-        setUploadedFiles(prev => ({ ...prev, [documentId]: null }));
-        setUploadProgress(prev => ({ ...prev, [documentId]: 0 }));
-        setUploadedFileIds(prev => {
-            const newIds = { ...prev };
-            delete newIds[documentId];
-            return newIds;
-        });
-        toast.success("فایل حذف شد");
-    };
 
     const handleNextStep = async () => {
         // Step 0: Send OTP before moving to mobile verification step
@@ -119,7 +74,7 @@ export function AuthRegisterForm() {
                 toast.error("لطفا شماره همراه نماینده را وارد کنید");
                 return;
             }
-            
+
             if (!/^09\d{9}$/.test(formData.repPhone)) {
                 setRepPhoneInvalid(true);
                 toast.error("شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد");
@@ -145,12 +100,12 @@ export function AuthRegisterForm() {
                 }
 
                 toast.success("کد تایید با موفقیت ارسال شد");
-                
+
                 // Show dev OTP in development mode
                 if (data.dev_otp) {
                     toast.info(`کد تایید (توسعه): ${data.dev_otp}`, { duration: 10000 });
                 }
-                
+
                 setCurrentStep(prev => prev + 1);
             } catch (error) {
                 toast.error("خطا در اتصال به سرور");
@@ -166,46 +121,66 @@ export function AuthRegisterForm() {
         }
     };
 
-    const handleSubmit = () => {
-        // Implement registration submission logic
-        toast.success("ثبت نام با موفقیت انجام شد");
+    const handleSubmit = async (password: string) => {
+        setIsSubmitting(true);
+        try {
+            const response = await fetch("/api/auth/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                toast.error(data.error || "خطا در ثبت نام");
+                return;
+            }
+
+            toast.success("ثبت نام با موفقیت انجام شد");
+
+            // Redirect to login or dashboard
+            // router.push('/auth/login');
+        } catch (error) {
+            toast.error("خطا در اتصال به سرور");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
-    
+
     return (
         <>
             <h1 className="text-center text-2xl font-bold">به سیستم ثبت نام ناک خوش آمدید</h1>
             <div dir="rtl" className="w-full flex flex-col items-center gap-y-10">
                 <Stepper className="max-w-lg" steps={["اطلاعات شرکت", "تایید شماره موبایل", "انتخاب رمز ورود"]} currentStep={currentStep} />
-                <Card className="w-full p-12 shadow-auth-card" dir="rtl">
-                    <CardContent className="p-0">
-                        {currentStep === 0 && (
-                            <ContractorFormStep
-                                formData={formData}
-                                onFormDataChange={handleFormDataChange}
-                                uploadedFiles={uploadedFiles}
-                                uploadProgress={uploadProgress}
-                                uploadedFileIds={uploadedFileIds}
-                                onFileChange={handleFileChange}
-                                onUploadFile={handleUploadFile}
-                                onDeleteFile={handleDeleteFile}
-                                onNext={handleNextStep}
-                                repPhoneInvalid={repPhoneInvalid}
-                            />
-                        )}
-                        {currentStep === 1 && (
-                            <MobileVerificationStep
-                                mobile={formData.repPhone}
-                                onNext={handleNextStep}
-                                onPrevious={handlePreviousStep}
-                            />
-                        )}
-                        {currentStep === 2 && (
-                            <FinalConfirmationStep
-                                onSubmit={handleSubmit}
-                                onPrevious={handlePreviousStep}
-                            />
-                        )}
-                    </CardContent>
+                <Card className="w-full p-4.5 lg:p-12 shadow-auth-card border-none" dir="rtl">
+                    {currentStep === 0 && (
+                        <ContractorFormStep
+                            formData={formData}
+                            onFormDataChange={handleFormDataChange}
+                            onNext={handleNextStep}
+                            repPhoneInvalid={repPhoneInvalid}
+                        />
+                    )}
+                    {currentStep === 1 && (
+                        <MobileVerificationStep
+                            mobile={formData.repPhone}
+                            onNext={handleNextStep}
+                            onPrevious={handlePreviousStep}
+                        />
+                    )}
+                    {currentStep === 2 && (
+                        <FinalConfirmationStep
+                            onSubmit={handleSubmit}
+                            onPrevious={handlePreviousStep}
+                            isSubmitting={isSubmitting}
+                        />
+                    )}
                 </Card>
             </div>
         </>

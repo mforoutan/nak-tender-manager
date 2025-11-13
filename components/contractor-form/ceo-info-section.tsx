@@ -3,7 +3,7 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { User } from "lucide-react";
+import { CrownIcon } from "lucide-react";
 import { ContractorFormData } from "@/types";
 
 interface CeoInfoSectionProps {
@@ -22,7 +22,7 @@ export function CeoInfoSection({
             <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
                 <div className="flex items-center gap-2">
                     <div className="p-2 bg-[#F6F6F6] rounded-full">
-                        <User className="h-5 w-5 text-muted-foreground" />
+                        <CrownIcon className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <h3 className="text-lg font-semibold">اطلاعات مدیر عامل</h3>
                 </div>
@@ -31,17 +31,28 @@ export function CeoInfoSection({
                 <FieldGroup className="gap-y-4">
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="ceoFullName">نام و نام خانوادگی مدیر عامل</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="ceoFirstName">نام مدیر عامل</FieldLabel>
                             <Input
-                                id="ceoFullName"
-                                
-                                value={formData.ceoFullName}
-                                onChange={(e) => onFormDataChange("ceoFullName", e.target.value)}
+                                id="ceoFirstName"
+                                value={formData.ceoFirstName}
+                                onChange={(e) => onFormDataChange("ceoFirstName", e.target.value)}
                                 disabled={!isEditable}
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="ceoNationalId">کد ملی مدیر عامل</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="ceoLastName">نام خانوادگی مدیر عامل</FieldLabel>
+                            <Input
+                                id="ceoLastName"
+                                value={formData.ceoLastName}
+                                onChange={(e) => onFormDataChange("ceoLastName", e.target.value)}
+                                disabled={!isEditable}
+                            />
+                        </Field>
+                    </div>
+
+                    <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
+                        <Field className="gap-1">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="ceoNationalId">کد ملی مدیر عامل</FieldLabel>
                             <Input
                                 id="ceoNationalId"
                                 
@@ -50,11 +61,8 @@ export function CeoInfoSection({
                                 disabled={!isEditable}
                             />
                         </Field>
-                    </div>
-
-                    <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="font-medium text-sm text-muted-foreground" htmlFor="ceoMobile">شماره موبایل مدیر عامل</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="ceoMobile">شماره موبایل مدیر عامل</FieldLabel>
                             <Input
                                 id="ceoMobile"
                                 
