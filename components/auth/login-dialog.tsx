@@ -70,7 +70,7 @@ function LoginDialog({ buttonSize = "default" }: { buttonSize?: "sm" | "default"
                     ورود
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-sm p-12">
+            <DialogContent className="sm:max-w-sm lg:max-w-md p-12">
                 <DialogHeader className="sm:text-center">
                     <DialogTitle>ورود به ناک</DialogTitle>
                 </DialogHeader>

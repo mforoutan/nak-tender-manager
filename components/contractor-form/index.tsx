@@ -3,11 +3,8 @@
 import { useState, useImperativeHandle, forwardRef } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ContractorFormData } from "@/types";
-import { MainInfoSection } from "./main-info-section";
-import { CeoInfoSection } from "./ceo-info-section";
-import { ContactInfoSection } from "./contact-info-section";
-import { BankingInfoSection } from "./banking-info-section";
-import { RepresentativeInfoSection } from "./representative-info-section";
+import { formSectionsConfig } from "@/types/form-fields";
+import { FormSection } from "./form-section";
 
 interface CompanyInfoFormProps {
     formData: ContractorFormData;
@@ -68,40 +65,16 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
                 onValueChange={handleAccordionChange}
                 className="w-full"
             >
-                <MainInfoSection
-                    formData={formData}
-                    onFormDataChange={onFormDataChange}
-                    isEditable={isEditable}
-                    invalidFields={invalidFields}
-                />
-
-                <CeoInfoSection
-                    formData={formData}
-                    onFormDataChange={onFormDataChange}
-                    isEditable={isEditable}
-                />
-
-                <ContactInfoSection
-                    formData={formData}
-                    onFormDataChange={onFormDataChange}
-                    isEditable={isEditable}
-                    invalidFields={invalidFields}
-                />
-
-                <BankingInfoSection
-                    formData={formData}
-                    onFormDataChange={onFormDataChange}
-                    isEditable={isEditable}
-                    invalidFields={invalidFields}
-                />
-
-                <RepresentativeInfoSection
-                    formData={formData}
-                    onFormDataChange={onFormDataChange}
-                    isEditable={isEditable}
-                    repPhoneInvalid={repPhoneInvalid}
-                    invalidFields={invalidFields}
-                />
+                {formSectionsConfig.map((section) => (
+                    <FormSection
+                        key={section.id}
+                        section={section}
+                        formData={formData}
+                        onChange={(name, value) => onFormDataChange(name as keyof ContractorFormData, value)}
+                        disabled={!isEditable}
+                        invalidFields={invalidFields}
+                    />
+                ))}
             </Accordion>
         </div>
     );

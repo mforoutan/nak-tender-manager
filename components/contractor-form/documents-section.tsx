@@ -3,8 +3,7 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { FileUpload } from "@/components/ui/file-upload";
-import { FileText, Download, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 
 interface DocumentsSectionProps {
     uploadedFiles: { [key: string]: File | null };
@@ -50,47 +49,15 @@ export function DocumentsSection({
                                 {doc.description}
                             </FieldDescription>
                             
-                            {uploadedFiles[doc.id] ? (
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                                        <FileText className="h-4 w-4 text-muted-foreground" />
-                                        <span className="flex-1 text-sm truncate">
-                                            {uploadedFiles[doc.id]?.name}
-                                        </span>
-                                        {uploadProgress[doc.id] === 100 && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8"
-                                                onClick={() => onFileDelete(doc.id)}
-                                                disabled={!isEditable}
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                    {uploadProgress[doc.id] !== undefined && uploadProgress[doc.id] < 100 && (
-                                        <div className="space-y-1">
-                                            <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
-                                                <div 
-                                                    className="bg-primary h-full transition-all duration-300"
-                                                    style={{ width: `${uploadProgress[doc.id]}%` }}
-                                                />
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">
-                                                در حال بارگذاری... {uploadProgress[doc.id]}%
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <FileUpload
-                                    id={doc.id}
-                                    onFileChange={(file) => onFileChange(doc.id, file)}
-                                    disabled={!isEditable}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                />
-                            )}
+                            <FileUpload
+                                id={doc.id}
+                                onFileChange={(file) => onFileChange(doc.id, file)}
+                                onDelete={() => onFileDelete(doc.id)}
+                                disabled={!isEditable}
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                file={uploadedFiles[doc.id]}
+                                uploadProgress={uploadProgress[doc.id]}
+                            />
                         </Field>
                     ))}
                 </FieldGroup>

@@ -118,3 +118,6 @@ export interface ContractorTask {
 
 // Export alert types
 export * from './alert';
+
+// Export form field types
+export * from './form-fields';

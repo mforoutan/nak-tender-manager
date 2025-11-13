@@ -122,7 +122,7 @@ export function ContactInfoSection({
                             />
                         </Field>
                         <Field className="gap-1">
-                                                        <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="mobile">
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="mobile">
                                 <span className="text-red-500">*</span>
                                 شماره موبایل
                             </FieldLabel>
@@ -206,10 +206,10 @@ export function ContactInfoSection({
                             >
                                 <SelectTrigger id="city" aria-invalid={invalidFields.has('city')}>
                                     <SelectValue placeholder={
-                                        loadingCities 
-                                            ? "در حال بارگذاری..." 
-                                            : !formData.province 
-                                                ? "ابتدا استان را انتخاب کنید" 
+                                        loadingCities
+                                            ? "در حال بارگذاری..."
+                                            : !formData.province
+                                                ? "ابتدا استان را انتخاب کنید"
                                                 : "انتخاب کنید"
                                     } />
                                 </SelectTrigger>

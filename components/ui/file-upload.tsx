@@ -154,8 +154,8 @@ export function FileUpload({
             <div className="mb-6 py-1 px-2 flex items-center gap-x-2 border rounded-md bg-transparent text-green-500">
               <X onClick={(e) => {
                     e.stopPropagation()
-                    handleRemove()
-                  }} className="size-4 text-muted-foreground"  />
+                    handleDeleteClick(e)
+                  }} className="size-4 text-muted-foreground cursor-pointer hover:text-red-500"  />
               <span onClick={(e) => {handleDownload(); e.stopPropagation()}} className="cursor-pointer">{file.name}</span>
             </div>
           )}

@@ -35,14 +35,13 @@ export async function POST(req: Request) {
         );
       }
 
-      const file = fileResult.rows[0];
+      const file = fileResult.rows[0] as any;
       const fileName = file.FILE_NAME;
 
       // Mark file as deleted (soft delete)
       await connection.execute(
         `UPDATE FILE_STORE 
-         SET ENTITY_TYPE = 'DELETED',
-             MODIFIED_DATE = SYSDATE
+         SET ENTITY_TYPE = 'DELETED'
          WHERE ID = :fileId`,
         { fileId }
       );
