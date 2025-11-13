@@ -11,6 +11,7 @@ interface RepresentativeInfoSectionProps {
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
     repPhoneInvalid?: boolean;
+    invalidFields?: Set<keyof ContractorFormData>;
 }
 
 export function RepresentativeInfoSection({
@@ -18,6 +19,7 @@ export function RepresentativeInfoSection({
     onFormDataChange,
     isEditable = true,
     repPhoneInvalid = false,
+    invalidFields = new Set(),
 }: RepresentativeInfoSectionProps) {
     return (
         <AccordionItem value="section-5" className="border rounded-md bg-white p-4 mt-3">
@@ -33,21 +35,31 @@ export function RepresentativeInfoSection({
                 <FieldGroup className="gap-y-4">
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repFirstName">نام نماینده</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repFirstName">
+                                <span className="text-red-500">*</span>
+                                نام نماینده
+                            </FieldLabel>
                             <Input
                                 id="repFirstName"
+                                aria-invalid={invalidFields.has('repFirstName')}
                                 value={formData.repFirstName}
                                 onChange={(e) => onFormDataChange("repFirstName", e.target.value)}
                                 disabled={!isEditable}
+                                required
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repLastName">نام خانوادگی نماینده</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repLastName">
+                                <span className="text-red-500">*</span>
+                                نام خانوادگی نماینده
+                            </FieldLabel>
                             <Input
                                 id="repLastName"
+                                aria-invalid={invalidFields.has('repLastName')}
                                 value={formData.repLastName}
                                 onChange={(e) => onFormDataChange("repLastName", e.target.value)}
                                 disabled={!isEditable}
+                                required
                             />
                         </Field>
                     </div>
@@ -55,15 +67,16 @@ export function RepresentativeInfoSection({
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="repPhone">
+                                <span className="text-red-500">*</span>
                                 شماره تماس نماینده
-                                <span className="text-red-500 ml-1">*</span>
                             </FieldLabel>
                             <Input
                                 id="repPhone"
                                 value={formData.repPhone}
                                 onChange={(e) => onFormDataChange("repPhone", e.target.value)}
                                 disabled={!isEditable}
-                                aria-invalid={repPhoneInvalid}
+                                required
+                                aria-invalid={repPhoneInvalid || invalidFields.has('repPhone')}
                                 className={repPhoneInvalid ? "border-destructive" : ""}
                             />
                             {repPhoneInvalid && (
@@ -77,7 +90,6 @@ export function RepresentativeInfoSection({
                             <Input
                                 id="repEmail"
                                 type="email"
-                                
                                 value={formData.repEmail}
                                 onChange={(e) => onFormDataChange("repEmail", e.target.value)}
                                 disabled={!isEditable}

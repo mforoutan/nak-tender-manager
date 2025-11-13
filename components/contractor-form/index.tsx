@@ -14,10 +14,14 @@ interface CompanyInfoFormProps {
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
     repPhoneInvalid?: boolean;
+    invalidFields?: Set<keyof ContractorFormData>;
 }
 
 export interface CompanyInfoFormRef {
     openRepresentativeSection: () => void;
+    openMainInfoSection: () => void;
+    openContactSection: () => void;
+    openBankingSection: () => void;
 }
 
 export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormProps>(({
@@ -25,6 +29,7 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
     onFormDataChange,
     isEditable = true,
     repPhoneInvalid = false,
+    invalidFields = new Set(),
 }, ref) => {
     const [openSections, setOpenSections] = useState<string[]>(["section-1"]);
 
@@ -34,12 +39,24 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
 
     useImperativeHandle(ref, () => ({
         openRepresentativeSection: () => {
-            setOpenSections(prev => {
-                if (!prev.includes("section-5")) {
-                    return [...prev, "section-5"];
-                }
-                return prev;
-            });
+            setOpenSections(prev => 
+                prev.includes("section-5") ? prev : [...prev, "section-5"]
+            );
+        },
+        openMainInfoSection: () => {
+            setOpenSections(prev => 
+                prev.includes("section-1") ? prev : [...prev, "section-1"]
+            );
+        },
+        openContactSection: () => {
+            setOpenSections(prev => 
+                prev.includes("section-3") ? prev : [...prev, "section-3"]
+            );
+        },
+        openBankingSection: () => {
+            setOpenSections(prev => 
+                prev.includes("section-4") ? prev : [...prev, "section-4"]
+            );
         },
     }));
 
@@ -55,6 +72,7 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
                     formData={formData}
                     onFormDataChange={onFormDataChange}
                     isEditable={isEditable}
+                    invalidFields={invalidFields}
                 />
 
                 <CeoInfoSection
@@ -67,12 +85,14 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
                     formData={formData}
                     onFormDataChange={onFormDataChange}
                     isEditable={isEditable}
+                    invalidFields={invalidFields}
                 />
 
                 <BankingInfoSection
                     formData={formData}
                     onFormDataChange={onFormDataChange}
                     isEditable={isEditable}
+                    invalidFields={invalidFields}
                 />
 
                 <RepresentativeInfoSection
@@ -80,6 +100,7 @@ export const CompanyInfoForm = forwardRef<CompanyInfoFormRef, CompanyInfoFormPro
                     onFormDataChange={onFormDataChange}
                     isEditable={isEditable}
                     repPhoneInvalid={repPhoneInvalid}
+                    invalidFields={invalidFields}
                 />
             </Accordion>
         </div>

@@ -28,12 +28,14 @@ interface ContactInfoSectionProps {
     formData: ContractorFormData;
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
+    invalidFields?: Set<keyof ContractorFormData>;
 }
 
 export function ContactInfoSection({
     formData,
     onFormDataChange,
     isEditable = true,
+    invalidFields = new Set(),
 }: ContactInfoSectionProps) {
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [cities, setCities] = useState<City[]>([]);
@@ -114,20 +116,23 @@ export function ContactInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="phone">شماره تلفن ثابت</FieldLabel>
                             <Input
                                 id="phone"
-                                
                                 value={formData.phone}
                                 onChange={(e) => onFormDataChange("phone", e.target.value)}
                                 disabled={!isEditable}
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="mobile">شماره موبایل</FieldLabel>
+                                                        <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="mobile">
+                                <span className="text-red-500">*</span>
+                                شماره موبایل
+                            </FieldLabel>
                             <Input
                                 id="mobile"
-                                
+                                aria-invalid={invalidFields.has('mobile')}
                                 value={formData.mobile}
                                 onChange={(e) => onFormDataChange("mobile", e.target.value)}
                                 disabled={!isEditable}
+                                required
                             />
                         </Field>
                     </div>
@@ -137,7 +142,6 @@ export function ContactInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="fax">شماره فکس</FieldLabel>
                             <Input
                                 id="fax"
-                                
                                 value={formData.fax}
                                 onChange={(e) => onFormDataChange("fax", e.target.value)}
                                 disabled={!isEditable}
@@ -147,7 +151,6 @@ export function ContactInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="website">وب‌سایت</FieldLabel>
                             <Input
                                 id="website"
-                                
                                 value={formData.website}
                                 onChange={(e) => onFormDataChange("website", e.target.value)}
                                 disabled={!isEditable}
@@ -161,7 +164,6 @@ export function ContactInfoSection({
                             <Input
                                 id="email"
                                 type="email"
-                                
                                 value={formData.email}
                                 onChange={(e) => onFormDataChange("email", e.target.value)}
                                 disabled={!isEditable}
@@ -169,7 +171,7 @@ export function ContactInfoSection({
                         </Field>
                         <Field className="gap-1">
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="province">
-                                <span className="text-red-500 ml-1">*</span>
+                                <span className="text-red-500">*</span>
                                 استان
                             </FieldLabel>
                             <Select
@@ -177,7 +179,7 @@ export function ContactInfoSection({
                                 onValueChange={handleProvinceChange}
                                 disabled={!isEditable || loadingProvinces}
                             >
-                                <SelectTrigger id="province">
+                                <SelectTrigger id="province" aria-invalid={invalidFields.has('province')}>
                                     <SelectValue placeholder={loadingProvinces ? "در حال بارگذاری..." : "انتخاب کنید"} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -194,7 +196,7 @@ export function ContactInfoSection({
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="city">
-                                <span className="text-red-500 ml-1">*</span>
+                                <span className="text-red-500">*</span>
                                 شهر
                             </FieldLabel>
                             <Select
@@ -202,7 +204,7 @@ export function ContactInfoSection({
                                 onValueChange={(value) => onFormDataChange("city", value)}
                                 disabled={!isEditable || !formData.province || loadingCities}
                             >
-                                <SelectTrigger id="city">
+                                <SelectTrigger id="city" aria-invalid={invalidFields.has('city')}>
                                     <SelectValue placeholder={
                                         loadingCities 
                                             ? "در حال بارگذاری..." 
@@ -222,12 +224,12 @@ export function ContactInfoSection({
                         </Field>
                         <Field className="gap-1">
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="postalCode">
-                                <span className="text-red-500 ml-1">*</span>
+                                <span className="text-red-500">*</span>
                                 کد پستی
                             </FieldLabel>
                             <Input
                                 id="postalCode"
-                                
+                                aria-invalid={invalidFields.has('postalCode')}
                                 value={formData.postalCode}
                                 onChange={(e) => onFormDataChange("postalCode", e.target.value)}
                                 disabled={!isEditable}

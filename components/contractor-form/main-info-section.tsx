@@ -32,6 +32,7 @@ interface MainInfoSectionProps {
     formData: ContractorFormData;
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
+    invalidFields?: Set<keyof ContractorFormData>;
 }
 
 const requiredDocuments = [
@@ -42,6 +43,7 @@ export function MainInfoSection({
     formData,
     onFormDataChange,
     isEditable = true,
+    invalidFields = new Set(),
 }: MainInfoSectionProps) {
     const [contractorTypes, setContractorTypes] = useState<ContractorType[]>([]);
     const [contractorCategories, setContractorCategories] = useState<ContractorCategory[]>([]);
@@ -109,12 +111,12 @@ export function MainInfoSection({
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="companyName">
-                                نام شرکت
                                 <span className="text-red-500">*</span>
+                                نام شرکت
                             </FieldLabel>
                             <Input
                                 id="companyName"
-
+                                aria-invalid={invalidFields.has('companyName')}
                                 value={formData.companyName}
                                 onChange={(e) => onFormDataChange("companyName", e.target.value)}
                                 disabled={!isEditable}
@@ -157,7 +159,6 @@ export function MainInfoSection({
                         </Field>
                         <Field className="gap-1">
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="companyCategory">
-                                <span className="text-red-500">*</span>
                                 نوع فعالیت
                             </FieldLabel>
                             <Select
@@ -181,13 +182,17 @@ export function MainInfoSection({
 
                     <div className="grid gap-y-4 gap-x-8 md:grid-cols-2">
                         <Field className="gap-1">
-                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="nationalId">شناسه ملی شرکت</FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="nationalId">
+                                <span className="text-red-500">*</span>
+                                شناسه ملی شرکت
+                            </FieldLabel>
                             <Input
                                 id="nationalId"
-
+                                aria-invalid={invalidFields.has('nationalId')}
                                 value={formData.nationalId}
                                 onChange={(e) => onFormDataChange("nationalId", e.target.value)}
                                 disabled={!isEditable}
+                                required
                             />
                         </Field>
                         <Field className="gap-1">
@@ -206,24 +211,18 @@ export function MainInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="economicCode">کد اقتصادی</FieldLabel>
                             <Input
                                 id="economicCode"
-
                                 value={formData.economicCode}
                                 onChange={(e) => onFormDataChange("economicCode", e.target.value)}
                                 disabled={!isEditable}
                             />
                         </Field>
                         <Field className="gap-1">
-                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="registrationNumber">
-                                <span className="text-red-500">*</span>
-                                شماره ثبت
-                            </FieldLabel>
+                            <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="registrationNumber">شماره ثبت</FieldLabel>
                             <Input
                                 id="registrationNumber"
-
                                 value={formData.registrationNumber}
                                 onChange={(e) => onFormDataChange("registrationNumber", e.target.value)}
                                 disabled={!isEditable}
-                                required
                             />
                         </Field>
                     </div>

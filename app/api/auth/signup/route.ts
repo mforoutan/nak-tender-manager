@@ -250,8 +250,8 @@ export async function POST(request: NextRequest) {
       )`,
       {
         contractorId,
-        firstName: toNullIfEmpty(repFirstName) || 'نام',
-        lastName: toNullIfEmpty(repLastName) || 'نام خانوادگی',
+        firstName: toNullIfEmpty(repFirstName) || { val: null, type: oracledb.STRING },
+        lastName: toNullIfEmpty(repLastName) || { val: null, type: oracledb.STRING },
         nationalId: null, // Representative national ID not collected in form
         mobile: toNullIfEmpty(repPhone),
         email: toNullIfEmpty(repEmail),
@@ -282,8 +282,8 @@ export async function POST(request: NextRequest) {
       )`,
       {
         contractorId,
-        firstName: toNullIfEmpty(ceoFirstName) || 'نام',
-        lastName: toNullIfEmpty(ceoLastName) || 'نام خانوادگی',
+        firstName: toNullIfEmpty(ceoFirstName) || { val: null, type: oracledb.STRING },
+        lastName: toNullIfEmpty(ceoLastName) || { val: null, type: oracledb.STRING },
         nationalId: toNullIfEmpty(ceoNationalId),
         mobile: toNullIfEmpty(ceoMobile),
         positionTitle: 'مدیرعامل',
@@ -311,8 +311,8 @@ export async function POST(request: NextRequest) {
         contractorId,
         username: repPhone, // Use mobile as username
         passwordHash,
-        firstName: toNullIfEmpty(repFirstName) || 'نام',
-        lastName: toNullIfEmpty(repLastName) || 'نام خانوادگی',
+        firstName: toNullIfEmpty(repFirstName) || { val: null, type: oracledb.STRING },
+        lastName: toNullIfEmpty(repLastName) || { val: null, type: oracledb.STRING },
       }
     );
 

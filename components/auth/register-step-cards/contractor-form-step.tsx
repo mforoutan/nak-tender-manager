@@ -10,6 +10,7 @@ interface ContractorFormStepProps {
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     onNext: () => void;
     repPhoneInvalid?: boolean;
+    invalidFields?: Set<keyof ContractorFormData>;
 }
 
 export function ContractorFormStep({
@@ -17,6 +18,7 @@ export function ContractorFormStep({
     onFormDataChange,
     onNext,
     repPhoneInvalid = false,
+    invalidFields = new Set(),
 }: ContractorFormStepProps) {
     const formRef = useRef<CompanyInfoFormRef>(null);
 
@@ -39,6 +41,7 @@ export function ContractorFormStep({
                     onFormDataChange={onFormDataChange}
                     isEditable={true}
                     repPhoneInvalid={repPhoneInvalid}
+                    invalidFields={invalidFields}
                 />
             </CardContent>
             <CardFooter className="flex justify-between mt-6 p-0">

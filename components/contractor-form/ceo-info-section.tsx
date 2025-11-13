@@ -55,7 +55,6 @@ export function CeoInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="ceoNationalId">کد ملی مدیر عامل</FieldLabel>
                             <Input
                                 id="ceoNationalId"
-                                
                                 value={formData.ceoNationalId}
                                 onChange={(e) => onFormDataChange("ceoNationalId", e.target.value)}
                                 disabled={!isEditable}
@@ -65,7 +64,6 @@ export function CeoInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="ceoMobile">شماره موبایل مدیر عامل</FieldLabel>
                             <Input
                                 id="ceoMobile"
-                                
                                 value={formData.ceoMobile}
                                 onChange={(e) => onFormDataChange("ceoMobile", e.target.value)}
                                 disabled={!isEditable}

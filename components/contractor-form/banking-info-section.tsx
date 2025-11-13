@@ -20,12 +20,14 @@ interface BankingInfoSectionProps {
     formData: ContractorFormData;
     onFormDataChange: (field: keyof ContractorFormData, value: string) => void;
     isEditable?: boolean;
+    invalidFields?: Set<keyof ContractorFormData>;
 }
 
 export function BankingInfoSection({
     formData,
     onFormDataChange,
     isEditable = true,
+    invalidFields = new Set(),
 }: BankingInfoSectionProps) {
     const [banks, setBanks] = useState<Bank[]>([]);
     const [loadingBanks, setLoadingBanks] = useState(false);
@@ -89,7 +91,6 @@ export function BankingInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="bankBranch">نام شعبه</FieldLabel>
                             <Input
                                 id="bankBranch"
-                                
                                 value={formData.bankBranch}
                                 onChange={(e) => onFormDataChange("bankBranch", e.target.value)}
                                 disabled={!isEditable}
@@ -102,7 +103,6 @@ export function BankingInfoSection({
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="accountNumber">شماره حساب</FieldLabel>
                             <Input
                                 id="accountNumber"
-                                
                                 value={formData.accountNumber}
                                 onChange={(e) => onFormDataChange("accountNumber", e.target.value)}
                                 disabled={!isEditable}
@@ -110,12 +110,12 @@ export function BankingInfoSection({
                         </Field>
                         <Field className="gap-1">
                             <FieldLabel className="gap-1 font-medium text-sm text-muted-foreground" htmlFor="shabaNumber">
-                                <span className="text-red-500 ml-1">*</span>
+                                <span className="text-red-500">*</span>
                                 شماره شبا
                             </FieldLabel>
                             <Input
                                 id="shabaNumber"
-                                
+                                aria-invalid={invalidFields.has('shabaNumber')}
                                 value={formData.shabaNumber}
                                 onChange={(e) => onFormDataChange("shabaNumber", e.target.value)}
                                 disabled={!isEditable}

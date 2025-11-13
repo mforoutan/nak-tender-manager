@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+scripts/insert-company-statuses.sql
+scripts/README.md
+scripts/README.md
+ALERT_SYSTEM.md

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stepper } from "@/components/ui/stepper";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ContractorFormData } from "@/types";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -11,12 +11,15 @@ import {
     MobileVerificationStep,
     FinalConfirmationStep,
 } from "./register-step-cards";
+import { CompanyInfoFormRef } from "@/components/contractor-form";
 
 export function AuthRegisterForm() {
     const router = useRouter();
+    const formRef = useRef<CompanyInfoFormRef>(null);
     const [currentStep, setCurrentStep] = useState(0);
     const [repPhoneInvalid, setRepPhoneInvalid] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [invalidFields, setInvalidFields] = useState<Set<keyof ContractorFormData>>(new Set());
 
     const [formData, setFormData] = useState<ContractorFormData>({
         // اطلاعات اصلی (Main Information)
@@ -70,20 +73,129 @@ export function AuthRegisterForm() {
     const handleNextStep = async () => {
         // Step 0: Send OTP before moving to mobile verification step
         if (currentStep === 0) {
-            // Validate repPhone before sending OTP
+            // Validate all required fields before sending OTP
+            const newInvalidFields = new Set<keyof ContractorFormData>();
+            let firstErrorSection: 'main' | 'contact' | 'banking' | 'representative' | null = null;
+            let firstErrorMessage = '';
+            
+            // Section 1: Main Info - companyName, nationalId
+            if (!formData.companyName) {
+                newInvalidFields.add('companyName');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'main';
+                    firstErrorMessage = "لطفا نام شرکت را وارد کنید";
+                }
+            }
+            
+            if (!formData.nationalId) {
+                newInvalidFields.add('nationalId');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'main';
+                    firstErrorMessage = "لطفا شناسه ملی را وارد کنید";
+                }
+            }
+            
+            // Section 3: Contact Info - mobile, province, city, postalCode
+            if (!formData.mobile) {
+                newInvalidFields.add('mobile');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'contact';
+                    firstErrorMessage = "لطفا شماره موبایل را وارد کنید";
+                }
+            }
+            
+            if (!formData.province) {
+                newInvalidFields.add('province');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'contact';
+                    firstErrorMessage = "لطفا استان را انتخاب کنید";
+                }
+            }
+            
+            if (!formData.city) {
+                newInvalidFields.add('city');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'contact';
+                    firstErrorMessage = "لطفا شهر را انتخاب کنید";
+                }
+            }
+            
+            if (!formData.postalCode) {
+                newInvalidFields.add('postalCode');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'contact';
+                    firstErrorMessage = "لطفا کد پستی را وارد کنید";
+                }
+            }
+            
+            // Section 4: Banking Info - shabaNumber
+            if (!formData.shabaNumber) {
+                newInvalidFields.add('shabaNumber');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'banking';
+                    firstErrorMessage = "لطفا شماره شبا را وارد کنید";
+                }
+            }
+            
+            // Section 5: Representative Info - repFirstName, repLastName, repPhone
+            if (!formData.repFirstName) {
+                newInvalidFields.add('repFirstName');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'representative';
+                    firstErrorMessage = "لطفا نام نماینده را وارد کنید";
+                }
+            }
+            
+            if (!formData.repLastName) {
+                newInvalidFields.add('repLastName');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'representative';
+                    firstErrorMessage = "لطفا نام خانوادگی نماینده را وارد کنید";
+                }
+            }
+            
             if (!formData.repPhone) {
-                setRepPhoneInvalid(true);
-                toast.error("لطفا شماره همراه نماینده را وارد کنید");
-                return;
+                newInvalidFields.add('repPhone');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'representative';
+                    firstErrorMessage = "لطفا شماره همراه نماینده را وارد کنید";
+                }
             }
 
-            if (!/^09\d{9}$/.test(formData.repPhone)) {
-                setRepPhoneInvalid(true);
-                toast.error("شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد");
+            if (formData.repPhone && !/^09\d{9}$/.test(formData.repPhone)) {
+                newInvalidFields.add('repPhone');
+                if (!firstErrorSection) {
+                    firstErrorSection = 'representative';
+                    firstErrorMessage = "شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد";
+                }
+            }
+
+            // If there are any validation errors
+            if (newInvalidFields.size > 0) {
+                setInvalidFields(newInvalidFields);
+                
+                // Set repPhoneInvalid if repPhone is in invalid fields
+                if (newInvalidFields.has('repPhone')) {
+                    setRepPhoneInvalid(true);
+                }
+                
+                // Open the first section with errors
+                if (firstErrorSection === 'main') {
+                    formRef.current?.openMainInfoSection();
+                } else if (firstErrorSection === 'contact') {
+                    formRef.current?.openContactSection();
+                } else if (firstErrorSection === 'banking') {
+                    formRef.current?.openBankingSection();
+                } else if (firstErrorSection === 'representative') {
+                    formRef.current?.openRepresentativeSection();
+                }
+                
+                toast.error(firstErrorMessage);
                 return;
             }
 
             setRepPhoneInvalid(false);
+            setInvalidFields(new Set()); // Clear invalid fields if all validations pass
 
             try {
                 const response = await fetch("/api/auth/send-otp", {
@@ -169,6 +281,7 @@ export function AuthRegisterForm() {
                             onFormDataChange={handleFormDataChange}
                             onNext={handleNextStep}
                             repPhoneInvalid={repPhoneInvalid}
+                            invalidFields={invalidFields}
                         />
                     )}
                     {currentStep === 1 && (

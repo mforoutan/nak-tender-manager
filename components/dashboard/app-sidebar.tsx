@@ -9,6 +9,7 @@ import {
   IconFileDescription,
 } from "@tabler/icons-react"
 
+import { type IconName } from 'lucide-react/dynamic';
 
 import { NavTenders } from "@/components/dashboard/nav-tenders"
 import { NavMain } from "@/components/dashboard/nav-main"
@@ -33,17 +34,17 @@ const data = {
     {
       title: "داشبورد",
       url: "/dashboard",
-      icon: "layout-dashboard",
+      icon: "layout-dashboard" as IconName,
     },
     {
       title: "حساب کاربری",
       url: "/dashboard/account",
-      icon: "badge-check",
+      icon: "badge-check" as IconName,
     },
     {
       title: "اطلاعات تکمیلی",
       url: "/dashboard/profile",
-      icon: "file-user",
+      icon: "file-user" as IconName,
     },
   ],
   navClouds: [
@@ -97,40 +98,40 @@ const data = {
   navTenders: [
     {
       title: "معاملات شما",
-      // url: "/dashboard/tenders/my",
-      icon: "handshake",
+      url: "#",
+      icon: "handshake" as IconName,
       items: [
         {
           title: "مناقصه",
           url: "/dashboard/tenders/list",
-          icon: "award",
+          icon: "award" as IconName,
         },
         {
           title: "استعلام‌ها",
           url: "/dashboard/tenders/inquiries",
-          icon: "search-check",
+          icon: "search-check" as IconName,
         },
         {
           title: "فراخوان‌ها",
           url: "/dashboard/tenders/calls",
-          icon: "megaphone",
+          icon: "megaphone" as IconName,
         },
       ]
     },
     {
       title: "وضعیت ارزیابی‌ها",
       url: "/dashboard/tenders/evaluations",
-      icon: "scan-search",
+      icon: "scan-search" as IconName,
     },
     {
       title: "قراردادها",
       url: "/dashboard/tenders/contracts",
-      icon: "sticker",
+      icon: "sticker" as IconName,
     },
     {
       title: "معاملات موجود",
       url: "/dashboard/tenders/available",
-      icon: "list",
+      icon: "list" as IconName,
     },
   ],
   
@@ -138,17 +139,17 @@ const data = {
     {
       title: "راهنمای شرکت در معامله",
       url: "/dashboard/help",
-      icon: "lightbulb",
+      icon: "lightbulb" as IconName,
     },
     {
       title: "پشتیبانی",
       url: "/dashboard/support",
-      icon: "headset",
+      icon: "headset" as IconName,
     },
     {
       title: "تنظیمات",
       url: "/dashboard/settings",
-      icon: "settings",
+      icon: "settings" as IconName,
     },
   ],
 }
