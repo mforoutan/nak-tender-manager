@@ -116,6 +116,82 @@ export interface ContractorTask {
     taskType?: string;
 }
 
+// Published Process Types (for tender listings)
+export interface PublishedProcess {
+    id: number;
+    transactionProcessId: number;
+    publicationNumber: string;
+    title: string;
+    description?: string;
+    status: 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'CANCELLED';
+    publishDate?: Date | string;
+    deadlineDate?: Date | string;
+    submissionStartDate?: Date | string;
+    submissionEndDate?: Date | string;
+    estimatedValue?: number;
+    currency?: string;
+    contactInfo?: string;
+    termsConditions?: string;
+    publicationRound?: number;
+    documentPrice?: number;
+    documentCurrency?: string;
+    purchaseDeadline?: Date | string;
+    maxDownloads?: number;
+    targetCategoryIds?: string;
+    documentsZipFileId?: number;
+    createdBy: number;
+    createdDate: Date | string;
+    modifiedBy?: number;
+    modifiedDate?: Date | string;
+    publishedDate?: Date | string;
+    publishStartDate?: Date | string;
+    publishEndDate?: Date | string;
+    isActive: number;
+    customFields?: string;
+    customFieldsVersion?: number;
+    // Related data from joins
+    processType?: string;
+    requestType?: string;
+    requestCategory?: string;
+    provinceName?: string;
+    cityName?: string;
+    regionName?: string;
+}
+
+// Simplified type for DataTable component
+export interface TenderListItem {
+    id: number;
+    title: string;
+    type: string; // processType (مناقصه عمومی, فراخوان, استعلام, etc.)
+    status: 'ongoing' | 'upcoming' | 'completed'; // Derived from dates
+    endDate: string; // submissionEndDate
+    category: string; // requestCategory
+    code: string; // publicationNumber
+}
+
+// API Query parameters
+export interface PublishedProcessFilters {
+    search?: string;
+    status?: 'ongoing' | 'upcoming' | 'completed' | 'all';
+    type?: string; // Process type filter
+    category?: string; // Request category filter
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+}
+
+// API Response
+export interface PublishedProcessListResponse {
+    data: TenderListItem[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+}
+
 // Export alert types
 export * from './alert';
 

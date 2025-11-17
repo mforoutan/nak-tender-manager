@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { AwardIcon, MilestoneIcon, Calendar1Icon, Search, SearchCheckIcon, GavelIcon, StickerIcon, Clock, MegaphoneIcon } from "lucide-react"
-
-import { z } from "zod"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 
 import { toPersianNumbers } from "@/lib/utils"
+import type { TenderListItem } from "@/types"
+import type { TabConfig } from "./types"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -36,24 +37,9 @@ import {
 } from "@/components/ui/pagination"
 import Link from "next/link"
 import { PersianDatePicker } from "@/components/ui/persian-date-picker"
-import { tr } from "date-fns/locale"
 
-export const schema = z.object({
-  id: z.number(),
-  title: z.string(),
-  type: z.string(),
-  status: z.string(),
-  endDate: z.string(),
-  category: z.string(),
-  code: z.string(),
-})
-
-
-export type TabConfig = {
-  value: string
-  label: string
-  typeFilter?: string
-}
+// Re-export TabConfig for convenience
+export type { TabConfig } from "./types"
 
 // Helper function to convert Gregorian date to Persian calendar
 function toPersianDate(dateString: string): string {
@@ -66,35 +52,35 @@ function toPersianDate(dateString: string): string {
 }
 
 function CardIcon({ type, status }: { type: string, status: string }) {
-  if (type === "قرارداد") {
+  if (type.includes("قرارداد")) {
     return (
       <div className="bg-[#FF00DD] text-white rounded-full p-3">
         <StickerIcon />
       </div>
     )
   }
-  if (type === "ارزیابی") {
+  if (type.includes("ارزیابی")) {
     return (
       <div className="bg-[#0088FF] text-white rounded-full p-3">
         <Clock />
       </div>
     )
   }
-  if (type === "فراخوان") {
+  if (type.includes("فراخوان")) {
     return (
       <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
         <MegaphoneIcon />
       </div>
     )
   }
-  if (type === "استعلام") {
+  if (type.includes("استعلام")) {
     return (
       <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
         <SearchCheckIcon />
       </div>
     )
   }
-  if (type === "مزایده") {
+  if (type.includes("مزایده")) {
     return (
       <div className="bg-[#FFF4F0] text-primary rounded-full p-3">
         <GavelIcon />
@@ -110,7 +96,7 @@ function CardIcon({ type, status }: { type: string, status: string }) {
 }
 
 function StatusBadge({ status, type }: { status: string, type: string }) {
-  if (type === "ارزیابی") {
+  if (type.includes("ارزیابی")) {
     return (
       <div className="flex items-center gap-1">
         <Badge variant="outline" className={`bg-[#0088FF] text-white rounded-full px-2`}>
@@ -147,7 +133,64 @@ function StatusBadge({ status, type }: { status: string, type: string }) {
   );
 }
 
-function DataCard({ item, showStatus = false }: { item: z.infer<typeof schema>, showStatus: boolean }) {
+function TypeBadge({ type }: { type: string }) {
+  // Check if type contains these keywords (not exact match)
+  if (type.includes("مناقصه")) {
+    return (
+      <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
+        {type}
+      </Badge>
+    );
+  }
+  
+  if (type.includes("استعلام")) {
+    return (
+      <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
+        {type}
+      </Badge>
+    );
+  }
+  
+  if (type.includes("فراخوان")) {
+    return (
+      <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
+        {type}
+      </Badge>
+    );
+  }
+  
+  if (type.includes("ارزیابی")) {
+    return (
+      <Badge variant="outline" className="text-black border border-[#E4E4E7] bg-transparent rounded-md px-2">
+        {type}
+      </Badge>
+    );
+  }
+  
+  if (type.includes("مزایده")) {
+    return (
+      <Badge variant="outline" className="text-black border border-[#E4E4E7] bg-transparent rounded-md px-2">
+        {type}
+      </Badge>
+    );
+  }
+  
+  if (type.includes("قرارداد")) {
+    return (
+      <Badge variant="outline" className="text-black border border-[#E4E4E7] bg-transparent rounded-md px-2">
+        {type}
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="outline" className="text-black border border-[#E4E4E7] bg-transparent rounded-md px-2">
+      {type}
+    </Badge>
+  );
+}
+
+function DataCard({ item, showStatus = false }: { item: TenderListItem, showStatus: boolean }) {
   return (
     <Card className="overflow-hidden pl-14 pr-14  py-6 lg:pr-22 relative gap-1 hover:bg-[#FFF4F0]">
       <div className="absolute inset-y-0 right-0 hidden lg:flex items-center pr-6">
@@ -163,9 +206,7 @@ function DataCard({ item, showStatus = false }: { item: z.infer<typeof schema>, 
                 </h3>
               </Link>
               <div className="flex gap-2 order-first lg:order-last">
-                <Badge variant="outline" className={`${item.type in ["مناقصه", "استعلام", "فراخوان"] ? 'text-primary border-[#FFDED0] bg-[#FFF4F0]' : 'text-black border border-[#E4E4E7] bg-transparent'} rounded-md px-2`}>
-                  {item.type}
-                </Badge>
+                <TypeBadge type={item.type} />
                 <Badge variant="outline" className="text-black rounded-md px-2">
                   {toPersianNumbers(item.code)}
                 </Badge>
@@ -204,24 +245,112 @@ export function DataTable({
   ],
   showStatusFilter = true,
   showStatus = true,
+  serverSide = false,
+  totalCount,
 }: {
-  data: z.infer<typeof schema>[]
+  data: TenderListItem[]
   itemsPerPage?: number
   tabs?: TabConfig[],
   showStatusFilter?: boolean,
   showStatus?: boolean
+  serverSide?: boolean
+  totalCount?: number
 }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  // Initialize state from URL search params (for server-side mode) or defaults
   const [data, setData] = React.useState(() => initialData)
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [selectedDate, setSelectedDate] = React.useState("")
-  const [statusFilter, setStatusFilter] = React.useState<string>("ongoing")
-  const [typeFilter, setTypeFilter] = React.useState<string>(tabs[0]?.value || "all")
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get('search') || "")
+  const [selectedDate, setSelectedDate] = React.useState(searchParams.get('date') || "")
+  const [statusFilter, setStatusFilter] = React.useState<string>(searchParams.get('status') || "ongoing")
+  const [typeFilter, setTypeFilter] = React.useState<string>(searchParams.get('type') || tabs[0]?.value || "all")
   const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
+    pageIndex: parseInt(searchParams.get('page') || '0'),
     pageSize: itemsPerPage,
   })
 
+  // Update data when initialData changes (for server-side mode)
+  React.useEffect(() => {
+    setData(initialData)
+  }, [initialData])
+
+  // Function to update URL params (for server-side mode)
+  const updateURLParams = React.useCallback((updates: Record<string, string>) => {
+    if (!serverSide) return
+    
+    const params = new URLSearchParams(searchParams.toString())
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value)
+      } else {
+        params.delete(key)
+      }
+    })
+    
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }, [serverSide, router, pathname, searchParams])
+
+  // Debounced search update
+  const debouncedSearchRef = React.useRef<NodeJS.Timeout | null>(null)
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    
+    if (serverSide) {
+      // Clear previous timeout
+      if (debouncedSearchRef.current) {
+        clearTimeout(debouncedSearchRef.current)
+      }
+      
+      // Set new timeout
+      debouncedSearchRef.current = setTimeout(() => {
+        updateURLParams({ search: value, page: '0' })
+      }, 500)
+    }
+  }
+
+  // Handle filter changes
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value)
+    if (serverSide) {
+      updateURLParams({ status: value, page: '0' })
+    }
+  }
+
+  const handleTypeChange = (value: string) => {
+    setTypeFilter(value)
+    if (serverSide) {
+      const currentTab = tabs.find(tab => tab.value === value)
+      updateURLParams({ 
+        type: currentTab?.typeFilter || '', 
+        page: '0' 
+      })
+    }
+  }
+
+  const handleDateChange = (value: string) => {
+    setSelectedDate(value)
+    if (serverSide) {
+      updateURLParams({ date: value, page: '0' })
+    }
+  }
+
+  const handlePageChange = (pageIndex: number) => {
+    setPagination((prev) => ({ ...prev, pageIndex }))
+    if (serverSide) {
+      updateURLParams({ page: pageIndex.toString() })
+    }
+  }
+
   const filteredData = React.useMemo(() => {
+    // In server-side mode, data is already filtered by the API
+    if (serverSide) {
+      return data
+    }
+    
+    // Client-side filtering
     return data.filter((item) => {
       const matchesSearch = searchQuery === "" ||
         item.title.includes(searchQuery) ||
@@ -237,7 +366,7 @@ export function DataTable({
 
       return matchesSearch && matchesDate && matchesStatus && matchesType
     })
-  }, [data, searchQuery, selectedDate, statusFilter, typeFilter, tabs])
+  }, [data, searchQuery, selectedDate, statusFilter, typeFilter, tabs, serverSide])
 
   const paginatedData = React.useMemo(() => {
     const start = pagination.pageIndex * pagination.pageSize
@@ -245,12 +374,16 @@ export function DataTable({
     return filteredData.slice(start, end)
   }, [filteredData, pagination])
 
-  // Reset pagination when filters change
+  // Reset pagination when filters change (only for client-side mode)
   React.useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-  }, [searchQuery, selectedDate, statusFilter, typeFilter])
+    if (!serverSide) {
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+    }
+  }, [searchQuery, selectedDate, statusFilter, typeFilter, serverSide])
 
-  const pageCount = Math.ceil(filteredData.length / pagination.pageSize)
+  // Use totalCount for server-side, filteredData.length for client-side
+  const totalItems = serverSide ? (totalCount || data.length) : filteredData.length
+  const pageCount = Math.ceil(totalItems / pagination.pageSize)
   const canPreviousPage = pagination.pageIndex > 0
   const canNextPage = pagination.pageIndex < pageCount - 1
 
@@ -296,7 +429,7 @@ export function DataTable({
       dir="rtl"
       defaultValue={tabs[0]?.value || "all"}
       value={typeFilter}
-      onValueChange={setTypeFilter}
+      onValueChange={handleTypeChange}
       className="w-full flex-col justify-start gap-6"
     >
       <div className="flex items-center justify-between px-4 lg:px-6">
@@ -313,7 +446,7 @@ export function DataTable({
         <div className="hidden lg:flex items-center gap-2">
           <PersianDatePicker
             value={selectedDate}
-            onChange={setSelectedDate}
+            onChange={handleDateChange}
             placeholder="تاریخ"
             className="w-auto gap-x-2 min-h-input-sm rounded-input px-sm py-2.5"
           />
@@ -321,7 +454,7 @@ export function DataTable({
             <InputGroupInput
               placeholder="جستجو در معاملات..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="p-0 leading-7 h-7"
             />
             <InputGroupAddon className="pl-2 py-0">
@@ -338,7 +471,7 @@ export function DataTable({
         >
           {showStatusFilter && (
             <div className="flex justify-center lg:justify-between">
-              <Tabs value={statusFilter} onValueChange={setStatusFilter} dir="rtl">
+              <Tabs value={statusFilter} onValueChange={handleStatusChange} dir="rtl">
                 <TabsList className="bg-white mx-auto lg:mx-0">
                   <TabsTrigger className="data-[state=active]:bg-black" value="ongoing">در حال برگزاری</TabsTrigger>
                   <TabsTrigger className="data-[state=active]:bg-black" value="upcoming">در انتظار برگزاری</TabsTrigger>
@@ -346,14 +479,14 @@ export function DataTable({
                 </TabsList>
               </Tabs>
               <div className="text-primary hidden flex-1 lg:flex justify-end">
-                {toPersianNumbers(filteredData.length.toString())} معامله
+                {toPersianNumbers(totalItems.toString())} معامله
               </div>
             </div>
           )}
           <div className="flex lg:hidden items-center justify-between gap-2">
             <PersianDatePicker
               value={selectedDate}
-              onChange={setSelectedDate}
+              onChange={handleDateChange}
               placeholder="تاریخ"
               className="w-auto"
             />
@@ -361,7 +494,7 @@ export function DataTable({
               <InputGroupInput
                 placeholder="جستجو در معاملات..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
               <InputGroupAddon className="pr-3 pl-1">
                 <Search />
@@ -382,13 +515,13 @@ export function DataTable({
           <div className="flex items-center justify-end px-4">
             <div className={`flex w-full items-center gap-8 ${showStatusFilter ? "lg:w-fit" : ""}`}>
               <div className={`text-primary flex-1 ${showStatusFilter ? "flex lg:hidden" : "flex"} justify-start`}>
-                {toPersianNumbers(filteredData.length.toString())} معامله
+                {toPersianNumbers(totalItems.toString())} معامله
               </div>
               <Pagination dir="ltr" className="w-auto justify-start">
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
-                      onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
+                      onClick={() => handlePageChange(pagination.pageIndex - 1)}
                       aria-disabled={!canPreviousPage}
                       className={`border border-[#E4E4E7] ${!canPreviousPage ? "hidden" : "cursor-pointer"}`}
                     />
@@ -399,7 +532,7 @@ export function DataTable({
                         <PaginationEllipsis />
                       ) : (
                         <PaginationLink
-                          onClick={() => setPagination((prev) => ({ ...prev, pageIndex: page - 1 }))}
+                          onClick={() => handlePageChange(page - 1)}
                           isActive={pagination.pageIndex + 1 === page}
                           className={`border border-[#E4E4E7]  cursor-pointer aria-[current=page]:bg-primary aria-[current=page]:text-white`}
                         >
@@ -410,7 +543,7 @@ export function DataTable({
                   ))}
                   <PaginationItem>
                     <PaginationNext
-                      onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
+                      onClick={() => handlePageChange(pagination.pageIndex + 1)}
                       aria-disabled={!canNextPage}
                       className={`border border-[#E4E4E7] ${!canNextPage ? "hidden" : "cursor-pointer"}`}
                     />

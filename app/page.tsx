@@ -1,5 +1,6 @@
 import { MainHeader } from "@/components/main-header";
-import { DataTable } from "@/components/dashboard/data-table";
+import { DataTable } from "@/components/data-table";
+import type { TenderListItem } from "@/types"
 
 import data from "@/app/dashboard/data.json"
 import { NewsEvents } from "@/components/dashboard/news-events";
@@ -21,7 +22,7 @@ export default function Home() {
         <div className="space-y-10">
           <div className="space-y-12">
             <h3 className="font-medium text-lg px-4 lg:px-6">معاملات موجود</h3>
-            <DataTable data={data} showStatusFilter={false} showStatus={false} itemsPerPage={4} />
+            <DataTable data={data as TenderListItem[]} showStatusFilter={false} showStatus={false} itemsPerPage={4} />
           </div>
           <NewsEvents />
         </div>
