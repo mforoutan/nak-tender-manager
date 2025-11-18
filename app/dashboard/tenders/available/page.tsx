@@ -1,18 +1,5 @@
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/dashboard/section-cards"
-import { YourDeals } from "@/components/dashboard/your-deals"
-import { NewsEvents } from "@/components/dashboard/news-events"
-import { CompanyStatusAlerts } from "@/components/dashboard/company-status-alerts"
-import type { TenderListItem } from "@/types"
-
-export const metadata = {
-  title: "داشبورد | ناک",
-  description: "صفحه داشبورد کاربر در سامانه ناک",
-};
-
-interface DashboardPageProps {
-  companyStatus?: number | null;
-}
+import { DataTable } from "@/components/data-table";
+import { TenderListItem } from "@/types";
 
 async function getRecentTenders(): Promise<TenderListItem[]> {
   try {
@@ -37,18 +24,18 @@ async function getRecentTenders(): Promise<TenderListItem[]> {
   }
 }
 
-export default async function DashboardPage({ companyStatus }: DashboardPageProps) {
-  const tenders = await getRecentTenders();
+export const metadata = {
+    title: "معاملات موجود | ناک",
+    description: "صفحه معاملات موجود در سامانه ناک",
+};
 
-  return (
+export default async function AvailableTendersPage() {
+    const tenders = await getRecentTenders();
+    return (
     <section className="space-y-10">
-      <CompanyStatusAlerts companyStatus={companyStatus} />
+      <h1 className="px-4 lg:px-6 font-medium text-xl">معاملات موجود</h1>
 
-      <h1 className="px-4 lg:px-6 font-medium text-xl">داشبورد</h1>
-
-      <SectionCards />
-      <YourDeals />
-      <DataTable
+        <DataTable
         data={tenders}
         tabs={[
           { value: "all", label: "همه" },
@@ -60,7 +47,6 @@ export default async function DashboardPage({ companyStatus }: DashboardPageProp
         serverSide={true}
         showStatus={false}
       />
-      <NewsEvents />
     </section>
-  )
+    );
 }

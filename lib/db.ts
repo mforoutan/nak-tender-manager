@@ -63,9 +63,11 @@ export async function query(
         
         params.forEach((param, index) => {
             const paramName = `param${index + 1}`;
-            namedSql = namedSql.replace(`:search${index + 1}`, `:${paramName}`);
-            namedSql = namedSql.replace(`:type${index + 1}`, `:${paramName}`);
-            namedSql = namedSql.replace(`:category${index + 1}`, `:${paramName}`);
+            // Replace any :xxx1, :xxx2 pattern with generic :param1, :param2
+            namedSql = namedSql.replace(new RegExp(`:search${index + 1}\\b`, 'g'), `:${paramName}`);
+            namedSql = namedSql.replace(new RegExp(`:type${index + 1}\\b`, 'g'), `:${paramName}`);
+            namedSql = namedSql.replace(new RegExp(`:category${index + 1}\\b`, 'g'), `:${paramName}`);
+            namedSql = namedSql.replace(new RegExp(`:endDate${index + 1}\\b`, 'g'), `:${paramName}`);
             namedParams[paramName] = param;
         });
         

@@ -45,14 +45,6 @@ function transformToTenderItem(record: any): TenderListItem {
     record.STATUS
   );
   
-  // Log to debug what we're receiving
-  console.log('Record from DB:', {
-    id: record.ID,
-    PROCESS_TYPE: record.PROCESS_TYPE,
-    REQUEST_CATEGORY: record.REQUEST_CATEGORY,
-    title: record.TITLE
-  });
-  
   return {
     id: record.ID,
     title: record.TITLE || '',
@@ -75,6 +67,7 @@ export async function GET(request: NextRequest) {
     const statusFilter = searchParams.get('status') || 'all';
     const typeFilter = searchParams.get('type') || '';
     const categoryFilter = searchParams.get('category') || '';
+    const endDateFilter = searchParams.get('endDate') || '';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '10', 10);
     
@@ -119,13 +112,14 @@ export async function GET(request: NextRequest) {
     
     // Add search filter
     if (search) {
+      const searchValue = `%${search}%`;
       sql += ` AND (
         LOWER(pp.TITLE) LIKE LOWER(:search${paramIndex})
-        OR LOWER(pp.PUBLICATION_NUMBER) LIKE LOWER(:search${paramIndex})
-        OR LOWER(prc.CATEGORY_NAME) LIKE LOWER(:search${paramIndex})
+        OR LOWER(pp.PUBLICATION_NUMBER) LIKE LOWER(:search${paramIndex + 1})
+        OR LOWER(prc.CATEGORY_NAME) LIKE LOWER(:search${paramIndex + 2})
       )`;
-      params.push(`%${search}%`);
-      paramIndex++;
+      params.push(searchValue, searchValue, searchValue);
+      paramIndex += 3;
     }
     
     // Add type filter - use LIKE to handle variations in TYPE_NAME
@@ -139,6 +133,13 @@ export async function GET(request: NextRequest) {
     if (categoryFilter) {
       sql += ` AND prc.CATEGORY_NAME = :category${paramIndex}`;
       params.push(categoryFilter);
+      paramIndex++;
+    }
+    
+    // Add end date filter
+    if (endDateFilter) {
+      sql += ` AND TRUNC(pp.SUBMISSION_END_DATE) = TO_DATE(:endDate${paramIndex}, 'YYYY-MM-DD')`;
+      params.push(endDateFilter);
       paramIndex++;
     }
     

@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { AwardIcon, MilestoneIcon, Calendar1Icon, Search, SearchCheckIcon, GavelIcon, StickerIcon, Clock, MegaphoneIcon } from "lucide-react"
-import { useRouter, useSearchParams, usePathname } from "next/navigation"
 
 import { toPersianNumbers } from "@/lib/utils"
 import type { TenderListItem } from "@/types"
@@ -245,8 +244,9 @@ export function DataTable({
   ],
   showStatusFilter = true,
   showStatus = true,
-  serverSide = false,
+  serverSide = true, // Default to server-side
   totalCount,
+  apiEndpoint = '/api/published-processes',
 }: {
   data: TenderListItem[]
   itemsPerPage?: number
@@ -255,45 +255,75 @@ export function DataTable({
   showStatus?: boolean
   serverSide?: boolean
   totalCount?: number
+  apiEndpoint?: string
 }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  
-  // Initialize state from URL search params (for server-side mode) or defaults
-  const [data, setData] = React.useState(() => initialData)
-  const [searchQuery, setSearchQuery] = React.useState(searchParams.get('search') || "")
-  const [selectedDate, setSelectedDate] = React.useState(searchParams.get('date') || "")
-  const [statusFilter, setStatusFilter] = React.useState<string>(searchParams.get('status') || "ongoing")
-  const [typeFilter, setTypeFilter] = React.useState<string>(searchParams.get('type') || tabs[0]?.value || "all")
+  // State for filters
+  const [data, setData] = React.useState<TenderListItem[]>(initialData)
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [selectedDate, setSelectedDate] = React.useState("")
+  const [statusFilter, setStatusFilter] = React.useState<string>("ongoing")
+  const [typeFilter, setTypeFilter] = React.useState<string>(tabs[0]?.value || "all")
   const [pagination, setPagination] = React.useState({
-    pageIndex: parseInt(searchParams.get('page') || '0'),
+    pageIndex: 0,
     pageSize: itemsPerPage,
   })
+  const [total, setTotal] = React.useState(totalCount || initialData.length)
 
-  // Update data when initialData changes (for server-side mode)
-  React.useEffect(() => {
-    setData(initialData)
-  }, [initialData])
-
-  // Function to update URL params (for server-side mode)
-  const updateURLParams = React.useCallback((updates: Record<string, string>) => {
+  // Fetch data from API (for server-side mode)
+  const fetchData = React.useCallback(async () => {
     if (!serverSide) return
-    
-    const params = new URLSearchParams(searchParams.toString())
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value)
-      } else {
-        params.delete(key)
-      }
-    })
-    
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
-  }, [serverSide, router, pathname, searchParams])
 
-  // Debounced search update
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams()
+      
+      if (searchQuery) params.set('search', searchQuery)
+      params.set('status', statusFilter)
+      
+      const currentTab = tabs.find(tab => tab.value === typeFilter)
+      if (currentTab?.typeFilter) {
+        params.set('type', currentTab.typeFilter)
+      }
+      
+      if (selectedDate) params.set('endDate', selectedDate)
+      params.set('page', (pagination.pageIndex + 1).toString())
+      params.set('limit', pagination.pageSize.toString())
+
+      const response = await fetch(`${apiEndpoint}?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch data')
+      }
+
+      const result = await response.json()
+      setData(result.data || [])
+      setTotal(result.pagination?.total || 0)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [serverSide, searchQuery, statusFilter, typeFilter, selectedDate, pagination, tabs, apiEndpoint])
+
+  // Fetch data when filters or pagination change
+  React.useEffect(() => {
+    if (serverSide) {
+      fetchData()
+    } else {
+      setData(initialData)
+    }
+  }, [serverSide, fetchData, initialData, pagination])
+
+  // Update initial data when it changes (for non-server-side mode)
+  React.useEffect(() => {
+    if (!serverSide) {
+      setData(initialData)
+      setTotal(initialData.length)
+    }
+  }, [initialData, serverSide])
+
+  // Debounced search
   const debouncedSearchRef = React.useRef<NodeJS.Timeout | null>(null)
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
@@ -304,9 +334,9 @@ export function DataTable({
         clearTimeout(debouncedSearchRef.current)
       }
       
-      // Set new timeout
+      // Set new timeout and reset to first page
       debouncedSearchRef.current = setTimeout(() => {
-        updateURLParams({ search: value, page: '0' })
+        setPagination(prev => ({ ...prev, pageIndex: 0 }))
       }, 500)
     }
   }
@@ -314,43 +344,29 @@ export function DataTable({
   // Handle filter changes
   const handleStatusChange = (value: string) => {
     setStatusFilter(value)
-    if (serverSide) {
-      updateURLParams({ status: value, page: '0' })
-    }
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 
   const handleTypeChange = (value: string) => {
     setTypeFilter(value)
-    if (serverSide) {
-      const currentTab = tabs.find(tab => tab.value === value)
-      updateURLParams({ 
-        type: currentTab?.typeFilter || '', 
-        page: '0' 
-      })
-    }
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 
   const handleDateChange = (value: string) => {
     setSelectedDate(value)
-    if (serverSide) {
-      updateURLParams({ date: value, page: '0' })
-    }
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 
   const handlePageChange = (pageIndex: number) => {
-    setPagination((prev) => ({ ...prev, pageIndex }))
-    if (serverSide) {
-      updateURLParams({ page: pageIndex.toString() })
-    }
+    setPagination(prev => ({ ...prev, pageIndex }))
   }
 
+  // Client-side filtering (only when serverSide is false)
   const filteredData = React.useMemo(() => {
-    // In server-side mode, data is already filtered by the API
     if (serverSide) {
       return data
     }
     
-    // Client-side filtering
     return data.filter((item) => {
       const matchesSearch = searchQuery === "" ||
         item.title.includes(searchQuery) ||
@@ -360,19 +376,25 @@ export function DataTable({
       const matchesDate = selectedDate === "" || item.endDate === selectedDate
       const matchesStatus = item.status === statusFilter
 
-      // Find the current tab configuration
       const currentTab = tabs.find(tab => tab.value === typeFilter)
-      const matchesType = !currentTab?.typeFilter || item.type === currentTab.typeFilter
+      const matchesType = !currentTab?.typeFilter || item.type.includes(currentTab.typeFilter)
 
       return matchesSearch && matchesDate && matchesStatus && matchesType
     })
   }, [data, searchQuery, selectedDate, statusFilter, typeFilter, tabs, serverSide])
 
+  // Pagination
+  // For server-side: data is already paginated, return as-is
+  // For client-side: slice the filtered data
   const paginatedData = React.useMemo(() => {
+    if (serverSide) {
+      return filteredData // Already paginated by server
+    }
+    
     const start = pagination.pageIndex * pagination.pageSize
     const end = start + pagination.pageSize
     return filteredData.slice(start, end)
-  }, [filteredData, pagination])
+  }, [filteredData, pagination, serverSide])
 
   // Reset pagination when filters change (only for client-side mode)
   React.useEffect(() => {
@@ -381,8 +403,8 @@ export function DataTable({
     }
   }, [searchQuery, selectedDate, statusFilter, typeFilter, serverSide])
 
-  // Use totalCount for server-side, filteredData.length for client-side
-  const totalItems = serverSide ? (totalCount || data.length) : filteredData.length
+  // Use total from state for server-side, filteredData.length for client-side
+  const totalItems = serverSide ? total : filteredData.length
   const pageCount = Math.ceil(totalItems / pagination.pageSize)
   const canPreviousPage = pagination.pageIndex > 0
   const canNextPage = pagination.pageIndex < pageCount - 1
@@ -472,10 +494,10 @@ export function DataTable({
           {showStatusFilter && (
             <div className="flex justify-center lg:justify-between">
               <Tabs value={statusFilter} onValueChange={handleStatusChange} dir="rtl">
-                <TabsList className="bg-white mx-auto lg:mx-0">
-                  <TabsTrigger className="data-[state=active]:bg-black" value="ongoing">در حال برگزاری</TabsTrigger>
-                  <TabsTrigger className="data-[state=active]:bg-black" value="upcoming">در انتظار برگزاری</TabsTrigger>
-                  <TabsTrigger className="data-[state=active]:bg-black" value="completed">برگزارشده</TabsTrigger>
+                <TabsList className="bg-white mx-auto lg:mx-0 h-12 p-1">
+                  <TabsTrigger className="data-[state=active]:bg-black h-10 text-base font-bold py-1.5 px-3" value="ongoing">در حال برگزاری</TabsTrigger>
+                  <TabsTrigger className="data-[state=active]:bg-black h-10 text-base font-bold py-1.5 px-3" value="upcoming">در انتظار برگزاری</TabsTrigger>
+                  <TabsTrigger className="data-[state=active]:bg-black h-10 text-base font-bold py-1.5 px-3" value="completed">برگزارشده</TabsTrigger>
                 </TabsList>
               </Tabs>
               <div className="text-primary hidden flex-1 lg:flex justify-end">
