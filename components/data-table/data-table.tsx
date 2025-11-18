@@ -199,7 +199,7 @@ function DataCard({ item, showStatus = false }: { item: TenderListItem, showStat
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-1 justify-between">
             <div className="flex flex-col lg:flex-row flex-1 gap-2">
-              <Link href={`/tenders/${item.id}`} className="text-sm font-bold">
+              <Link href={`/dashboard/pr/${item.code}`} className="text-sm font-bold">
                 <h3 className="inline">
                   {item.title}
                 </h3>
