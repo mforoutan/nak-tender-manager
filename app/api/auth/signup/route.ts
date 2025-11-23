@@ -153,10 +153,6 @@ export async function POST(request: NextRequest) {
       id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
     };
 
-    console.log("=== Bind Parameters ===");
-    console.log(JSON.stringify(bindParams, null, 2));
-    console.log("=======================");
-
     // Insert contractor - using actual CONTRACTORS table schema
     const contractorResult = await connection.execute(
       `INSERT INTO CONTRACTORS (
@@ -215,9 +211,6 @@ export async function POST(request: NextRequest) {
       bindParams
     );
 
-    console.log("=== Contractor Insert Successful ===");
-    console.log("Contractor ID:", (contractorResult.outBinds as any)?.id?.[0]);
-    console.log("====================================");
 
     const contractorId = (contractorResult.outBinds as any)?.id?.[0];
 
