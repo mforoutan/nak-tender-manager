@@ -1,0 +1,115 @@
+"use client"
+
+import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { ShoppingCart, Download, CheckCircle2, CircleAlertIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import Image from "next/image"
+
+import { alertStyles } from "@/components/alert-styles"
+
+interface PurchaseDocumentsStepProps {
+    isPurchased: boolean
+    onPurchaseComplete: () => void
+    disabled?: boolean
+}
+
+export function PurchaseDocumentsStep({
+    isPurchased,
+    onPurchaseComplete,
+    disabled
+}: PurchaseDocumentsStepProps) {
+    const handlePayment = () => {
+        // TODO: Redirect to payment gateway
+        // For now, just mark as purchased
+        onPurchaseComplete()
+    }
+
+    const mockDocuments = [
+        { name: "اسناد مناقصه - فایل اصلی.pdf", type: "pdf", size: "2.5 MB" },
+        { name: "شرایط عمومی پیمان.pdf", type: "pdf", size: "1.8 MB" },
+        { name: "شرایط خصوصی پیمان.zip", type: "zip", size: "5.2 MB" },
+    ]
+
+    const getFileIcon = (type: string) => {
+        switch (type) {
+            case "pdf":
+                return "/icons/pdf.svg"
+            case "zip":
+                return "/icons/zip.svg"
+            default:
+                return "/icons/pdf.svg"
+        }
+    }
+
+    return (
+        <section className="space-y-6">
+            <h3 className="text-lg font-bold">مرحله اول: خرید اسناد مناقصه</h3>
+            <Card className="shadow-card-small">
+                <CardContent className="pt-6">
+                    {!isPurchased ? (
+                        <div>
+                            <Alert className={`${alertStyles.info.className} text-[#042EFF] bg-transparent border-0 mb-8`}>
+                                {alertStyles.info.icon}
+                                <AlertDescription className="text-[#042EFF]">
+                                    برای دریافت اسناد مناقصه، لازم است ابتدا نسبت به خرید اسناد اقدام کنید.
+                                </AlertDescription>
+                            </Alert>
+                            <Badge variant={`outline`} className="block w-fit mb-12 py-0.5 px-5 rounded-md border-border-default text-lg font-bold">
+                                قيمت فروش اسناد:&nbsp;۵۰۰,۰۰۰ تومان
+                            </Badge>
+                            <Button
+                                onClick={handlePayment}
+                                disabled={disabled}
+                                size="sm"
+                                className="py-2.5 px-4 gap-2"
+                            >
+                                پرداخت با استفاده از كارت هاى عضو شتاب
+                            </Button>
+                        </div>
+                    ) : (
+                        <div>
+                            <h3 className="font-bold text-base mb-6">فايل های اسناد مناقصه عمومى</h3>
+                            <div className="flex flex-wrap gap-y-4 mb-8">
+                                {mockDocuments.map((doc, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center basis-1/2 gap-2 hover:bg-muted/50"
+                                    >
+                                        <Image
+                                            src={getFileIcon(doc.type)}
+                                            alt={doc.type}
+                                            width={24}
+                                            height={24}
+                                        />
+                                        <Badge variant={`outline`} className="w-fit py-0.5 px-5 rounded-md border-border-default text-sm font-medium">
+                                            {doc.name}
+                                        </Badge>
+                                        <span className="font-extrabold text-xs text-muted-foreground">{doc.size}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex justify-between">
+                                <Alert className={`${alertStyles.success.className} p-0 text-[#34C759] bg-transparent border-0 mb-8`}>
+                                    {alertStyles.success.icon}
+                                    <AlertDescription className="text-[#34C759]">
+                                        پرداخت شما با موفقیت انجام شد. اسناد مناقصه هم‌اکنون برای دانلود در دسترس است.
+                                    </AlertDescription>
+                                </Alert>
+                                <Button
+                                    size="sm"
+                                    className="py-2.5 px-4 gap-2"
+                                >
+                                    <Download />
+                                    دانلود همه فایل‌ها
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </section>
+    )
+}

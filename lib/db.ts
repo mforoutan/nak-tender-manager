@@ -68,6 +68,8 @@ export async function query(
             namedSql = namedSql.replace(new RegExp(`:type${index + 1}\\b`, 'g'), `:${paramName}`);
             namedSql = namedSql.replace(new RegExp(`:category${index + 1}\\b`, 'g'), `:${paramName}`);
             namedSql = namedSql.replace(new RegExp(`:endDate${index + 1}\\b`, 'g'), `:${paramName}`);
+            namedSql = namedSql.replace(new RegExp(`:processId${index + 1}\\b`, 'g'), `:${paramName}`);
+            namedSql = namedSql.replace(new RegExp(`:processTypeId${index + 1}\\b`, 'g'), `:${paramName}`);
             namedParams[paramName] = param;
         });
         
