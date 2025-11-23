@@ -7,10 +7,11 @@ import { cn, toPersianNumbers } from "@/lib/utils"
 interface StepperProps {
   steps: string[]
   currentStep: number
+  showLabelMobile?: boolean
   className?: string
 }
 
-export function Stepper({ steps, currentStep, className }: StepperProps) {
+export function Stepper({ steps, currentStep, showLabelMobile = true, className }: StepperProps) {
   return (
     <div className={cn("w-full", className)}>
       <div className="flex items-center justify-between">
@@ -36,14 +37,16 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
                     <span className="text-sm font-medium">{toPersianNumbers((index + 1).toString())}</span>
                   )}
                 </div>
-                <p
-                  className={cn(
-                    "mt-2 font-bold text-xs text-center transition-colors",
-                    isCompleted ? "text-green-500" : isCurrent ? "text-black" : "text-muted-foreground"
-                  )}
-                >
-                  {step}
-                </p>
+                {showLabelMobile && (
+                  <p
+                    className={cn(
+                      "mt-2 font-bold text-xs text-center transition-colors",
+                      isCompleted ? "text-green-500" : isCurrent ? "text-black" : "text-muted-foreground"
+                    )}
+                  >
+                    {step}
+                  </p>
+                )}
               </div>
 
               {!isLast && (

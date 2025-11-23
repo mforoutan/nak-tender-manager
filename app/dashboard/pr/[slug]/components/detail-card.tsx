@@ -46,7 +46,7 @@ export function DetailCard(detail:
                     {detail.importantDates.map((date: any, index: number) => (
                         <li key={index} className="flex items-center gap-x-3 px-3">
                             <CalendarDaysIcon />
-                            <div className="flex gap-x-2 items-center">
+                            <div className="flex flex-col lg:flex-row gap-x-2 items-start lg:items-center">
                                 <span className="text-sm">{date.label}:</span>
                                 <p className="font-bold text-base">{formatDate(date.value)}</p>
                             </div>

@@ -22,7 +22,7 @@ const detail = {
     ],
 }
 
-export default function PRDetailPage() {
+export default function PRDetailPage({ params }: { params: { slug: string } }) {
     return (
         <section className="space-y-12 px-4 lg:px-6  max-w-7xl">
             <div className="flex justify-between">
@@ -49,9 +49,9 @@ export default function PRDetailPage() {
                 </Button>
             </div>
 
-            <div className="flex gap-x-8">
+            <div className="flex flex-col lg:flex-row gap-x-8 gap-y-7">
                 <DetailCard {...detail} />
-                <CountdownCard targetDate={detail.importantDates[2].value} />
+                <CountdownCard targetDate={detail.importantDates[2].value} slug={params.slug} />
             </div>
         </section>
     );
