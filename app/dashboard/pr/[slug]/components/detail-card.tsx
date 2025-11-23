@@ -12,9 +12,9 @@ export function DetailCard(detail:
         importantDates: Array<{ label: string, value: string }>
     }) {
     return (
-        <Card className="shadow-card-small w-lg px-6 py-7.5">
+        <Card className="shadow-card-small flex-1 px-6 py-7.5">
             <CardHeader className="p-0 gap-y-8">
-                <Badge variant={`outline`} className="text-[#F87171] border-[#F87171] bg-[#F87171]/10 rounded-full py-2 px-3">{detail.type}</Badge>
+                <Badge variant={`outline`} className="place-self-start text-[#F87171] border-[#F87171] bg-[#F87171]/10 rounded-full py-2 px-3">{detail.type}</Badge>
 
                 <ul>
                     <li className="flex items-center gap-x-3">

@@ -1,5 +1,7 @@
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { DetailCard } from "./components";
+import { CountdownCard, DetailCard } from "./components";
+import { ArrowLeftIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const metadata = {
     title: "جزئیات فرآیند مناقصه | ناک",
@@ -15,34 +17,41 @@ const detail = {
     importantDates: [
         { label: "تاریخ شروع توزیع اسناد", value: "2025-09-15 17:00" },
         { label: "تاریخ پایان توزیع اسناد", value: "2025-10-05 17:00" },
-        { label: "مهلت ارسال سوالات", value: "2025-10-10 17:00" },
+        { label: "مهلت ارسال سوالات", value: "2025-12-12 17:00" },
         { label: "تاریخ پایان مناقصه", value: "2025-10-29 17:00" },
     ],
 }
 
 export default function PRDetailPage() {
     return (
-        <section className="space-y-12 px-4 lg:px-6 ">
-            <Breadcrumb className="text-base">
-                <BreadcrumbList className="items-center gap-x-1.5">
-                    <BreadcrumbItem>
-                        <BreadcrumbLink href="/dashboard" className="font-medium">
-                            داشبورد
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="text-xl">
-                        |
-                    </BreadcrumbSeparator>
-                    <BreadcrumbItem>
-                        <BreadcrumbPage className="font-medium text-xl">
-                            جزئیات فرآیند مناقصه
-                        </BreadcrumbPage>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
+        <section className="space-y-12 px-4 lg:px-6  max-w-7xl">
+            <div className="flex justify-between">
+
+                <Breadcrumb className="text-base">
+                    <BreadcrumbList className="items-center gap-x-1.5">
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard" className="font-medium">
+                                داشبورد
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator className="text-xl">
+                            |
+                        </BreadcrumbSeparator>
+                        <BreadcrumbItem>
+                            <BreadcrumbPage className="font-medium text-xl">
+                                جزئیات فرآیند مناقصه
+                            </BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
+                <Button variant={`ghost`}>
+                    <ArrowLeftIcon />
+                </Button>
+            </div>
 
             <div className="flex gap-x-8">
                 <DetailCard {...detail} />
+                <CountdownCard targetDate={detail.importantDates[2].value} />
             </div>
         </section>
     );
