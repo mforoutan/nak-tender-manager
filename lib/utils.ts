@@ -5,9 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function toPersianNumbers(str: string): string {
+export function toPersianNumbers(str: string | number): string {
   const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
-  return str.replace(/[0-9]/g, (digit) => persianDigits[parseInt(digit)]);
+  const strValue = typeof str === 'number' ? str.toString() : str;
+  return strValue.replace(/[0-9]/g, (digit) => persianDigits[parseInt(digit)]);
 }
 
 export function formatCurrency(amount: number): string {

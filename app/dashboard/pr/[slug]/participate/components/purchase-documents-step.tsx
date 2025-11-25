@@ -9,17 +9,24 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Image from "next/image"
 
 import { alertStyles } from "@/components/alert-styles"
+import { toPersianNumbers } from "@/lib/utils"
 
 interface PurchaseDocumentsStepProps {
     isPurchased: boolean
     onPurchaseComplete: () => void
+    documentPrice: number
     disabled?: boolean
+    currentStep: number
+    onStepChange: (step: number) => void
 }
 
 export function PurchaseDocumentsStep({
     isPurchased,
     onPurchaseComplete,
-    disabled
+    documentPrice,
+    disabled,
+    currentStep,
+    onStepChange
 }: PurchaseDocumentsStepProps) {
     const handlePayment = () => {
         // TODO: Redirect to payment gateway
@@ -58,7 +65,7 @@ export function PurchaseDocumentsStep({
                                 </AlertDescription>
                             </Alert>
                             <Badge variant={`outline`} className="block w-fit mb-12 py-0.5 px-5 rounded-md border-border-default text-lg font-bold">
-                                قيمت فروش اسناد:&nbsp;۵۰۰,۰۰۰ تومان
+                                قيمت فروش اسناد:&nbsp;{toPersianNumbers(documentPrice.toLocaleString())} تومان
                             </Badge>
                             <Button
                                 onClick={handlePayment}
@@ -101,6 +108,7 @@ export function PurchaseDocumentsStep({
                                 <Button
                                     size="sm"
                                     className="py-2.5 px-4 gap-2"
+                                    onClick={() => currentStep === 0 && onStepChange(1)}
                                 >
                                     <Download />
                                     دانلود همه فایل‌ها

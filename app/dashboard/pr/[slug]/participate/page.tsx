@@ -2,62 +2,49 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
 import ParticipateClient from "./participate-client";
-import { query } from "@/lib/db";
+import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 
 export const metadata = {
     title: "شرکت در مناقصه | ناک",
     description: "صفحه شرکت در مناقصه در سامانه ناک",
 };
 
-// Fetch process details and required documents
+// Fetch process details and required documents from API
 async function getProcessData(slug: string) {
     try {
-        // Get process details including type - query by publication number
-        const processSql = `
-            SELECT 
-                tp.ID,
-                tp.PROCESS_TYPE_ID,
-                tpt.TYPE_NAME
-            FROM PUBLISHED_PROCESSES pp
-            JOIN TRANSACTION_PROCESSES tp ON pp.TRANSACTION_PROCESSES_ID = tp.ID
-            LEFT JOIN TRANSACTION_PROCESS_TYPES tpt ON tp.PROCESS_TYPE_ID = tpt.ID
-            WHERE pp.PUBLICATION_NUMBER = :processId1
-        `;
-        const processResult = await query(processSql, [slug]);
+        const cookieStore = await cookies();
+        const sessionCookie = cookieStore.get('session');
         
-        
-        if (!processResult || processResult.length === 0) {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(
+            `${baseUrl}/api/participate/process-data?publicationNumber=${slug}`,
+            {
+                headers: {
+                    'Cookie': sessionCookie ? `session=${sessionCookie.value}` : '',
+                },
+                cache: 'no-store',
+            }
+        );
+
+        if (!response.ok) {
+            console.error("API error:", await response.text());
             return null;
         }
+
+        const result = await response.json();
         
-        const process = processResult[0];
-        
-        // Get required documents for this process type
-        const documentsSql = `
-            SELECT 
-                ID,
-                DOC_NAME,
-                SUBMISSION_TYPE,
-                IS_MANDATORY
-            FROM REQUIRED_PROCESS_DOCUMENTS
-            WHERE PROCESS_TYPE_ID = :processTypeId1
-            ORDER BY ID
-        `;
-        const documentsResult = await query(documentsSql, [process.PROCESS_TYPE_ID]);
-        
-        
-        const mappedDocuments = documentsResult.map((doc: any) => ({
-            id: doc.ID,
-            docName: doc.DOC_NAME,
-            submissionType: doc.SUBMISSION_TYPE,
-            isMandatory: doc.IS_MANDATORY === 1
-        }));
-        
-        
+        if (!result.success) {
+            return null;
+        }
+
         return {
-            processId: process.ID,
-            processType: process.TYPE_NAME,
-            requiredDocuments: mappedDocuments
+            processId: result.data.processId,
+            processType: result.data.processType,
+            publicationNumber: result.data.publicationNumber,
+            proccessTitle: result.data.title,
+            requiredDocuments: result.data.requiredDocuments,
+            documentPrice: result.data.documentPrice,
         };
     } catch (error) {
         console.error("Error fetching process data:", error);
@@ -69,19 +56,9 @@ export default async function ParticipatePRPage({ params }: { params: Promise<{ 
     const { slug } = await params;
     const processData = await getProcessData(slug);
     
-
-    const mockData = {
-        processId: slug,
-        processType: "مناقصه عمومی",
-        requiredDocuments: [
-            { id: 1, docName: "مستندات پاکت الف", submissionType: "BOTH", isMandatory: true },
-            { id: 2, docName: "مستندات پاکت ب", submissionType: "BOTH", isMandatory: true },
-            { id: 3, docName: "مستندات پاکت پ", submissionType: "PHYSICAL", isMandatory: false },
-        ]
-    };
-    
-
-    const data = mockData;
+    if (!processData) {
+        notFound();
+    }
     
     return(
        <section className="space-y-12 px-4 lg:px-6 max-w-7xl">
@@ -98,7 +75,7 @@ export default async function ParticipatePRPage({ params }: { params: Promise<{ 
                         </BreadcrumbSeparator>
                         <BreadcrumbItem>
                             <BreadcrumbLink href={`/dashboard/pr/${slug}`} className="font-medium">
-                                جزئیات فرآیند مناقصه
+                                {processData.proccessTitle}
                             </BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator className="text-xl">
@@ -119,9 +96,12 @@ export default async function ParticipatePRPage({ params }: { params: Promise<{ 
             </div>
 
             <ParticipateClient 
-                processId={data.processId}
-                processType={data.processType}
-                requiredDocuments={data.requiredDocuments}
+                processId={processData.processId}
+                processType={processData.processType}
+                publicationNumber={processData.publicationNumber}
+                proccessTitle={processData.proccessTitle}
+                requiredDocuments={processData.requiredDocuments}
+                documentPrice={processData.documentPrice}
             />
         </section>
     );

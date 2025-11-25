@@ -1,12 +1,47 @@
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeftIcon, Upload } from "lucide-react";
 import { Children, ReactElement } from "react";
+import Image from "next/image";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 interface EvaluationFormProps {
     title: string;
     children: React.ReactNode;
+}
+
+interface EvaluationCriterion {
+    id: number;
+    criteriaCode: string;
+    criteriaTitle: string;
+    criteriaDescription: string;
+    displayOrder: number;
+    indentLevel: number;
+    inputType: string;
+    isRequired: boolean;
+    validationRules: any;
+    predefinedOptions: any;
+    allowCustomInput: boolean;
+    helpText: string;
+    evaluationGuide: string;
+    response: any;
+}
+
+interface EvaluationTemplate {
+    id: number;
+    templateCode: string;
+    templateName: string;
+    templateDescription: string;
+    evaluationType: string;
+    evaluationTypeCode: string;
+    totalMaxScore: number;
+    displayOrder: number;
+    guidelines: string;
+    instructions: string;
+    criteria: EvaluationCriterion[];
 }
 
 function EvaluationFormDescription({ children }: { children: React.ReactNode }) {
@@ -17,7 +52,33 @@ function EvaluationFormScoringBasis({ children }: { children: React.ReactNode })
     return <>{children}</>;
 }
 
-function EvaluationFormUpload({ children }: { children: React.ReactNode }) {
+interface EvaluationFormUploadProps {
+    children?: React.ReactNode;
+    files?: Array<{ name: string; type: string; size: string }>;
+    onUpload?: () => void;
+}
+
+function EvaluationFormUpload({ children, files, onUpload }: EvaluationFormUploadProps) {
+    if (files && files.length > 0) {
+        return (
+            <div className="space-y-3">
+                {files.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                        <Image
+                            src={file.type === 'pdf' ? '/icons/pdf.svg' : '/icons/zip.svg'}
+                            alt={file.type}
+                            width={24}
+                            height={24}
+                        />
+                        <Badge variant="outline" className="w-fit py-0.5 px-5 rounded-md border-border-default text-sm font-medium">
+                            {file.name}
+                        </Badge>
+                        <span className="font-extrabold text-xs text-muted-foreground">{file.size}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    }
     return <>{children}</>;
 }
 
@@ -70,8 +131,55 @@ export const metadata = {
     description: "صفحه فرم ارزیابی کیفی در سامانه ناک",
 };
 
+// Fetch evaluation forms from API
+async function getEvaluationForms(slug: string) {
+    try {
+        const cookieStore = await cookies();
+        const sessionCookie = cookieStore.get('session');
+        
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(
+            `${baseUrl}/api/participate/evaluation-forms?publicationNumber=${slug}`,
+            {
+                headers: {
+                    'Cookie': sessionCookie ? `session=${sessionCookie.value}` : '',
+                },
+                cache: 'no-store',
+            }
+        );
+
+        if (!response.ok) {
+            console.error("API error:", await response.text());
+            return null;
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            return null;
+        }
+
+        return result.data;
+    } catch (error) {
+        console.error("Error fetching evaluation forms:", error);
+        return null;
+    }
+}
+
 export default async function EvaluationFormsPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
+    
+    const evaluationData = await getEvaluationForms(slug);
+
+    if (!evaluationData) {
+        return (
+            <section className="space-y-12 px-4 lg:px-6 max-w-7xl">
+                <div className="text-center py-12">
+                    <p className="text-lg text-muted-foreground">فرم های ارزیابی یافت نشد</p>
+                </div>
+            </section>
+        );
+    }
     return (
         <section className="space-y-12 px-4 lg:px-6 max-w-7xl">
             <div className="flex justify-between">
@@ -87,7 +195,7 @@ export default async function EvaluationFormsPage({ params }: { params: Promise<
                         </BreadcrumbSeparator>
                         <BreadcrumbItem>
                             <BreadcrumbLink href={`/dashboard/pr/${slug}`} className="font-medium">
-                                جزئیات فرآیند مناقصه
+                                {evaluationData.processTitle || 'جزئیات فرآیند مناقصه'}
                             </BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator className="text-xl">
@@ -117,30 +225,76 @@ export default async function EvaluationFormsPage({ params }: { params: Promise<
 
             <Card className="bg-[#F6F6F6] border-0 rounded-md p-12">
                 <CardContent className="p-0 space-y-8">
-                    <h1 className="font-bold text-2xl">فرم ارزیابی کیفی</h1>
-                    <EvaluationForm title="فرم ارزیابی کیفی - بخش فنی">
-                        <EvaluationForm.Description>
-                            تعداد و مبلغ قراردادهای انجام شده در ۲ سال گذشته (مرتبط با مشابه یا موضوع مناقصه) هر قرارداد تا ۳۰٪ مبلغ برآورد قرارداد (۱ امتیاز) هر قرارداد بالاتر ۷۰٪ مبلغ برآورد قرارداد (۲ امتیاز)
-                        </EvaluationForm.Description>
+                    <div>
+                        <h1 className="font-bold text-2xl">فرم های ارزیابی</h1>
+                        <p className="text-sm text-muted-foreground">
+                            لطفا فرم های زیر را با دقت تکمیل نمایید. تمامی فیلدهای الزامی باید پر شوند.
+                        </p>
+                    </div>
 
-                        <EvaluationForm.ScoringBasis>
-                            داوطلبان محترم می بایست تاییدیه های اخذ شده در خصوص قراردادهای قبلی خود با این شرکت را ارائه نمایند.
-                        </EvaluationForm.ScoringBasis>
+                    {evaluationData.templates.map((template: any) => (
+                        <div key={template.id} className="space-y-8">
+                            {/* <div className="border-b pb-2">
+                                <h2 className="font-bold text-xl">{template.templateName}</h2>
+                                {template.templateDescription && (
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        {template.templateDescription}
+                                    </p>
+                                )}
+                                <div className="flex gap-2 mt-2">
+                                    <Badge variant="outline">
+                                        {template.evaluationTypeName}
+                                    </Badge>
+                                    <Badge variant="secondary">
+                                        حداکثر امتیاز: {template.totalMaxScore}
+                                    </Badge>
+                                </div>
+                            </div> */}
 
-                        <EvaluationForm.Upload>
-                            <Button className="mb-2">
-                                <Upload />
-                                آپلود
-                            </Button>
-                            <div className="text-xs font-medium text-[#A1A1AA] space-y-0.5">
-                                <p>حداكثر حجم بارگذارى: 500 مگابايت</p>
-                                <p>فایل های مجاز: png, mp4, zip, rar, pdf, doc, docx</p>
-                            </div>
-                        </EvaluationForm.Upload>
-                    </EvaluationForm>
+                            {template.criteria.map((criterion: any) => (
+                                <EvaluationForm key={criterion.id} title={criterion.criteriaTitle}>
+                                    <EvaluationForm.Description>
+                                        {criterion.criteriaDescription}
+                                    </EvaluationForm.Description>
+
+                                    <EvaluationForm.ScoringBasis>
+                                        {criterion.helpText || criterion.evaluationGuide}
+                                    </EvaluationForm.ScoringBasis>
+
+                                    <EvaluationForm.Upload>
+                                        <Button className="mb-2">
+                                            <Upload />
+                                            آپلود
+                                        </Button>
+                                        {criterion.validationRules && (() => {
+                                            const rules = criterion.validationRules;
+                                            return (
+                                                <div className="text-xs font-medium text-[#A1A1AA] space-y-0.5">
+                                                    {rules.maxSize && (
+                                                        <p>حداکثر حجم بارگذاری: {Math.floor(rules.maxSize / 1048576)} مگابایت</p>
+                                                    )}
+                                                    {rules.allowedTypes && (
+                                                        <p>فایل های مجاز: {rules.allowedTypes.join(', ')}</p>
+                                                    )}
+                                                    {rules.maxFiles && (
+                                                        <p>حداکثر تعداد فایل: {rules.maxFiles}</p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
+                                    </EvaluationForm.Upload>
+                                </EvaluationForm>
+                            ))}
+                        </div>
+                    ))}
                 </CardContent>
-                <CardFooter className="flex justify-end mt-6 p-0">
-                    <Button variant={`outline`}>
+                <CardFooter className="flex justify-end mt-6 p-0 gap-3">
+                    <Button variant="outline" asChild>
+                        <a href={`/dashboard/pr/${slug}/participate`}>
+                            بازگشت
+                        </a>
+                    </Button>
+                    <Button>
                         ذخیره اطلاعات
                     </Button>
                 </CardFooter>

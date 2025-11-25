@@ -12,6 +12,8 @@ interface PoolConfig {
     poolMin: number;
     poolMax: number;
     poolIncrement: number;
+    poolTimeout: number;
+    queueTimeout: number;
 }
 
 let pool: oracledb.Pool | null = null;
@@ -25,14 +27,16 @@ export async function getPool(): Promise<oracledb.Pool> {
         user: process.env.ORACLE_USER || "",
         password: process.env.ORACLE_PASSWORD || "",
         connectString: process.env.ORACLE_CONNECTION_STRING || "",
-        poolMin: 2,
-        poolMax: 10,
+        poolMin: 1,          // Reduced from 2
+        poolMax: 5,          // Reduced from 10 to prevent overwhelming Oracle
         poolIncrement: 1,
+        poolTimeout: 60,     // Close idle connections after 60 seconds
+        queueTimeout: 5000,  // Wait max 5 seconds for connection
     };
 
     try {
         pool = await oracledb.createPool(config);
-        console.log("✅ Oracle connection pool created");
+        console.log("✅ Oracle connection pool created (min: 1, max: 5)");
         return pool;
     } catch (err) {
         console.error("❌ Error creating Oracle connection pool", err);
@@ -54,7 +58,8 @@ export async function query(
 ): Promise<any[]> {
     let connection: oracledb.Connection | null = null;
     try {
-        connection = await getConnection();
+        const pool = await getPool();
+        connection = await pool.getConnection();
         
         // Convert positional parameters to named parameters
         // Oracle named parameters use :paramName format
@@ -63,13 +68,9 @@ export async function query(
         
         params.forEach((param, index) => {
             const paramName = `param${index + 1}`;
-            // Replace any :xxx1, :xxx2 pattern with generic :param1, :param2
-            namedSql = namedSql.replace(new RegExp(`:search${index + 1}\\b`, 'g'), `:${paramName}`);
-            namedSql = namedSql.replace(new RegExp(`:type${index + 1}\\b`, 'g'), `:${paramName}`);
-            namedSql = namedSql.replace(new RegExp(`:category${index + 1}\\b`, 'g'), `:${paramName}`);
-            namedSql = namedSql.replace(new RegExp(`:endDate${index + 1}\\b`, 'g'), `:${paramName}`);
-            namedSql = namedSql.replace(new RegExp(`:processId${index + 1}\\b`, 'g'), `:${paramName}`);
-            namedSql = namedSql.replace(new RegExp(`:processTypeId${index + 1}\\b`, 'g'), `:${paramName}`);
+            // Replace ANY :xxxN pattern with generic :paramN where N is the index
+            // This regex matches any word followed by the index number
+            namedSql = namedSql.replace(new RegExp(`:\\w+${index + 1}\\b`, 'g'), `:${paramName}`);
             namedParams[paramName] = param;
         });
         

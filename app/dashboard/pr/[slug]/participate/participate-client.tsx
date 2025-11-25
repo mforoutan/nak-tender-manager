@@ -13,29 +13,32 @@ import {
     PurchaseDocumentsStep,
     EvaluationFormsStep,
     DocumentSubmissionStep,
-    SubmitRequestStep,
-    ExpertReviewStep,
 } from "./components"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 
 interface ParticipateClientProps {
     processId: string
     processType: string
+    publicationNumber: string
+    proccessTitle: string
     requiredDocuments: Array<{
         id: number
         docName: string
         submissionType: string
         isMandatory: boolean
     }>
+    documentPrice: number
 }
 
 export default function ParticipateClient({
     processId,
     processType,
+    publicationNumber,
+    proccessTitle,
     requiredDocuments,
+    documentPrice,
 }: ParticipateClientProps) {
-    console.log('ParticipateClient props:', { processId, processType, requiredDocuments });
-
+    console.log('ParticipateClient props:', { processId, processType, publicationNumber, proccessTitle, requiredDocuments });
     const [currentStep, setCurrentStep] = useState(0)
     const [isPurchased, setIsPurchased] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -152,9 +155,9 @@ export default function ParticipateClient({
     return (
         <div className="space-y-8 bg-[#F6F6F6] rounded-md p-12">
             <div className="flex items-center gap-5">
-                <h1 className="font-bold text-2xl">شرکت در  مناقصه تک مرحله ای عام خرید TAPE Backup </h1>
+                <h1 className="font-bold text-2xl">{proccessTitle}</h1>
                 {/* <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{toPersianNumbers(processId)}</Badge> */}
-                <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{processId}</Badge>
+                <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{toPersianNumbers(publicationNumber)}</Badge>
 
             </div>
 
@@ -165,13 +168,18 @@ export default function ParticipateClient({
                 <PurchaseDocumentsStep
                     isPurchased={isPurchased}
                     onPurchaseComplete={handlePurchaseComplete}
+                    documentPrice={documentPrice}
                     disabled={isSubmitted}
+                    currentStep={currentStep}
+                    onStepChange={setCurrentStep}
                 />
 
                 {/* Step 2: Evaluation Forms */}
                 <EvaluationFormsStep
                     processId={processId}
                     disabled={!isPurchased || isSubmitted}
+                    currentStep={currentStep}
+                    onStepChange={setCurrentStep}
                 />
 
                 <section className="space-y-6">
