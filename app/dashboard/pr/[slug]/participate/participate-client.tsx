@@ -16,7 +16,7 @@ import {
     SubmitRequestStep,
     ExpertReviewStep,
 } from "./components"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 
 interface ParticipateClientProps {
     processId: string
@@ -35,12 +35,15 @@ export default function ParticipateClient({
     requiredDocuments,
 }: ParticipateClientProps) {
     console.log('ParticipateClient props:', { processId, processType, requiredDocuments });
-    
+
+    const [currentStep, setCurrentStep] = useState(0)
     const [isPurchased, setIsPurchased] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
     const [showSuccessDialog, setShowSuccessDialog] = useState(false)
     const [documentData, setDocumentData] = useState<{ [key: string]: any }>({})
+    const [isEditable, setIsEditable] = useState(true)
 
     // Build dynamic steps based on required documents
     const buildSteps = () => {
@@ -65,17 +68,57 @@ export default function ParticipateClient({
 
     const handlePurchaseComplete = () => {
         setIsPurchased(true)
+        setCurrentStep(1)
         toast.success("خرید اسناد با موفقیت انجام شد")
     }
 
     const handleDocumentChange = (docId: string, data: any) => {
+        if (!isEditable) {
+            toast.error("امکان ویرایش اطلاعات وجود ندارد")
+            return
+        }
         setDocumentData(prev => ({
             ...prev,
             [docId]: data
         }))
     }
 
+    const handleNext = () => {
+        if (currentStep < steps.length - 1 && isEditable) {
+            setCurrentStep(prev => prev + 1)
+        }
+    }
+
+    const handlePrevious = () => {
+        if (currentStep > 0 && isEditable) {
+            setCurrentStep(prev => prev - 1)
+        }
+    }
+
+    const handleSaveDraft = async () => {
+        if (!isEditable) {
+            toast.error("امکان ویرایش اطلاعات وجود ندارد")
+            return
+        }
+        
+        setIsSaving(true)
+        try {
+            // TODO: Implement save draft API
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            toast.success("پیش‌نویس ذخیره شد")
+        } catch (error) {
+            toast.error("خطا در ذخیره پیش‌نویس")
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
     const handleSubmit = async () => {
+        if (!isEditable) {
+            toast.error("امکان ارسال مجدد اطلاعات وجود ندارد")
+            return
+        }
+
         setIsSubmitting(true)
 
         try {
@@ -95,7 +138,9 @@ export default function ParticipateClient({
             await new Promise(resolve => setTimeout(resolve, 1500))
 
             setIsSubmitted(true)
+            setIsEditable(false)
             setShowSuccessDialog(true)
+            setCurrentStep(steps.length - 1)
             toast.success("درخواست شما با موفقیت ارسال شد")
         } catch (error) {
             toast.error("خطا در ارسال درخواست")
@@ -113,7 +158,7 @@ export default function ParticipateClient({
 
             </div>
 
-            <Stepper className="place-self-center" steps={steps} currentStep={0} />
+            <Stepper className="place-self-center" steps={steps} currentStep={currentStep} />
 
             <section className="w-full space-y-10">
                 {/* Step 1: Purchase Documents */}
@@ -147,19 +192,19 @@ export default function ParticipateClient({
                     </Card>
                 </section>
 
-                {/* Submit Request Step */}
-                <SubmitRequestStep
-                    stepNumber={requiredDocuments.length + 3}
-                    onSubmit={handleSubmit}
-                    isSubmitting={isSubmitting}
-                    disabled={!isPurchased || isSubmitted}
-                />
-
-                {/* Expert Review Step */}
-                <ExpertReviewStep
-                    stepNumber={requiredDocuments.length + 4}
-                    isSubmitted={isSubmitted}
-                />
+                <CardFooter className="flex justify-between mt-6 p-0">
+                    <Button
+                        variant="outline"
+                        // onClick={onSaveDraft}
+                        disabled={!isEditable || isSaving}
+                        className="bg-transparent font-semibold"
+                    >
+                        {isSaving ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
+                    </Button>
+                    <Button disabled={!isEditable}>
+                        {isSubmitting ? "در حال ارسال..." : "ثبت و ارسال درخواست"}
+                    </Button>
+                </CardFooter>
             </section>
 
             {/* Success Dialog */}

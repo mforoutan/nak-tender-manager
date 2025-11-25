@@ -46,7 +46,7 @@ export function EvaluationFormsStep({ processId, disabled }: EvaluationFormsStep
       {disabled ? (
         cardContent
       ) : (
-        <Link href={`./evaluation-forms`}>
+        <Link href={`./participate/evaluation-forms`}>
           {cardContent}
         </Link>
       )}

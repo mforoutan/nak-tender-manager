@@ -25,15 +25,12 @@ async function getProcessData(slug: string) {
         `;
         const processResult = await query(processSql, [slug]);
         
-        console.log('Process query result:', processResult);
         
         if (!processResult || processResult.length === 0) {
-            console.log('No process found for slug:', slug);
             return null;
         }
         
         const process = processResult[0];
-        console.log('Process data:', process);
         
         // Get required documents for this process type
         const documentsSql = `
@@ -48,8 +45,6 @@ async function getProcessData(slug: string) {
         `;
         const documentsResult = await query(documentsSql, [process.PROCESS_TYPE_ID]);
         
-        console.log('Documents query result:', documentsResult);
-        console.log('Process type ID:', process.PROCESS_TYPE_ID);
         
         const mappedDocuments = documentsResult.map((doc: any) => ({
             id: doc.ID,
@@ -58,7 +53,6 @@ async function getProcessData(slug: string) {
             isMandatory: doc.IS_MANDATORY === 1
         }));
         
-        console.log('Mapped documents:', mappedDocuments);
         
         return {
             processId: process.ID,
@@ -75,22 +69,19 @@ export default async function ParticipatePRPage({ params }: { params: Promise<{ 
     const { slug } = await params;
     const processData = await getProcessData(slug);
     
-    // Mock data for development if database fetch fails
+
     const mockData = {
         processId: slug,
         processType: "مناقصه عمومی",
         requiredDocuments: [
             { id: 1, docName: "مستندات پاکت الف", submissionType: "BOTH", isMandatory: true },
             { id: 2, docName: "مستندات پاکت ب", submissionType: "BOTH", isMandatory: true },
-            { id: 3, docName: "مستندات پاکت پ", submissionType: "BOTH", isMandatory: false },
+            { id: 3, docName: "مستندات پاکت پ", submissionType: "PHYSICAL", isMandatory: false },
         ]
     };
     
-    // Force mock data for now
+
     const data = mockData;
-    
-    console.log('Data being passed to ParticipateClient:', data);
-    console.log('requiredDocuments:', data.requiredDocuments);
     
     return(
        <section className="space-y-12 px-4 lg:px-6 max-w-7xl">
