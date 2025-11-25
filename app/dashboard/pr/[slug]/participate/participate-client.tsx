@@ -16,6 +16,7 @@ import {
     SubmitRequestStep,
     ExpertReviewStep,
 } from "./components"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface ParticipateClientProps {
     processId: string
@@ -33,6 +34,8 @@ export default function ParticipateClient({
     processType,
     requiredDocuments,
 }: ParticipateClientProps) {
+    console.log('ParticipateClient props:', { processId, processType, requiredDocuments });
+    
     const [isPurchased, setIsPurchased] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
@@ -48,7 +51,7 @@ export default function ParticipateClient({
 
         // Add document steps
         const documentSteps = requiredDocuments.map(doc => doc.docName)
-        
+
 
         const finalSteps = [
             "ارسال درخواست",
@@ -112,7 +115,7 @@ export default function ParticipateClient({
 
             <Stepper className="place-self-center" steps={steps} currentStep={0} />
 
-            <section className="w-full space-y-4">
+            <section className="w-full space-y-10">
                 {/* Step 1: Purchase Documents */}
                 <PurchaseDocumentsStep
                     isPurchased={isPurchased}
@@ -126,17 +129,23 @@ export default function ParticipateClient({
                     disabled={!isPurchased || isSubmitted}
                 />
 
-                {/* Dynamic Document Steps */}
-                {requiredDocuments.map((doc, index) => (
-                    <DocumentSubmissionStep
-                        key={doc.id}
-                        stepNumber={index + 3}
-                        document={doc}
-                        data={documentData[doc.id.toString()]}
-                        onChange={(data: any) => handleDocumentChange(doc.id.toString(), data)}
-                        disabled={!isPurchased || isSubmitted}
-                    />
-                ))}
+                <section className="space-y-6">
+                    <h3 className="text-lg font-bold">مرحله سوم: مستندات پاکت های الف٬ ب و ج</h3>
+                    <Card className="shadow-card-small p-12">
+                        <CardContent className="space-y-10">
+                            {requiredDocuments.map((doc, index) => (
+                                <DocumentSubmissionStep
+                                    key={doc.id}
+                                    stepNumber={index + 3}
+                                    document={doc}
+                                    data={documentData[doc.id.toString()]}
+                                    onChange={(data: any) => handleDocumentChange(doc.id.toString(), data)}
+                                    disabled={!isPurchased || isSubmitted}
+                                />
+                            ))}
+                        </CardContent>
+                    </Card>
+                </section>
 
                 {/* Submit Request Step */}
                 <SubmitRequestStep

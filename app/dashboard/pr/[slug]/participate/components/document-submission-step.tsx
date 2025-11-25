@@ -1,14 +1,17 @@
 "use client"
 
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Card, CardContent } from "@/components/ui/card"
-import { FileUp } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { FileUp, Pencil, Plus, Trash2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { FileUpload } from "@/components/ui/file-upload"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { FieldGroup } from "@/components/ui/field"
+
+import { alertStyles } from "@/components/alert-styles"
+import { Button } from "@/components/ui/button"
 
 interface DocumentSubmissionStepProps {
   stepNumber: number
@@ -23,12 +26,12 @@ interface DocumentSubmissionStepProps {
   disabled?: boolean
 }
 
-export function DocumentSubmissionStep({ 
+export function DocumentSubmissionStep({
   stepNumber,
-  document, 
+  document,
   data = {},
   onChange,
-  disabled 
+  disabled
 }: DocumentSubmissionStepProps) {
   const handleFieldChange = (field: string, value: any) => {
     onChange({
@@ -38,73 +41,109 @@ export function DocumentSubmissionStep({
   }
 
   return (
-    <section 
-      className="border rounded-md bg-white p-4"
-    >
-      <div className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#F6F6F6] rounded-full">
-              <FileUp className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold">{document.docName}</h3>
-          </div>
+    <>
+      <Card className="bg-[#D0D7FA] p-6 gap-y-6">
+        <CardHeader className="p-0 flex gap-2 items-center">
+          <h3 className="text-lg font-semibold">{document.docName}</h3>
           {document.isMandatory && (
             <span className="text-xs text-red-500 font-semibold">* الزامی</span>
           )}
-        </div>
-      </div>
-      <div className="px-4 py-3">
-        <Card>
-          <CardContent className="pt-6">
-            {disabled && (
-              <Alert className="mb-4">
-                <AlertDescription>
-                  برای تکمیل این بخش، ابتدا باید نسبت به خرید اسناد اقدام کنید
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <FieldGroup className="space-y-4">
-              <div className="space-y-2">
-                <Label>عنوان مستندات</Label>
-                <Input
-                  value={data.title || ''}
-                  onChange={(e) => handleFieldChange('title', e.target.value)}
-                  disabled={disabled}
-                  placeholder="عنوان مستندات را وارد کنید"
-                />
-              </div>
+        </CardHeader>
+        <Alert className={`${alertStyles.info.className} bg-background text-[#042EFF] border border-[#042EFF]`}>
+          {alertStyles.info.icon}
+          <AlertTitle className="text-[#042EFF]  font-bold">توجه</AlertTitle>
+          <AlertDescription className="inline text-[#042EFF] text-sm">
+            جهت بررسى تضمين شركت درفرايند معاملاتى
+            &nbsp;{document.docName}&nbsp;
+            لطفا اطلاعات مربوط به تضامین را اضافه کنید.
+            <span className="font-semibold mr-1">
+              و در انتها
+              &nbsp;{document.docName}&nbsp;
+              خود را بارگذارى بفرماييد.
+            </span>
+          </AlertDescription>
+        </Alert>
+        <CardContent className="p-0">
+          <Button className="mb-8">
+            <Plus />
+            <span>افزودن تضمین</span>
+          </Button>
 
-              <div className="space-y-2">
-                <Label>توضیحات</Label>
-                <Textarea
-                  value={data.description || ''}
-                  onChange={(e) => handleFieldChange('description', e.target.value)}
-                  disabled={disabled}
-                  placeholder="توضیحات مربوط به مستندات را وارد کنید"
-                  rows={4}
-                />
-              </div>
+          {/* Guarantee Cards */}
+          <div className="space-y-4 mb-8">
+            {/* Mock guarantee data - replace with actual data */}
+            {[
+              {
+                id: 1,
+                title: 'ج - اوراق مشاركت بى نام',
+                number: "۳",
+                bank: "-",
+                branch: "-",
+                amount: "-",
+                guaranteeType: "-",
+                issueDate: "۱۴۰۵/۰۳/۰۳"
+              }
+            ].map((guarantee) => (
+              <Card key={guarantee.id} className="p-6 bg-background shadow-card-small">
+                <CardContent className="p-0 flex flex-col gap-y-8">
+                  <h4 className="font-bold">{guarantee.title}</h4>
+                  <div className="flex gap-x-8">
+                    <div className="flex flex-col flex-1 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">شماره:</span>
+                        <span className="font-semibold">{guarantee.number}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">مبلغ:</span>
+                        <span className="font-semibold">{guarantee.amount}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">اسناد و تاریخ صدور:</span>
+                        <span className="font-semibold">{guarantee.issueDate}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col flex-1 items-start gap-3 text-sm">
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-muted-foreground">بانک و شعبه:</span>
+                        <span className="font-semibold">{guarantee.bank} / {guarantee.branch}</span>
+                      </div>
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-muted-foreground">ضمانت گذار:</span>
+                        <span className="font-semibold">{guarantee.guaranteeType}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 self-end">
+                    <Button variant="ghost" size="icon" className="border border-border-default px-4 py-3">
+                      <Pencil />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="border border-border-default text-destructive hover:text-destructive px-4 py-3">
+                      <Trash2 />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-              <div className="space-y-2">
-                <Label>آپلود فایل {document.isMandatory && <span className="text-red-500">*</span>}</Label>
-                <FileUpload
-                  id={`doc-${document.id}`}
-                  file={data.file}
-                  onFileChange={(file: File | null) => handleFieldChange('file', file)}
-                  disabled={disabled}
-                  accept=".pdf,.doc,.docx,.zip"
-                  maxSize={10}
-                />
-                <p className="text-xs text-muted-foreground">
-                  فرمت‌های مجاز: PDF, DOC, DOCX, ZIP - حداکثر حجم: 10MB
-                </p>
-              </div>
-            </FieldGroup>
-          </CardContent>
-        </Card>
-      </div>
-    </section>
+          <FieldGroup className="space-y-4">
+            <div className="space-y-2">
+              <Label>آپلود فایل {document.isMandatory && <span className="text-red-500">*</span>}</Label>
+              <FileUpload
+                id={`doc-${document.id}`}
+                file={data.file}
+                onFileChange={(file: File | null) => handleFieldChange('file', file)}
+                disabled={disabled}
+                accept=".pdf,.doc,.docx,.zip"
+                maxSize={10}
+              />
+              <p className="text-xs text-muted-foreground">
+                فرمت‌های مجاز: PDF, DOC, DOCX, ZIP - حداکثر حجم: 10MB
+              </p>
+            </div>
+          </FieldGroup>
+        </CardContent>
+      </Card>
+    </>
   )
 }
