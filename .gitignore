@@ -53,6 +53,7 @@ database/sample_data_inserts.sql
 database/update_existing_data.sql
 docs/FIXES_APPLIED.md
 docs/SERVER_SIDE_FILTERING.md
+docs/
 scripts/README.md
 PUBLISHED_PROCESSES_IMPLEMENTATION.md
 app/api/published-processes/README.md
