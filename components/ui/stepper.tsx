@@ -40,7 +40,7 @@ export function Stepper({ steps, currentStep, showLabelMobile = true, className 
                 {showLabelMobile && (
                   <p
                     className={cn(
-                      "mt-2 font-bold text-xs text-center transition-colors",
+                      "hidden lg:block mt-2 font-bold text-xs text-center transition-colors",
                       isCompleted ? "text-green-500" : isCurrent ? "text-black" : "text-muted-foreground"
                     )}
                   >
