@@ -67,8 +67,8 @@ export default function DashboardLayout({ children }: React.PropsWithChildren<{}
         }
       >
         
-        <AppSidebar variant="inset" />
-        <SidebarInset className="bg-[url(/bg.svg)] bg-no-repeat bg-left-top">
+        <AppSidebar variant="inset" className="bg-[#131A22] py-18" />
+        <SidebarInset className="bg-[url(/bg.svg)] bg-no-repeat bg-bottom">
           <SiteHeader />
           <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">
