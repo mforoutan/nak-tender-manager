@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDaysIcon, DollarSignIcon, HandshakeIcon } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, toPersianNumbers } from "@/lib/utils";
 
 export function DetailCard(detail:
     {
@@ -11,6 +11,7 @@ export function DetailCard(detail:
         documentFee: number,
         importantDates: Array<{ label: string, value: string }>
     }) {
+
     return (
         <Card className="shadow-card-small flex-1 px-6 py-7.5">
             <CardHeader className="p-0 gap-y-8">
@@ -21,7 +22,7 @@ export function DetailCard(detail:
                         <HandshakeIcon />
                         <div className="flex gap-x-2 items-center">
                             <span className="text-sm">شماره معامله:</span>
-                            <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{detail.publishedNumber}</Badge>
+                            <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{toPersianNumbers(detail.publishedNumber)}</Badge>
                         </div>
                     </li>
                     <li className="flex items-center gap-x-3">

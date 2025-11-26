@@ -42,7 +42,7 @@ export function DocumentSubmissionStep({
 
   return (
     <>
-      <Card className="bg-[#D0D7FA] p-6 gap-y-6">
+      <Card className="bg-[#D0D7FA] rounded-lg p-6 gap-y-6">
         <CardHeader className="p-0 flex gap-2 items-center">
           <h3 className="text-lg font-semibold">{document.docName}</h3>
           {document.isMandatory && (

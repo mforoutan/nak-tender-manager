@@ -61,8 +61,8 @@ export default async function ParticipatePRPage({ params }: { params: Promise<{ 
     }
     
     return(
-       <section className="space-y-12 px-4 lg:px-6 max-w-7xl">
-            <div className="flex justify-between">
+       <section className="space-y-12 max-w-7xl">
+            <div className="flex justify-between px-4 lg:px-6">
                 <Breadcrumb className="text-base">
                     <BreadcrumbList className="items-center gap-x-1.5">
                         <BreadcrumbItem>

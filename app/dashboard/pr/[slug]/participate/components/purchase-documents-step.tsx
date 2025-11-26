@@ -71,7 +71,7 @@ export function PurchaseDocumentsStep({
                                 onClick={handlePayment}
                                 disabled={disabled}
                                 size="sm"
-                                className="py-2.5 px-4 gap-2"
+                                className="py-2.5 px-4 gap-2 text-sm font-medium"
                             >
                                 پرداخت با استفاده از كارت هاى عضو شتاب
                             </Button>
@@ -79,7 +79,7 @@ export function PurchaseDocumentsStep({
                     ) : (
                         <div>
                             <h3 className="font-bold text-base mb-6">فايل های اسناد مناقصه عمومى</h3>
-                            <div className="flex flex-wrap gap-y-4 mb-8">
+                            <div className="flex flex-col lg:flex-row flex-wrap gap-y-4 mb-8">
                                 {mockDocuments.map((doc, index) => (
                                     <div
                                         key={index}
@@ -98,7 +98,7 @@ export function PurchaseDocumentsStep({
                                     </div>
                                 ))}
                             </div>
-                            <div className="flex justify-between">
+                            <div className="flex flex-col lg:flex-row justify-between">
                                 <Alert className={`${alertStyles.success.className} p-0 text-[#34C759] bg-transparent border-0 mb-8`}>
                                     {alertStyles.success.icon}
                                     <AlertDescription className="text-[#34C759]">
@@ -107,7 +107,7 @@ export function PurchaseDocumentsStep({
                                 </Alert>
                                 <Button
                                     size="sm"
-                                    className="py-2.5 px-4 gap-2"
+                                    className="self-end lg:self-auto py-2.5 px-4 gap-2"
                                     onClick={() => currentStep === 0 && onStepChange(1)}
                                 >
                                     <Download />

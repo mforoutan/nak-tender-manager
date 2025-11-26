@@ -153,7 +153,7 @@ export default function ParticipateClient({
     }
 
     return (
-        <div className="space-y-8 bg-[#F6F6F6] rounded-md p-12">
+        <div className="space-y-8 bg-[#F6F6F6] rounded-md p-6 lg:p-12">
             <div className="flex items-center gap-5">
                 <h1 className="font-bold text-2xl">{proccessTitle}</h1>
                 {/* <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{toPersianNumbers(processId)}</Badge> */}
@@ -184,8 +184,8 @@ export default function ParticipateClient({
 
                 <section className="space-y-6">
                     <h3 className="text-lg font-bold">مرحله سوم: مستندات پاکت های الف٬ ب و ج</h3>
-                    <Card className="shadow-card-small p-12">
-                        <CardContent className="space-y-10">
+                    <Card className="shadow-card-small rounded-[20px] p-2 lg:p-12">
+                        <CardContent className="p-0 space-y-10">
                             {requiredDocuments.map((doc, index) => (
                                 <DocumentSubmissionStep
                                     key={doc.id}
