@@ -34,8 +34,14 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
 import { SessionUser } from "@/types"
+import { cn } from "@/lib/utils"
 
-export function NavUser() {
+export function NavUser({
+  buttonClassName,
+  ...props
+}: React.ComponentProps<typeof SidebarMenu> & {
+  buttonClassName?: string
+}) {
   // const { isMobile } = useSidebar()
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -84,16 +90,19 @@ export function NavUser() {
   }
 
   const displayName = `${user.firstName} ${user.lastName}`.trim() || user.username;
-  const displayEmail = user.companyName;
+  const displayCompanyName = user.companyName;
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
+    <SidebarMenu {...props}>
+      <SidebarMenuItem className="w-full">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className={cn(
+                "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
+                buttonClassName
+              )}
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarFallback className="rounded-full bg-black text-white">
@@ -103,7 +112,7 @@ export function NavUser() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{displayName}</span>
                 {/* <span className="text-muted-foreground truncate text-xs">
-                  {displayEmail}
+                  {displayCompanyName}
                 </span> */}
               </div>
               <ChevronDown className="ml-auto size-4" />
@@ -116,38 +125,23 @@ export function NavUser() {
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+            <DropdownMenuLabel dir="rtl" className="p-0 font-normal">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-right text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarFallback className="rounded-full bg-black text-white">
                     <User className="size-5" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-right text-sm leading-tight">
                   <span className="truncate font-medium">{displayName}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {displayEmail}
+                    {displayCompanyName}
                   </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+            <DropdownMenuItem dir="rtl" onClick={handleLogout} disabled={isLoggingOut}>
               <IconLogout />
               {isLoggingOut ? 'در حال خروج...' : 'خروج'}
             </DropdownMenuItem>

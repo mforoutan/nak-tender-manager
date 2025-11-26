@@ -12,6 +12,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
@@ -56,7 +57,7 @@ export function NavMain({
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarGroupLabel>اطلاعات کاربری</SidebarGroupLabel>
+        <SidebarGroupLabel className='text-lg font-semibold px-8 py-2.5 text-white'>اطلاعات کاربری</SidebarGroupLabel>
 
         <SidebarMenu>
           {items.map((item) => {
@@ -69,16 +70,17 @@ export function NavMain({
                   tooltip={item.title}
                   asChild
                   isActive={pathname === item.url}
+                  className='sidebar-links-colors sidebar-links-p'
                 >
                   <Link href={item.url} className='flex justify-between'>
                       {item.icon && <DynamicIcon name={item.icon} />}
                       <span className='flex-1 text-right'>{item.title}</span>
                     {showBadge && (
-                      <Badge
-                        className="rounded-md text-xs bg-red-500/5 text-red-500 hover:bg-red-500/5"
+                      <SidebarMenuBadge
+                        className="left-4 right-[unset] w-fit rounded-md text-xs bg-red-500/5 text-red-500 hover:bg-red-500/5"
                       >
                         غیر فعال
-                      </Badge>
+                      </SidebarMenuBadge>
                     )}
                   </Link>
                 </SidebarMenuButton>

@@ -18,9 +18,6 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { NavUser } from "./nav-user"
 
@@ -105,16 +102,19 @@ const data = {
           title: "مناقصه",
           url: "/dashboard/tenders/list",
           icon: "award" as IconName,
+          count: 0,
         },
         {
           title: "استعلام‌ها",
           url: "/dashboard/tenders/inquiries",
           icon: "search-check" as IconName,
+          count: 5,
         },
         {
           title: "فراخوان‌ها",
           url: "/dashboard/tenders/calls",
           icon: "megaphone" as IconName,
+          count: 20,
         },
       ]
     },
@@ -134,7 +134,7 @@ const data = {
       icon: "list" as IconName,
     },
   ],
-  
+
   navSecondary: [
     {
       title: "راهنمای شرکت در معامله",
@@ -157,23 +157,18 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" side="right" {...props} >
-      <SidebarHeader className="block lg:hidden">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-            <NavUser />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="block lg:hidden sidebar-links-p">
+        <NavUser
+          className="group h-auto rounded-md group-has-data-[state=open]:bg-white/10 data-[sidebar=menu-item]:w-full **:text-white hover:bg-white/10"
+          buttonClassName="hover:bg-transparent data-[state=open]:bg-white/10"
+        />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavTenders items={data.navTenders} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+      <img src={'/nak-sidebar-bg.svg'} className="absolute left-4 top-160 lg:top-190 size-60 object-contain object-no-repeat mix-blend-color-dodge" />
     </Sidebar>
   )
 }

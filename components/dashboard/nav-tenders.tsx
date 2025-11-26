@@ -9,6 +9,7 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/collapsible"
 import { DynamicIcon, type IconName } from "lucide-react/dynamic"
 import { ChevronLeft } from "lucide-react"
+import { toPersianNumbers } from "@/lib/utils"
 
 export function NavTenders({
   items,
@@ -35,6 +37,7 @@ export function NavTenders({
       title: string
       url: string
       icon?: IconName
+      count: number
     }[]
   }[]
 }) {
@@ -44,7 +47,7 @@ export function NavTenders({
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarGroupLabel>معاملات</SidebarGroupLabel>
+        <SidebarGroupLabel className="text-lg font-semibold px-8 py-2.5 text-white">معاملات</SidebarGroupLabel>
 
         <SidebarMenu>
           {items.map((item) => {
@@ -63,25 +66,27 @@ export function NavTenders({
                   {item.items && item.items.length > 0 ? (
                     <>
                       <CollapsibleTrigger asChild>
-                        <SidebarMenuButton tooltip={item.title} isActive={isActive}>
+                        <SidebarMenuButton tooltip={item.title} isActive={isActive} className="sidebar-links-colors sidebar-links-p">
                           {item.icon && <DynamicIcon name={item.icon} />}
                           <span>{item.title}</span>
                           <ChevronLeft className="mr-auto transition-transform duration-200 group-data-[state=open]/collapsible:-rotate-90" />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <SidebarMenuSub>
+                        <SidebarMenuSub className="border-r-0 mx-0 px-0 gap-y-4 py-4">
                           {item.items.map((subItem) => (
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
                                 asChild
                                 isActive={pathname === subItem.url}
+                                className="sidebar-links-colors sidebar-links-p"
                               >
                                 <Link href={subItem.url}>
                                   {subItem.icon && <DynamicIcon name={subItem.icon} />}
                                   <span>{subItem.title}</span>
                                 </Link>
                               </SidebarMenuSubButton>
+                                <SidebarMenuBadge className="top-1.5 left-4 right-[unset] w-fit text-xs font-semibold text-white">{toPersianNumbers(subItem.count)}</SidebarMenuBadge>
                             </SidebarMenuSubItem>
                           ))}
                         </SidebarMenuSub>
@@ -92,6 +97,7 @@ export function NavTenders({
                       tooltip={item.title}
                       asChild
                       isActive={pathname === item.url}
+                      className="sidebar-links-colors sidebar-links-p"
                     >
                       <Link href={item.url}>
                         {item.icon && <DynamicIcon name={item.icon} />}

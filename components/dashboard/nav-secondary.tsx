@@ -29,12 +29,12 @@ export function NavSecondary({
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-      <SidebarGroupLabel>سایر</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-lg font-semibold px-8 py-2.5 text-white">سایر</SidebarGroupLabel>
 
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} asChild isActive={pathname === item.url}>
+              <SidebarMenuButton tooltip={item.title} asChild isActive={pathname === item.url} className="sidebar-links-colors sidebar-links-p">
                 <Link href={item.url}>
                   {item.icon && <DynamicIcon name={item.icon} />}
                   <span>{item.title}</span>
