@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
 import { otpStore } from "@/lib/otp-store";
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate 5-digit OTP code
-    const otpCode = Math.floor(10000 + Math.random() * 90000).toString();
+    const otpCode = randomInt(10000, 100000).toString();
     
     // Set expiration time (5 minutes)
     const expiresAt = Date.now() + 5 * 60 * 1000;
