@@ -25,6 +25,11 @@ export interface SessionUser {
     lastName: string;
     companyName: string;
     companyStatus: number;
+    processParticipation?: {
+        tenderCount: number; // مناقصه (ID: 1)
+        inquiryCount: number; // استعلام (ID: 4)
+        callCount: number; // فراخوان (ID: 3)
+    };
 }
 
 // New interfaces for the contractor registration form

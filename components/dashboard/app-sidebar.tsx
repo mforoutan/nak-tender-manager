@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
+import { useState, useEffect } from "react"
 
 import {
   IconCamera,
@@ -21,140 +21,115 @@ import {
 } from "@/components/ui/sidebar"
 import { NavUser } from "./nav-user"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "داشبورد",
-      url: "/dashboard",
-      icon: "layout-dashboard" as IconName,
-    },
-    {
-      title: "حساب کاربری",
-      url: "/dashboard/account",
-      icon: "badge-check" as IconName,
-    },
-    {
-      title: "اطلاعات تکمیلی",
-      url: "/dashboard/profile",
-      icon: "file-user" as IconName,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "/dashboard/capture",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "/dashboard/capture/active",
-        },
-        {
-          title: "Archived",
-          url: "/dashboard/capture/archived",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "/dashboard/proposal",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "/dashboard/proposal/active",
-        },
-        {
-          title: "Archived",
-          url: "/dashboard/proposal/archived",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "/dashboard/prompts",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "/dashboard/prompts/active",
-        },
-        {
-          title: "Archived",
-          url: "/dashboard/prompts/archived",
-        },
-      ],
-    },
-  ],
-  navTenders: [
-    {
-      title: "معاملات شما",
-      url: "#",
-      icon: "handshake" as IconName,
-      items: [
-        {
-          title: "مناقصه",
-          url: "/dashboard/tenders/list",
-          icon: "award" as IconName,
-          count: 0,
-        },
-        {
-          title: "استعلام‌ها",
-          url: "/dashboard/tenders/inquiries",
-          icon: "search-check" as IconName,
-          count: 5,
-        },
-        {
-          title: "فراخوان‌ها",
-          url: "/dashboard/tenders/calls",
-          icon: "megaphone" as IconName,
-          count: 20,
-        },
-      ]
-    },
-    {
-      title: "وضعیت ارزیابی‌ها",
-      url: "/dashboard/tenders/evaluations",
-      icon: "scan-search" as IconName,
-    },
-    {
-      title: "قراردادها",
-      url: "/dashboard/tenders/contracts",
-      icon: "sticker" as IconName,
-    },
-    {
-      title: "معاملات موجود",
-      url: "/dashboard/tenders/available",
-      icon: "list" as IconName,
-    },
-  ],
+const getNavData = (participation: { tenderCount: number; inquiryCount: number; callCount: number }) => {
 
-  navSecondary: [
-    {
-      title: "راهنمای شرکت در معامله",
-      url: "/dashboard/help",
-      icon: "lightbulb" as IconName,
-    },
-    {
-      title: "پشتیبانی",
-      url: "/dashboard/support",
-      icon: "headset" as IconName,
-    },
-    {
-      title: "تنظیمات",
-      url: "/dashboard/settings",
-      icon: "settings" as IconName,
-    },
-  ],
+  return {
+    navMain: [
+      {
+        title: "داشبورد",
+        url: "/dashboard",
+        icon: "layout-dashboard" as IconName,
+      },
+      {
+        title: "حساب کاربری",
+        url: "/dashboard/account",
+        icon: "badge-check" as IconName,
+      },
+      {
+        title: "اطلاعات تکمیلی",
+        url: "/dashboard/profile",
+        icon: "file-user" as IconName,
+      },
+    ],
+    navTenders: [
+      {
+        title: "معاملات شما",
+        url: "#",
+        icon: "handshake" as IconName,
+        items: [
+          {
+            title: "مناقصه",
+            url: "/dashboard/tenders/list",
+            icon: "award" as IconName,
+            count: participation.tenderCount,
+          },
+          {
+            title: "استعلام‌ها",
+            url: "/dashboard/tenders/inquiries",
+            icon: "search-check" as IconName,
+            count: participation.inquiryCount,
+          },
+          {
+            title: "فراخوان‌ها",
+            url: "/dashboard/tenders/calls",
+            icon: "megaphone" as IconName,
+            count: participation.callCount,
+          },
+        ]
+      },
+      {
+        title: "وضعیت ارزیابی‌ها",
+        url: "/dashboard/tenders/evaluations",
+        icon: "scan-search" as IconName,
+      },
+      {
+        title: "قراردادها",
+        url: "/dashboard/tenders/contracts",
+        icon: "sticker" as IconName,
+      },
+      {
+        title: "معاملات موجود",
+        url: "/dashboard/pr",
+        icon: "list" as IconName,
+      },
+    ],
+    navSecondary: [
+      {
+        title: "راهنمای شرکت در معامله",
+        url: "/dashboard/help",
+        icon: "lightbulb" as IconName,
+      },
+      {
+        title: "پشتیبانی",
+        url: "/dashboard/support",
+        icon: "headset" as IconName,
+      },
+      {
+        title: "تنظیمات",
+        url: "/dashboard/settings",
+        icon: "settings" as IconName,
+      },
+    ],
+  };
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [participation, setParticipation] = useState({
+    tenderCount: 0,
+    inquiryCount: 0,
+    callCount: 0,
+  });
+
+  useEffect(() => {
+    const fetchParticipation = async () => {
+      try {
+        const response = await fetch('/api/auth/verify');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user?.processParticipation) {
+            setParticipation(data.user.processParticipation);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching participation data:', error);
+      }
+    };
+
+    fetchParticipation();
+  }, []);
+
+  const data = getNavData(participation);
+
   return (
     <Sidebar collapsible="offcanvas" side="right" {...props} >
       <SidebarHeader className="block lg:hidden sidebar-links-p">

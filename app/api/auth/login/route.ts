@@ -83,6 +83,29 @@ export async function POST(request: NextRequest) {
 
     const contractor = contractorResult.rows[0];
 
+    // Fetch process participation counts by type (efficient single query)
+    const participationResult = await connection.execute<{
+      tenderCount: number;
+      inquiryCount: number;
+      callCount: number;
+    }>(
+      `SELECT 
+        COUNT(CASE WHEN tp.PROCESS_TYPE_ID = 1 THEN 1 END) as "tenderCount",
+        COUNT(CASE WHEN tp.PROCESS_TYPE_ID = 4 THEN 1 END) as "inquiryCount",
+        COUNT(CASE WHEN tp.PROCESS_TYPE_ID = 3 THEN 1 END) as "callCount"
+      FROM PROCESS_SUBMISSION ps
+      INNER JOIN PUBLISHED_PROCESSES pp ON ps.PUBLISHED_PROCESSES_ID = pp.ID
+      INNER JOIN TRANSACTION_PROCESSES tp ON pp.TRANSACTION_PROCESSES_ID = tp.ID
+      WHERE ps.CONTRACTOR_ID = :contractorId`,
+      { contractorId: loginData.contractorId }
+    );
+
+    const processParticipation = participationResult.rows?.[0] || {
+      tenderCount: 0,
+      inquiryCount: 0,
+      callCount: 0,
+    };
+
     // Update last login
     await connection.execute(
       `UPDATE CONTRACTOR_LOGIN 
@@ -102,6 +125,7 @@ export async function POST(request: NextRequest) {
       lastName: loginData.lastName,
       companyName: contractor.companyName,
       companyStatus: (contractor as any).STATUS || 1,
+      processParticipation,
     };
 
     const token = await createSession(sessionUser);
