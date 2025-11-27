@@ -38,7 +38,6 @@ export default function ParticipateClient({
     requiredDocuments,
     documentPrice,
 }: ParticipateClientProps) {
-    console.log('ParticipateClient props:', { processId, processType, publicationNumber, proccessTitle, requiredDocuments });
     const [currentStep, setCurrentStep] = useState(0)
     const [isPurchased, setIsPurchased] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)

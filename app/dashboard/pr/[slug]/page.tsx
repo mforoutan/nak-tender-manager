@@ -85,7 +85,7 @@ export default async function PRDetailPage({ params }: { params: Promise<{ slug:
     };
     
     return (
-        <section className="space-y-12 px-4 lg:px-6  max-w-7xl">
+        <section className="space-y-12 px-4 lg:px-6">
             <div className="flex justify-between">
 
                 <Breadcrumb className="text-base">

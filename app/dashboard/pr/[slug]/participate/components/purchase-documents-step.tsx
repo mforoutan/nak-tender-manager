@@ -111,7 +111,7 @@ export function PurchaseDocumentsStep({
                                     onClick={() => currentStep === 0 && onStepChange(1)}
                                 >
                                     <Download />
-                                    دانلود همه فایل‌ها
+                                    دانلود اسناد
                                 </Button>
                             </div>
                         </div>
