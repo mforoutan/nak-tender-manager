@@ -63,13 +63,17 @@ export function NavMain({
           {items.map((item) => {
             const isAccountPage = item.url === "/dashboard/account";
             const showBadge = isAccountPage && needsAttention;
+            const isDashboardHome = item.url === "/dashboard";
+            const isActive = isDashboardHome 
+              ? pathname === "/dashboard" 
+              : pathname.includes(item.url);
 
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   tooltip={item.title}
                   asChild
-                  isActive={pathname === item.url}
+                  isActive={isActive}
                   className='sidebar-links-colors sidebar-links-p'
                 >
                   <Link href={item.url} className='flex justify-between'>

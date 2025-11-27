@@ -52,8 +52,8 @@ export function NavTenders({
         <SidebarMenu>
           {items.map((item) => {
             const isActive =
-              pathname === item.url ||
-              item.items?.some((sub) => pathname === sub.url)
+              pathname.includes(item.url) ||
+              item.items?.some((sub) => pathname.includes(sub.url))
 
             return (
               <Collapsible
@@ -78,7 +78,7 @@ export function NavTenders({
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
                                 asChild
-                                isActive={pathname === subItem.url}
+                                isActive={pathname.includes(subItem.url)}
                                 className="sidebar-links-colors sidebar-links-p"
                               >
                                 <Link href={subItem.url}>
@@ -96,7 +96,7 @@ export function NavTenders({
                     <SidebarMenuButton
                       tooltip={item.title}
                       asChild
-                      isActive={pathname === item.url}
+                      isActive={pathname.includes(item.url)}
                       className="sidebar-links-colors sidebar-links-p"
                     >
                       <Link href={item.url}>

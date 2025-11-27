@@ -34,7 +34,7 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} asChild isActive={pathname === item.url} className="sidebar-links-colors sidebar-links-p">
+              <SidebarMenuButton tooltip={item.title} asChild isActive={pathname.includes(item.url)} className="sidebar-links-colors sidebar-links-p">
                 <Link href={item.url}>
                   {item.icon && <DynamicIcon name={item.icon} />}
                   <span>{item.title}</span>
