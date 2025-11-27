@@ -18,9 +18,11 @@ import {
 } from "./components"
 
 const steps = [
-  "تکمیل اطلاعات و آپلود مدارک",
+  "تکمیل اطلاعات",
+  "آپلود مدارک",
   "ثبت و ارسال جهت بررسی", 
-  "بررسی توسط کارشناس"
+  "بررسی توسط کارشناس",
+  "finish"
 ]
 
 interface AccountClientProps {
@@ -391,7 +393,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
   }
 
   const handleNext = () => {
-    if (currentStep < 1 && isEditable) {
+    if (currentStep < 2 && isEditable) {
       setCurrentStep(prev => prev + 1)
     }
   }
@@ -505,7 +507,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       {renderStatusAlert()}
 
       <div className="bg-[#F6F6F6] rounded-2xl p-4 md:p-8 lg:p-12">
-        <Stepper steps={steps} currentStep={currentStep} />
+        <Stepper steps={steps} currentStep={currentStep} lastStepVariant="large" />
         
         <div className="mt-6 mb-4">
           <h2 className="text-xl font-bold">{steps[currentStep]}</h2>
@@ -534,7 +536,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
             />
           )}
 
-          {currentStep === 1 && (
+          {currentStep === 2 && (
             <ConfirmationStep
               formData={formData}
               uploadedFiles={uploadedFiles}
@@ -544,18 +546,24 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
             />
           )}
 
-          {currentStep === 2 && taskStatus === 'REJECTED' && (
+          {currentStep === 3 && taskStatus === 'REJECTED' && (
             <RejectedStep
               onEdit={handleEdit}
               rejectionReason={rejectionReason}
             />
           )}
 
-          {currentStep === 2 && (taskStatus === 'PENDING' || taskStatus === 'IN_PROGRESS' || taskStatus === null) && (
-            <ReviewStep />
+          {currentStep === 3 && (taskStatus === 'PENDING' || taskStatus === 'IN_PROGRESS' || taskStatus === null) && (
+            <ConfirmationStep
+              formData={formData}
+              uploadedFiles={uploadedFiles}
+              onPrevious={handlePrevious}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+            />
           )}
 
-          {currentStep === 3 && taskStatus === 'COMPLETED' && (
+          {currentStep === 4 && taskStatus === 'COMPLETED' && (
             <CompletedStep />
           )}
         </div>
