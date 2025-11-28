@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 
 interface FileUploadProps {
   id: string
+  className?: string
   onFileChange: (file: File | null) => void
   accept?: string
   disabled?: boolean
@@ -22,6 +23,7 @@ interface FileUploadProps {
 
 export function FileUpload({
   id,
+  className,
   onFileChange,
   accept = ".pdf,.jpg,.jpeg,.png",
   disabled = false,
@@ -146,7 +148,8 @@ export function FileUpload({
           "border border-border-default rounded-lg p-8 text-center cursor-pointer transition-colors",
           isDragging && "bg-primary/5",
           !isDragging && "border-gray-300 hover:border-primary hover:bg-gray-150",
-          disabled && "opacity-50 cursor-not-allowed"
+          disabled && "opacity-50 cursor-not-allowed",
+          className
         )}
       >
         <div className="flex flex-col items-center justify-center">
