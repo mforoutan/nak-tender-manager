@@ -16,6 +16,8 @@ interface FileUploadProps {
   onUpload?: () => void
   onDelete?: () => void
   fileId?: number // Add fileId for preview
+  name?: string
+  description?: string
 }
 
 export function FileUpload({
@@ -28,7 +30,9 @@ export function FileUpload({
   uploadProgress = 0,
   onUpload,
   onDelete,
-  fileId
+  fileId,
+  name,
+  description
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -122,7 +126,7 @@ export function FileUpload({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full group">
       <input
         ref={inputRef}
         id={id}
@@ -139,24 +143,30 @@ export function FileUpload({
         onDrop={handleDrop}
         onClick={handleClick}
         className={cn(
-          "bg-[#F6F6F6] rounded-lg p-8 text-center cursor-pointer transition-colors",
+          "border border-border-default rounded-lg p-8 text-center cursor-pointer transition-colors",
           isDragging && "bg-primary/5",
           !isDragging && "border-gray-300 hover:border-primary hover:bg-gray-150",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       >
         <div className="flex flex-col items-center justify-center">
-          <div className="mb-4 px-4 py-3 flex gap-2 items-center bg-white text-primary rounded-md">
+          <Button variant={`secondary`} size={`sm`} className="mb-4 px-4 py-3 flex gap-2 items-center bg-[#F6F6F6] text-primary rounded-md cursor-pointer">
             <Upload className="size-4" />
-            <span className="text-sm">اسناد و مستندات</span>
-          </div>
+            <span className="text-sm">
+              آپلود
+              {name ? ` ${name} ` : ' اسناد و مستندات '}
+            </span>
+          </Button>
+          {description && (
+            <p className="text-sm text-muted-foreground font-medium mb-2">{description}</p>
+          )}
           {file && (
             <div className="mb-6 py-1 px-2 flex items-center gap-x-2 border rounded-md bg-transparent text-green-500">
               <X onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteClick(e)
-                  }} className="size-4 text-muted-foreground cursor-pointer hover:text-red-500"  />
-              <span onClick={(e) => {handleDownload(); e.stopPropagation()}} className="cursor-pointer">{file.name}</span>
+                e.stopPropagation()
+                handleDeleteClick(e)
+              }} className="size-4 text-muted-foreground cursor-pointer hover:text-red-500" />
+              <span onClick={(e) => { handleDownload(); e.stopPropagation() }} className="cursor-pointer">{file.name}</span>
             </div>
           )}
           <div className="font-medium text-muted-foreground text-sm space-y-2">
