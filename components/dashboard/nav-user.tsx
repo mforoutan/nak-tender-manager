@@ -32,8 +32,8 @@ import {
 import { ChevronDown, User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { useState, useEffect } from "react"
-import { SessionUser } from "@/types"
+import { useState } from "react"
+import { useSession } from "@/hooks/use-session"
 import { cn } from "@/lib/utils"
 
 export function NavUser({
@@ -45,23 +45,7 @@ export function NavUser({
   // const { isMobile } = useSidebar()
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [user, setUser] = useState<SessionUser | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch('/api/auth/verify');
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  const { user } = useSession();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

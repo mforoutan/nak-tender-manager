@@ -18,6 +18,7 @@ import {
 } from "./components"
 import { DocumentsSection } from "@/components/contractor-form/documents-section"
 import { CardContent, CardFooter } from "@/components/ui/card"
+import { useSession } from "@/hooks/use-session"
 
 const steps = [
   "تکمیل اطلاعات",
@@ -40,6 +41,8 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
   const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({})
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
   const [uploadedFileIds, setUploadedFileIds] = useState<{ [key: string]: number }>({})
+
+  const { accountTask, refreshSession } = useSession()
 
   const [formData, setFormData] = useState<ContractorFormData>({
     companyName: "",
@@ -83,6 +86,30 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
     documentId: string;
     fileId?: number;
   } | null>(null)
+  const [stepInitialized, setStepInitialized] = useState(false)
+
+  // Set task status and step from session (only on initial load)
+  useEffect(() => {
+    if (accountTask && !stepInitialized) {
+      if (accountTask.hasTask) {
+        setTaskStatus(accountTask.status);
+        setRejectionReason(accountTask.rejectionReason || '');
+        
+        // Set initial step based on status
+        if (accountTask.status === 'PENDING' || accountTask.status === 'IN_PROGRESS') {
+          setIsEditable(false);
+          setCurrentStep(3);
+        } else if (accountTask.status === 'COMPLETED') {
+          setIsEditable(false);
+          setCurrentStep(5);
+        } else if (accountTask.status === 'REJECTED') {
+          setIsEditable(true);
+          setCurrentStep(2);
+        }
+        setStepInitialized(true);
+      }
+    }
+  }, [accountTask, stepInitialized]);
 
   // Load initial data or fetch contractor data
   useEffect(() => {
@@ -191,8 +218,8 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
         }
       }
 
-      // Check for tasks and set status
-      if (data.tasks && data.tasks.length > 0) {
+      // Check for tasks and set status (only if not already set from session)
+      if (data.tasks && data.tasks.length > 0 && !accountTask) {
         const latestTask = data.tasks[0]
         const status = latestTask.STATUS
 
@@ -200,7 +227,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
         if (status === 'PENDING' || status === 'IN_PROGRESS') {
           setIsEditable(false)
-          setCurrentStep(2)
+          setCurrentStep(3)
         } else if (status === 'COMPLETED') {
           setIsEditable(false)
           setCurrentStep(5)
@@ -209,6 +236,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
           setCurrentStep(2)
           setRejectionReason(latestTask.REJECTION_REASON || '')
         }
+        setStepInitialized(true)
       }
     }
   }
@@ -423,9 +451,12 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       const data = await response.json()
 
       if (response.ok) {
+        // Refresh session to get updated task status
+        await refreshSession(['accountTask']);
+        
         setShowSuccessDialog(true)
         setIsEditable(false)
-        setCurrentStep(3)
+        setCurrentStep(2)
         setTaskStatus('PENDING')
       } else {
         toast.error(data.error || 'خطا در ثبت اطلاعات')

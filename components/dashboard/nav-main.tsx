@@ -3,7 +3,7 @@
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useSession } from "@/hooks/use-session"
 import { Badge } from "@/components/ui/badge"
 
 import { Button } from "@/components/ui/button"
@@ -27,32 +27,34 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
-  const [accountStatus, setAccountStatus] = useState<{
-    hasTask: boolean;
-    status: string | null;
-  } | null>(null);
+  const { accountTask } = useSession()
 
-  useEffect(() => {
-    const checkAccountStatus = async () => {
-      try {
-        const response = await fetch('/api/tasks/status?contractorId=301');
-        if (response.ok) {
-          const data = await response.json();
-          setAccountStatus({
-            hasTask: data.hasTask,
-            status: data.task?.status || null
-          });
-        }
-      } catch (error) {
-        console.error('Error checking account status:', error);
-      }
-    };
+  const getAccountBadge = () => {
+    if (!accountTask) return null;
 
-    checkAccountStatus();
-  }, []);
+    if (accountTask.status === 'COMPLETED') {
+      return {
+        text: 'فعال',
+        className: 'text-[#34C759] bg-[#34C759]/20'
+      };
+    }
 
-  const needsAttention = accountStatus &&
-    (!accountStatus.hasTask || accountStatus.status === 'REJECTED');
+    if (!accountTask.hasTask || accountTask.status === 'REJECTED') {
+      return {
+        text: 'غیرفعال',
+        className: 'text-destructive bg-destructive/15'
+      };
+    }
+
+    if (accountTask.status === 'PENDING' || accountTask.status === 'IN_PROGRESS') {
+      return {
+        text: 'در انتظار تایید',
+        className: 'text-[#7E7E7E] bg-[#7E7E7E]/10'
+      };
+    }
+
+    return null;
+  };
 
   return (
     <SidebarGroup>
@@ -62,7 +64,7 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => {
             const isAccountPage = item.url === "/dashboard/account";
-            const showBadge = isAccountPage && needsAttention;
+            const badge = isAccountPage ? getAccountBadge() : null;
             const isDashboardHome = item.url === "/dashboard";
             const isActive = isDashboardHome 
               ? pathname === "/dashboard" 
@@ -79,11 +81,11 @@ export function NavMain({
                   <Link href={item.url} className='flex justify-between'>
                       {item.icon && <DynamicIcon name={item.icon} />}
                       <span className='flex-1 text-right'>{item.title}</span>
-                    {showBadge && (
+                    {badge && (
                       <SidebarMenuBadge
-                        className="left-4 right-[unset] w-fit rounded-md text-xs bg-red-500/5 text-red-500 hover:bg-red-500/5"
+                        className={`left-4 right-[unset] w-fit rounded-md px-2 py-1 text-xs ${badge.className}`}
                       >
-                        غیر فعال
+                        {badge.text}
                       </SidebarMenuBadge>
                     )}
                   </Link>

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react"
+import { useSession } from "@/hooks/use-session"
 
 import {
   IconCamera,
@@ -104,29 +104,13 @@ const getNavData = (participation: { tenderCount: number; inquiryCount: number; 
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [participation, setParticipation] = useState({
+  const { processParticipation } = useSession();
+
+  const participation = processParticipation || {
     tenderCount: 0,
     inquiryCount: 0,
     callCount: 0,
-  });
-
-  useEffect(() => {
-    const fetchParticipation = async () => {
-      try {
-        const response = await fetch('/api/auth/verify');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user?.processParticipation) {
-            setParticipation(data.user.processParticipation);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching participation data:', error);
-      }
-    };
-
-    fetchParticipation();
-  }, []);
+  };
 
   const data = getNavData(participation);
 

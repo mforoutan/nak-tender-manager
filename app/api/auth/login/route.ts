@@ -106,6 +106,31 @@ export async function POST(request: NextRequest) {
       callCount: 0,
     };
 
+    // Fetch account task status
+    const taskResult = await connection.execute<any>(
+      `SELECT 
+        ID,
+        STATUS,
+        ACTION_COMMENT as "rejectionReason"
+       FROM TASKS 
+       WHERE ENTITY_TYPE = 'CONTRACTOR' 
+       AND ENTITY_ID = :contractorId 
+       ORDER BY ACTION_DATE DESC
+       FETCH FIRST 1 ROWS ONLY`,
+      { contractorId: loginData.contractorId }
+    );
+
+    const accountTask = taskResult.rows && taskResult.rows.length > 0
+      ? {
+          hasTask: true,
+          status: taskResult.rows[0].STATUS as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED',
+          rejectionReason: taskResult.rows[0].rejectionReason || undefined,
+        }
+      : {
+          hasTask: false,
+          status: null as null,
+        };
+
     // Update last login
     await connection.execute(
       `UPDATE CONTRACTOR_LOGIN 
@@ -126,6 +151,7 @@ export async function POST(request: NextRequest) {
       companyName: contractor.companyName,
       companyStatus: (contractor as any).STATUS || 1,
       processParticipation,
+      accountTask,
     };
 
     const token = await createSession(sessionUser);
