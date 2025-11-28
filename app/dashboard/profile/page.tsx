@@ -1,44 +1,42 @@
-"use client"
+import { getSession } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import ProfileClient from "./profile-client"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-
-interface ProfilePageProps {
-  accountStatus?: {
-    hasTask: boolean;
-    status: string | null;
-  };
-  isCheckingStatus?: boolean;
+export const metadata = {
+  title: "پروفایل من | داشبورد",
+  description: "صفحه پروفایل من در داشبورد کاربری",
 }
 
-export default function ProfilePage({ accountStatus, isCheckingStatus }: ProfilePageProps) {
-  const showAlert = !isCheckingStatus && accountStatus && (!accountStatus.hasTask || accountStatus.status === 'REJECTED');
 
-  return (
-    <>
-      <h1 className="px-4 lg:px-6 font-medium text-xl">اطلاعات تکمیلی</h1>
-      
-      {showAlert && (
-        <div className="px-4 lg:px-6">
-          <Alert className="text-amber-700 bg-amber-50 border-amber-200">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>تکمیل اطلاعات حساب کاربری</AlertTitle>
-            <AlertDescription>
-              <p className="mb-3">
-                ابتدا باید اطلاعات حساب کاربری خود را تکمیل کنید.
-              </p>
-              <Button 
-                size="sm" 
-                variant="default"
-                onClick={() => window.location.href = "/dashboard/account"}
-              >
-                تکمیل اطلاعات
-              </Button>
-            </AlertDescription>
-          </Alert>
+export default async function ProfilePage() {
+  const session = await getSession()
+
+  if (!session?.contractorId) {
+    redirect('/auth/login')
+  }
+
+  // Check if account is verified
+  const isVerified = session.accountVerificationTask?.status === 'COMPLETED'
+
+  if (!isVerified) {
+    return (
+      <div className="px-4 lg:px-6 space-y-6">
+        <h1 className="font-medium text-xl">اطلاعات تکمیلی</h1>
+        <div className="p-6 bg-amber-50 border border-amber-200 rounded-lg">
+          <h3 className="font-semibold text-amber-800 mb-2">تکمیل اطلاعات حساب کاربری</h3>
+          <p className="text-amber-700 mb-4">
+            ابتدا باید اطلاعات حساب کاربری خود را تکمیل و تایید کنید.
+          </p>
+          <a 
+            href="/dashboard/account"
+            className="inline-block px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+          >
+            تکمیل اطلاعات
+          </a>
         </div>
-      )}
-    </>
-  )
+      </div>
+    )
+  }
+
+  return <ProfileClient contractorId={session.contractorId} />
 }
