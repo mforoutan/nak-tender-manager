@@ -79,7 +79,7 @@ const getNavData = (participation: { tenderCount: number; inquiryCount: number; 
       },
       {
         title: "معاملات موجود",
-        url: "/dashboard/pr",
+        url: "/dashboard/pr/",
         icon: "list" as IconName,
       },
     ],
