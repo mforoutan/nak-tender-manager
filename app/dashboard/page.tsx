@@ -4,6 +4,7 @@ import { YourDeals } from "@/components/dashboard/your-deals"
 import { NewsEvents } from "@/components/dashboard/news-events"
 import { CompanyStatusAlerts } from "@/components/dashboard/company-status-alerts"
 import type { TenderListItem } from "@/types"
+import { cookies } from "next/headers"
 
 export const metadata = {
   title: "داشبورد | ناک",
@@ -17,9 +18,14 @@ interface DashboardPageProps {
 async function getRecentTenders(): Promise<TenderListItem[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const cookieStore = await cookies();
+    
     const response = await fetch(
       `${baseUrl}/api/published-processes?status=ongoing&limit=1000`,
       {
+        headers: {
+          'Cookie': cookieStore.toString(),
+        },
         next: { revalidate: 300 } // Revalidate every 5 minutes
       }
     );

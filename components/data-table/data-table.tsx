@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { AwardIcon, MilestoneIcon, Calendar1Icon, Search, SearchCheckIcon, GavelIcon, StickerIcon, Clock, MegaphoneIcon } from "lucide-react"
+import { AwardIcon, MilestoneIcon, Calendar1Icon, Search, SearchCheckIcon, GavelIcon, StickerIcon, Clock, MegaphoneIcon, FileX2 } from "lucide-react"
 
 import { toPersianNumbers } from "@/lib/utils"
 import type { TenderListItem } from "@/types"
@@ -34,6 +34,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyMedia,
+} from "@/components/ui/empty"
 import Link from "next/link"
 import { PersianDatePicker } from "@/components/ui/persian-date-picker"
 
@@ -246,7 +253,7 @@ export function DataTable({
   showStatus = true,
   serverSide = true, // Default to server-side
   totalCount,
-  apiEndpoint = '/api/published-processes',
+  apiEndpoint,
 }: {
   data: TenderListItem[]
   itemsPerPage?: number
@@ -298,7 +305,7 @@ export function DataTable({
 
       const result = await response.json()
       setData(result.data || [])
-      setTotal(result.pagination?.total || 0)
+      setTotal(result.pagination?.total || result.pagination?.totalItems || 0)
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -454,38 +461,40 @@ export function DataTable({
       onValueChange={handleTypeChange}
       className="w-full flex-col justify-start gap-6"
     >
-      <div className="flex items-center justify-between px-4 lg:px-6">
-        <Label htmlFor="view-selector" className="sr-only">
-          View
-        </Label>
-        <TabsList className="bg-transparent flex mx-auto gap-[18px] lg:mx-0 **:data-[slot=tabs-trigger]:rounded-lg **:data-[slot=tabs-trigger]:px-xs **:data-[slot=tabs-trigger]:py-1.5">
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:shadow-sm flex font-semibold box-content text-lg text-muted-foreground leading-7">
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <div className="hidden lg:flex items-center gap-2">
-          <PersianDatePicker
-            value={selectedDate}
-            onChange={handleDateChange}
-            placeholder="تاریخ"
-            className="w-auto gap-x-2 min-h-input-sm rounded-input px-sm py-2.5"
-          />
-          <InputGroup className="w-64" size="lg">
-            <InputGroupInput
-              placeholder="جستجو در معاملات..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="p-0 leading-7 h-7"
+      {tabs.length > 0 && (
+        <div className="flex items-center justify-between px-4 lg:px-6">
+          <Label htmlFor="view-selector" className="sr-only">
+            View
+          </Label>
+          <TabsList className="bg-transparent flex mx-auto gap-[18px] lg:mx-0 **:data-[slot=tabs-trigger]:rounded-lg **:data-[slot=tabs-trigger]:px-xs **:data-[slot=tabs-trigger]:py-1.5">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:shadow-sm flex font-semibold box-content text-lg text-muted-foreground leading-7">
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <div className="hidden lg:flex items-center gap-2">
+            <PersianDatePicker
+              value={selectedDate}
+              onChange={handleDateChange}
+              placeholder="تاریخ"
+              className="w-auto gap-x-2 min-h-input-sm rounded-input px-sm py-2.5"
             />
-            <InputGroupAddon className="pl-2 py-0">
-              <Search className="size-4" />
-            </InputGroupAddon>
-          </InputGroup>
+            <InputGroup className="w-64" size="lg">
+              <InputGroupInput
+                placeholder="جستجو در معاملات..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="p-0 leading-7 h-7"
+              />
+              <InputGroupAddon className="pl-2 py-0">
+                <Search className="size-4" />
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
         </div>
-      </div>
-      {tabs.map((tab) => (
+      )}
+      {(tabs.length > 0 ? tabs : [{ value: "all", label: "همه" }]).map((tab) => (
         <TabsContent
           key={tab.value}
           value={tab.value}

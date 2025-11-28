@@ -1,12 +1,18 @@
 import { DataTable } from "@/components/data-table";
 import { TenderListItem } from "@/types";
+import { cookies } from "next/headers";
 
 async function getRecentTenders(): Promise<TenderListItem[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const cookieStore = await cookies();
+
     const response = await fetch(
       `${baseUrl}/api/published-processes?status=ongoing&limit=1000`,
       {
+        headers: {
+          'Cookie': cookieStore.toString(),
+        },
         next: { revalidate: 300 } // Revalidate every 5 minutes
       }
     );
@@ -25,17 +31,17 @@ async function getRecentTenders(): Promise<TenderListItem[]> {
 }
 
 export const metadata = {
-    title: "معاملات موجود | ناک",
-    description: "صفحه معاملات موجود در سامانه ناک",
+  title: "معاملات موجود | ناک",
+  description: "صفحه معاملات موجود در سامانه ناک",
 };
 
 export default async function AvailableTendersPage() {
-    const tenders = await getRecentTenders();
-    return (
+  const tenders = await getRecentTenders();
+  return (
     <section className="space-y-10">
       <h1 className="px-4 lg:px-6 font-medium text-xl">معاملات موجود</h1>
 
-        <DataTable
+      <DataTable
         data={tenders}
         tabs={[
           { value: "all", label: "همه" },
@@ -48,5 +54,5 @@ export default async function AvailableTendersPage() {
         showStatus={false}
       />
     </section>
-    );
+  );
 }
