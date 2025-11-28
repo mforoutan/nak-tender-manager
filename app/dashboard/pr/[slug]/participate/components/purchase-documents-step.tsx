@@ -34,10 +34,29 @@ export function PurchaseDocumentsStep({
         onPurchaseComplete()
     }
 
-    const mockDocuments = [
-        { name: "اسناد مناقصه - فایل اصلی.pdf", type: "pdf", size: "2.5 MB" },
-        { name: "شرایط عمومی پیمان.pdf", type: "pdf", size: "1.8 MB" },
-        { name: "شرایط خصوصی پیمان.zip", type: "zip", size: "5.2 MB" },
+    // Categorized tender documents
+    const documentCategories = [
+        {
+            title: "اسناد مناقصه",
+            documents: [
+                { name: "اسناد مناقصه - فایل اصلی.pdf", type: "pdf", size: "2.5 MB" },
+                { name: "فرم پیشنهاد قیمت.pdf", type: "pdf", size: "850 KB" },
+            ]
+        },
+        {
+            title: "شرایط پیمان",
+            documents: [
+                { name: "شرایط عمومی پیمان.pdf", type: "pdf", size: "1.8 MB" },
+                { name: "شرایط خصوصی پیمان.pdf", type: "pdf", size: "1.2 MB" },
+            ]
+        },
+        {
+            title: "مدارک فنی",
+            documents: [
+                { name: "مشخصات فنی پروژه.zip", type: "zip", size: "5.2 MB" },
+                { name: "نقشه‌های اجرایی.dwg", type: "dwg", size: "3.4 MB" },
+            ]
+        }
     ]
 
     const getFileIcon = (type: string) => {
@@ -46,6 +65,8 @@ export function PurchaseDocumentsStep({
                 return "/icons/pdf.svg"
             case "zip":
                 return "/icons/zip.svg"
+            case "dwg":
+                return "/icons/zip.svg" // Use zip icon for dwg files
             default:
                 return "/icons/pdf.svg"
         }
@@ -79,22 +100,31 @@ export function PurchaseDocumentsStep({
                     ) : (
                         <div>
                             <h3 className="font-bold text-base mb-6">فايل های اسناد مناقصه عمومى</h3>
-                            <div className="flex flex-col lg:flex-row flex-wrap gap-y-4 mb-8">
-                                {mockDocuments.map((doc, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center basis-1/2 gap-2 hover:bg-muted/50"
-                                    >
-                                        <Image
-                                            src={getFileIcon(doc.type)}
-                                            alt={doc.type}
-                                            width={24}
-                                            height={24}
-                                        />
-                                        <Badge variant={`outline`} className="w-fit py-0.5 px-5 rounded-md border-border-default text-sm font-medium">
-                                            {doc.name}
-                                        </Badge>
-                                        <span className="font-extrabold text-xs text-muted-foreground">{doc.size}</span>
+                            <div className="space-y-8 mb-8">
+                                {documentCategories.map((category, categoryIndex) => (
+                                    <div key={categoryIndex}>
+                                        <h3 className="font-semibold text-sm text-foreground mb-4">
+                                            {category.title}
+                                        </h3>
+                                        <div className="flex flex-col lg:flex-row flex-wrap gap-y-4">
+                                            {category.documents.map((doc, docIndex) => (
+                                                <div
+                                                    key={docIndex}
+                                                    className="flex items-center basis-1/2 gap-2 hover:bg-muted/50"
+                                                >
+                                                    <Image
+                                                        src={getFileIcon(doc.type)}
+                                                        alt={doc.type}
+                                                        width={24}
+                                                        height={24}
+                                                    />
+                                                    <Badge variant={`outline`} className="w-fit py-0.5 px-5 rounded-md border-border-default text-sm font-medium">
+                                                        {doc.name}
+                                                    </Badge>
+                                                    <span className="font-extrabold text-xs text-muted-foreground">{doc.size}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

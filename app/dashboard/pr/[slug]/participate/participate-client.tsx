@@ -47,26 +47,16 @@ export default function ParticipateClient({
     const [documentData, setDocumentData] = useState<{ [key: string]: any }>({})
     const [isEditable, setIsEditable] = useState(true)
 
-    // Build dynamic steps based on required documents
-    const buildSteps = () => {
-        const baseSteps = [
-            "خرید اسناد مناقصه",
-            "تکمیل فرم‌های ارزیابی",
-        ]
-
-        // Add document steps
-        const documentSteps = requiredDocuments.map(doc => doc.docName)
-
-
-        const finalSteps = [
-            "ارسال درخواست",
-            "ارزیابی توسط کارشناس"
-        ]
-
-        return [...baseSteps, ...documentSteps, ...finalSteps]
-    }
-
-    const steps = buildSteps()
+    // Static steps: 2 initial + 3 packet steps + 2 final
+    const steps = [
+        "خرید اسناد مناقصه",
+        "تکمیل فرم‌های ارزیابی",
+        "پاکت الف",
+        "پاکت ب",
+        "پاکت ج",
+        "ارسال درخواست",
+        "ارزیابی توسط کارشناس"
+    ]
 
     const handlePurchaseComplete = () => {
         setIsPurchased(true)
@@ -160,7 +150,7 @@ export default function ParticipateClient({
 
             </div>
 
-            <Stepper className="place-self-center" steps={steps} currentStep={currentStep} />
+            <Stepper className="max-w-4xl mx-auto" steps={steps} currentStep={currentStep} />
 
             <section className="w-full space-y-10">
                 {/* Step 1: Purchase Documents */}
@@ -188,7 +178,7 @@ export default function ParticipateClient({
                             {requiredDocuments.map((doc, index) => (
                                 <DocumentSubmissionStep
                                     key={doc.id}
-                                    stepNumber={index + 3}
+                                    stepNumber={2 + index} // Steps 2, 3, 4 (پاکت الف، ب، ج)
                                     document={doc}
                                     data={documentData[doc.id.toString()]}
                                     onChange={(data: any) => handleDocumentChange(doc.id.toString(), data)}
