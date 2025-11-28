@@ -16,11 +16,13 @@ import {
   RejectedStep,
   CompletedStep,
 } from "./components"
+import { DocumentsSection } from "@/components/contractor-form/documents-section"
+import { CardContent, CardFooter } from "@/components/ui/card"
 
 const steps = [
   "تکمیل اطلاعات",
   "آپلود مدارک",
-  "ثبت و ارسال جهت بررسی", 
+  "ثبت و ارسال جهت بررسی",
   "بررسی توسط کارشناس",
   "finish"
 ]
@@ -35,10 +37,10 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(!initialData)
-  const [uploadedFiles, setUploadedFiles] = useState<{[key: string]: File | null}>({})
-  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({})
-  const [uploadedFileIds, setUploadedFileIds] = useState<{[key: string]: number}>({})
-  
+  const [uploadedFiles, setUploadedFiles] = useState<{ [key: string]: File | null }>({})
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+  const [uploadedFileIds, setUploadedFileIds] = useState<{ [key: string]: number }>({})
+
   const [formData, setFormData] = useState<ContractorFormData>({
     companyName: "",
     companyNameEN: "",
@@ -95,14 +97,14 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
   const processContractorData = (data: any) => {
     if (data.contractor) {
       const contractor = data.contractor
-      
+
       setFormData({
         companyName: contractor.COMPANY_NAME || '',
         companyNameEN: contractor.COMPANY_NAME_EN || '',
         nationalId: contractor.NATIONAL_ID || '',
         economicCode: contractor.ECONOMIC_CODE || '',
         registrationNumber: contractor.REGISTRATION_NUMBER || '',
-        establishmentDate: contractor.ESTABLISHMENT_DATE ? 
+        establishmentDate: contractor.ESTABLISHMENT_DATE ?
           new Date(contractor.ESTABLISHMENT_DATE).toISOString().split('T')[0] : '',
         phone: contractor.PHONE || '',
         mobile: contractor.MOBILE || '',
@@ -129,7 +131,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
         repPhone: '',
         repEmail: '',
       })
-      
+
       // Extract CEO and Rep info from members
       if (data.members && Array.isArray(data.members)) {
         data.members.forEach((member: any) => {
@@ -152,15 +154,15 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
           }
         })
       }
-      
+
       // Handle documents
       if (data.documents && Array.isArray(data.documents)) {
-        const filesMap: {[key: string]: File | null} = {}
-        const fileIdsMap: {[key: string]: number} = {}
-        
+        const filesMap: { [key: string]: File | null } = {}
+        const fileIdsMap: { [key: string]: number } = {}
+
         data.documents.forEach((doc: any) => {
           let docType = ''
-          
+
           if (doc.CERTIFICATE_TYPE === 'LEGAL' && doc.CERTIFICATE_NAME?.includes('اساسنامه')) {
             docType = 'registration'
           } else if (doc.CERTIFICATE_TYPE === 'LEGAL' && doc.CERTIFICATE_NAME?.includes('روزنامه')) {
@@ -170,7 +172,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
           } else if (doc.CERTIFICATE_TYPE === 'QUALIFICATION') {
             docType = 'certificate'
           }
-          
+
           if (docType && doc.FILE_NAME) {
             filesMap[docType] = {
               name: doc.ORIGINAL_NAME || doc.FILE_NAME,
@@ -178,30 +180,30 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
               type: doc.MIME_TYPE || 'application/octet-stream',
             } as File
             fileIdsMap[docType] = doc.CERTIFICATE_FILE_ID
-            
+
             setUploadProgress(prev => ({ ...prev, [docType]: 100 }))
           }
         })
-        
+
         if (Object.keys(filesMap).length > 0) {
           setUploadedFiles(prev => ({ ...prev, ...filesMap }))
           setUploadedFileIds(prev => ({ ...prev, ...fileIdsMap }))
         }
       }
-      
+
       // Check for tasks and set status
       if (data.tasks && data.tasks.length > 0) {
         const latestTask = data.tasks[0]
         const status = latestTask.STATUS
-        
+
         setTaskStatus(status)
-        
+
         if (status === 'PENDING' || status === 'IN_PROGRESS') {
           setIsEditable(false)
           setCurrentStep(2)
         } else if (status === 'COMPLETED') {
           setIsEditable(false)
-          setCurrentStep(3)
+          setCurrentStep(5)
         } else if (status === 'REJECTED') {
           setIsEditable(true)
           setCurrentStep(2)
@@ -254,7 +256,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
     } else {
       setUploadedFiles(prev => ({ ...prev, [documentId]: file }))
       setUploadProgress(prev => ({ ...prev, [documentId]: 0 }))
-      
+
       // Auto-upload
       setTimeout(() => {
         uploadFile(documentId, file)
@@ -264,22 +266,22 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
   const uploadFile = async (documentId: string, file: File) => {
     setUploadProgress(prev => ({ ...prev, [documentId]: 10 }))
-    
+
     try {
       const formDataToSend = new FormData()
       formDataToSend.append('file', file)
       formDataToSend.append('documentType', documentId)
       formDataToSend.append('contractorId', contractorId.toString())
-      
+
       setUploadProgress(prev => ({ ...prev, [documentId]: 50 }))
-      
+
       const response = await fetch('/api/account/upload', {
         method: 'POST',
         body: formDataToSend,
       })
-      
+
       const data = await response.json()
-      
+
       if (response.ok) {
         setUploadProgress(prev => ({ ...prev, [documentId]: 100 }))
         if (data.fileId) {
@@ -331,9 +333,9 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileId }),
       })
-      
+
       const data = await response.json()
-      
+
       if (response.ok) {
         setUploadedFiles(prev => {
           const newFiles = { ...prev }
@@ -368,7 +370,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       toast.error("امکان ویرایش اطلاعات وجود ندارد")
       return
     }
-    
+
     setIsSaving(true)
     try {
       const response = await fetch('/api/account/draft', {
@@ -376,9 +378,9 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, contractorId }),
       })
-      
+
       const data = await response.json()
-      
+
       if (response.ok) {
         toast.success(data.message || 'تغییرات ذخیره شد')
       } else {
@@ -394,13 +396,13 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
   const handleNext = () => {
     if (currentStep < 2 && isEditable) {
-      setCurrentStep(prev => prev + 1)
+      setCurrentStep(prev => prev + 2)
     }
   }
 
   const handlePrevious = () => {
     if (currentStep > 0 && isEditable) {
-      setCurrentStep(prev => prev - 1)
+      setCurrentStep(prev => prev - 2)
     }
   }
 
@@ -409,7 +411,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       toast.error("امکان ارسال مجدد اطلاعات وجود ندارد")
       return
     }
-    
+
     setIsSubmitting(true)
     try {
       const response = await fetch('/api/account/submit', {
@@ -417,13 +419,13 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, contractorId }),
       })
-      
+
       const data = await response.json()
-      
+
       if (response.ok) {
         setShowSuccessDialog(true)
         setIsEditable(false)
-        setCurrentStep(2)
+        setCurrentStep(3)
         setTaskStatus('PENDING')
       } else {
         toast.error(data.error || 'خطا در ثبت اطلاعات')
@@ -445,13 +447,21 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
   const renderStatusAlert = () => {
     if (!taskStatus || taskStatus === 'REJECTED') {
       return (
-        <Alert className="mb-4 bg-amber-50 border-amber-200">
-          <AlertCircle className="h-4 w-4 text-amber-700" />
-          <AlertTitle className="text-amber-700">تکمیل اطلاعات حساب کاربری</AlertTitle>
-          <AlertDescription className="text-amber-600">
-            {taskStatus === 'REJECTED' 
+        <Alert className="border-black" variant={`destructive`}>
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <AlertTitle className="text-destructive">فعال کردن حساب کاربری</AlertTitle>
+          <AlertDescription className="*:text-black">
+            {taskStatus === 'REJECTED'
               ? 'اطلاعات شما نیاز به اصلاح دارد. لطفاً موارد را بررسی و مجدداً ارسال کنید.'
-              : 'لطفاً اطلاعات حساب کاربری خود را تکمیل کنید تا بتوانید از امکانات سامانه استفاده نمایید.'}
+              : (
+                <p>
+                  تکمیل اطلاعات ستاره‌دار
+                  &nbsp;<span className="text-destructive">
+                    (*)
+                  </span>&nbsp;
+                  در فرم زیر برای شرکت در مناقصات، استعلام‌ها و فراخوان‌ها الزامی است. شرکت شما بر اساس این اطلاعات ابتدا توسط ناک ارزیابی و سپس به‌عنوان واجد شرایط برای شرکت در معاملات اعلام خواهد شد.
+                </p>
+              )}
           </AlertDescription>
         </Alert>
       )
@@ -459,7 +469,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
     if (taskStatus === 'PENDING' || taskStatus === 'IN_PROGRESS') {
       return (
-        <Alert className="mb-4 bg-blue-50 border-blue-200">
+        <Alert className="bg-blue-50 border-blue-200">
           <AlertCircle className="h-4 w-4 text-blue-700" />
           <AlertTitle className="text-blue-700">در حال بررسی</AlertTitle>
           <AlertDescription className="text-blue-600">
@@ -471,7 +481,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
     if (taskStatus === 'COMPLETED') {
       return (
-        <Alert className="mb-4 bg-green-50 border-green-200">
+        <Alert className="bg-green-50 border-green-200">
           <AlertCircle className="h-4 w-4 text-green-700" />
           <AlertTitle className="text-green-700">حساب فعال</AlertTitle>
           <AlertDescription className="text-green-600">
@@ -496,54 +506,91 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
   }
 
   return (
-    <div className="space-y-6 px-4 lg:px-6">
-      <div className="space-y-2">
+    <div className="space-y-8 px-4 lg:px-6">
+      <div className="mb-10">
         <h1 className="text-2xl font-bold tracking-tight">حساب کاربری</h1>
-        <p className="text-muted-foreground">
-          لطفاً اطلاعات خود را به طور کامل وارد نمایید
-        </p>
       </div>
 
       {renderStatusAlert()}
 
       <div className="bg-[#F6F6F6] rounded-2xl p-4 md:p-8 lg:p-12">
-        <Stepper steps={steps} currentStep={currentStep} lastStepVariant="large" />
-        
-        <div className="mt-6 mb-4">
-          <h2 className="text-xl font-bold">{steps[currentStep]}</h2>
-          <p className="text-muted-foreground mt-1">
-            {currentStep === 0 && "لطفاً اطلاعات و مدارک خواسته شده را با دقت وارد و بارگذاری نمایید"}
-            {currentStep === 1 && "اطلاعات وارد شده را بررسی و تأیید نمایید"}
-            {currentStep === 2 && taskStatus === 'REJECTED' && "اطلاعات نیاز به اصلاح دارد"}
-            {currentStep === 2 && (taskStatus === 'PENDING' || taskStatus === 'IN_PROGRESS') && "اطلاعات شما در حال بررسی توسط کارشناسان است"}
-            {currentStep === 3 && "حساب کاربری شما فعال شد"}
-          </p>
+        <Stepper className="max-w-4xl mx-auto" steps={steps} currentStep={currentStep} lastStepVariant="large" />
+
+        <div className="mt-12 mb-8">
+          <h2 className="text-xl font-bold">مرحله اول: تکمیل اطلاعات</h2>
         </div>
 
         <div className="pt-6">
           {currentStep === 0 && (
-            <InformationStep
-              formData={formData}
-              onFormDataChange={handleFormDataChange}
-              uploadedFiles={uploadedFiles}
-              uploadProgress={uploadProgress}
-              onFileChange={handleFileChange}
-              onFileDelete={handleFileDelete}
-              onNext={handleNext}
-              onSaveDraft={handleSaveDraft}
-              isEditable={isEditable}
-              isSaving={isSaving}
-            />
+            <>
+              <CardContent className="p-0">
+
+                <InformationStep
+                  formData={formData}
+                  onFormDataChange={handleFormDataChange}
+                  uploadedFiles={uploadedFiles}
+                  uploadProgress={uploadProgress}
+                  onFileChange={handleFileChange}
+                  onFileDelete={handleFileDelete}
+                  onNext={handleNext}
+                  onSaveDraft={handleSaveDraft}
+                  isEditable={isEditable}
+                  isSaving={isSaving}
+                />
+
+
+                <div className="mt-12 mb-8">
+                  <h2 className="text-xl font-bold">مرحله دوم: آپلود اسناد و مدارک</h2>
+                </div>
+
+                <DocumentsSection
+                  uploadedFiles={uploadedFiles}
+                  uploadProgress={uploadProgress}
+                  onFileChange={handleFileChange}
+                  onFileDelete={handleFileDelete}
+                  isEditable={isEditable}
+                />
+              </CardContent>
+              <CardFooter className="flex justify-between mt-6 p-0">
+                <Button
+                  variant="outline"
+                  onClick={handleSaveDraft}
+                  disabled={!isEditable || isSaving}
+                  className="bg-transparent font-semibold"
+                >
+                  {isSaving ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
+                </Button>
+                <Button onClick={handleNext} disabled={!isEditable}>
+                  مرحله بعد
+                </Button>
+              </CardFooter>
+            </>
           )}
 
           {currentStep === 2 && (
-            <ConfirmationStep
-              formData={formData}
-              uploadedFiles={uploadedFiles}
-              onPrevious={handlePrevious}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-            />
+            <>
+              <ConfirmationStep
+                formData={formData}
+                uploadedFiles={uploadedFiles}
+                uploadedFileIds={uploadedFileIds}
+                onPrevious={handlePrevious}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+              />
+              <CardFooter className="flex justify-between mt-6 p-0">
+                <Button
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={isSubmitting}
+                  className="bg-transparent font-semibold"
+                >
+                  مرحله قبل
+                </Button>
+                <Button onClick={handleSubmit} disabled={isSubmitting}>
+                  {isSubmitting ? "در حال ارسال..." : "تأیید و ارسال"}
+                </Button>
+              </CardFooter>
+            </>
           )}
 
           {currentStep === 3 && taskStatus === 'REJECTED' && (
@@ -553,18 +600,26 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
             />
           )}
 
-          {currentStep === 3 && (taskStatus === 'PENDING' || taskStatus === 'IN_PROGRESS' || taskStatus === null) && (
+          {currentStep === 3 && taskStatus !== 'REJECTED' && (
             <ConfirmationStep
               formData={formData}
               uploadedFiles={uploadedFiles}
+              uploadedFileIds={uploadedFileIds}
               onPrevious={handlePrevious}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
             />
           )}
 
-          {currentStep === 4 && taskStatus === 'COMPLETED' && (
-            <CompletedStep />
+          {currentStep >= 4 && taskStatus === 'COMPLETED' && (
+            <ConfirmationStep
+              formData={formData}
+              uploadedFiles={uploadedFiles}
+              uploadedFileIds={uploadedFileIds}
+              onPrevious={handlePrevious}
+              onSubmit={handleSubmit}
+              isSubmitting={true}
+            />
           )}
         </div>
       </div>
@@ -590,8 +645,8 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              onClick={() => setShowSuccessDialog(false)} 
+            <Button
+              onClick={() => setShowSuccessDialog(false)}
               className="w-full bg-primary hover:bg-primary/90"
             >
               متوجه شدم

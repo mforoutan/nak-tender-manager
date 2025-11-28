@@ -4,6 +4,7 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { FileUpload } from "@/components/ui/file-upload";
 import { FileText } from "lucide-react";
+import { Card, CardContent } from "../ui/card";
 
 interface DocumentsSectionProps {
     uploadedFiles: { [key: string]: File | null };
@@ -14,10 +15,9 @@ interface DocumentsSectionProps {
 }
 
 const requiredDocuments = [
-    { id: "registration", name: "اساسنامه شرکت", description: "آخرین نسخه اساسنامه شرکت" },
-    { id: "newspaper", name: "روزنامه رسمی", description: "آخرین آگهی تغییرات در روزنامه رسمی" },
-    { id: "tax", name: "گواهی مالیاتی", description: "آخرین گواهی مالیات بر ارزش افزوده" },
-    { id: "certificate", name: "گواهینامه صلاحیت", description: "گواهینامه تأیید صلاحیت از مراجع ذیصلاح" },
+    { id: "registration", name: "اساسنامه شرکت", description: "اسناد و مستندات پروژه را در این قسمت بارگذاری کنید." },
+    { id: "newspaper", name: "روزنامه رسمی", description: "اسناد و مستندات پروژه را در این قسمت بارگذاری کنید." },
+    { id: "changes", name: "آگهی تغییرات", description: "اسناد و مستندات پروژه را در این قسمت بارگذاری کنید." },
 ];
 
 export function DocumentsSection({
@@ -28,26 +28,15 @@ export function DocumentsSection({
     isEditable = true,
 }: DocumentsSectionProps) {
     return (
-        <AccordionItem value="section-6" className="border rounded-md bg-white p-4 mt-3">
-            <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline cursor-pointer">
-                <div className="flex items-center gap-2">
-                    <div className="p-2 bg-[#F6F6F6] rounded-full">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold">بارگذاری مدارک</h3>
-                </div>
-            </AccordionTrigger>
-            <AccordionContent className="px-4 py-3">
+        <Card className="border rounded-md bg-white p-4 mt-3">
+            <CardContent className="px-4 py-3">
                 <FieldGroup className="gap-y-6">
                     {requiredDocuments.map((doc) => (
-                        <Field key={doc.id} className="gap-2">
+                        <Field key={doc.id} className="gap-1">
                             <FieldLabel className="font-medium text-sm text-muted-foreground">
                                 <span className="text-red-500">*</span>
                                 {doc.name}
                             </FieldLabel>
-                            <FieldDescription className="text-xs text-muted-foreground">
-                                {doc.description}
-                            </FieldDescription>
                             
                             <FileUpload
                                 id={doc.id}
@@ -57,11 +46,13 @@ export function DocumentsSection({
                                 accept=".pdf,.jpg,.jpeg,.png"
                                 file={uploadedFiles[doc.id]}
                                 uploadProgress={uploadProgress[doc.id]}
+                                name={doc.name}
+                                description={doc.description}
                             />
                         </Field>
                     ))}
                 </FieldGroup>
-            </AccordionContent>
-        </AccordionItem>
+            </CardContent>
+        </Card>
     );
 }

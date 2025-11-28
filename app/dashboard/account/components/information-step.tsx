@@ -42,42 +42,19 @@ export function InformationStep({
 
     return (
         <>
-            <CardContent className="p-0">
-                <Accordion
-                    type="multiple"
-                    value={openSections}
-                    onValueChange={handleAccordionChange}
-                    className="w-full"
-                >
-                    <CompanyInfoForm
-                        ref={formRef}
-                        formData={formData}
-                        onFormDataChange={onFormDataChange}
-                        isEditable={isEditable}
-                    />
-                    
-                    <DocumentsSection
-                        uploadedFiles={uploadedFiles}
-                        uploadProgress={uploadProgress}
-                        onFileChange={onFileChange}
-                        onFileDelete={onFileDelete}
-                        isEditable={isEditable}
-                    />
-                </Accordion>
-            </CardContent>
-            <CardFooter className="flex justify-between mt-6 p-0">
-                <Button
-                    variant="outline"
-                    onClick={onSaveDraft}
-                    disabled={!isEditable || isSaving}
-                    className="bg-transparent font-semibold"
-                >
-                    {isSaving ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
-                </Button>
-                <Button onClick={onNext} disabled={!isEditable}>
-                    مرحله بعد
-                </Button>
-            </CardFooter>
+            <Accordion
+                type="multiple"
+                value={openSections}
+                onValueChange={handleAccordionChange}
+                className="w-full"
+            >
+                <CompanyInfoForm
+                    ref={formRef}
+                    formData={formData}
+                    onFormDataChange={onFormDataChange}
+                    isEditable={isEditable}
+                />
+            </Accordion>
         </>
     );
 }
