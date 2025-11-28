@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         pp.SUBMISSION_END_DATE as end_date,
         tp.ID as transaction_process_id,
         tpt.NAME as process_type,
-        prc.NAME as request_category
+        prc.CATEGORY_NAME as request_category
       FROM PROCESS_WINNERS pw
       INNER JOIN PUBLISHED_PROCESSES pp 
         ON pw.PUBLISHED_PROCESSES_ID = pp.ID

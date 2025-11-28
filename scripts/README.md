@@ -116,6 +116,25 @@ Major banks such as:
 
 ---
 
+### 5. insert-company-statuses.sql
+Populates the `COMPANY_STATUSES` table with contractor/company workflow statuses.
+
+**Schema:** `ID, STATUS_NAME (100), STATUS_DESCRIPTION (500), CONDITIONS (1000)`
+
+**Statuses Included:**
+1. **در انتظار تایید** (Pending Approval) - New registration awaiting admin review
+2. **تایید شده** (Approved) - Approved and can participate in tenders
+3. **رد شده** (Rejected) - Rejected, needs correction and re-registration
+4. **معلق** (Suspended) - Temporarily suspended from new tenders
+5. **غیرفعال** (Inactive) - Deactivated, cannot operate in system
+6. **در حال بررسی مدارک** (Under Document Review) - Documents being reviewed by experts
+
+**Total Records:** 6 statuses
+
+**Default Status:** New contractors are assigned status `1` (در انتظار تایید) during signup
+
+---
+
 ## Usage
 
 ### Running the Scripts
@@ -134,6 +153,9 @@ Execute these scripts in your Oracle database in the following order:
 
 -- 4. Contractor Activities (no dependencies)
 @insert-contractor-activities.sql
+
+-- 5. Company Statuses (no dependencies)
+@insert-company-statuses.sql
 ```
 
 Or using SQLcl:
@@ -143,6 +165,7 @@ sql username/password@database
 @scripts/insert-contractor-types.sql
 @scripts/insert-contractor-categories.sql
 @scripts/insert-contractor-activities.sql
+@scripts/insert-company-statuses.sql
 ```
 
 ---
