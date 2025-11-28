@@ -90,8 +90,8 @@ const getNavData = (participation: { tenderCount: number; inquiryCount: number; 
         icon: "lightbulb" as IconName,
       },
       {
-        title: "پشتیبانی",
-        url: "/dashboard/support",
+        title: "تماس با ما",
+        url: "/dashboard/contact",
         icon: "headset" as IconName,
       },
       {
