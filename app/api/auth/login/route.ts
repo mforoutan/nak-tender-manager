@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       { contractorId: loginData.contractorId }
     );
 
-    const accountTask = taskResult.rows && taskResult.rows.length > 0
+    const accountVerificationTask = taskResult.rows && taskResult.rows.length > 0
       ? {
           hasTask: true,
           status: taskResult.rows[0].STATUS as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED',
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
       companyName: contractor.companyName,
       companyStatus: (contractor as any).STATUS || 1,
       processParticipation,
-      accountTask,
+      accountVerificationTask,
     };
 
     const token = await createSession(sessionUser);

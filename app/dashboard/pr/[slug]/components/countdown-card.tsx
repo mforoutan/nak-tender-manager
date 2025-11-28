@@ -1,9 +1,8 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { CircleAlertIcon, HourglassIcon } from "lucide-react";
 import { Countdown } from "./countdown";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Link from "next/link";
+import { ParticipateButton } from "./participate-button";
 
 export function CountdownCard({ targetDate, slug }: { targetDate: Date | string; slug: string }) {
     return (
@@ -18,11 +17,7 @@ export function CountdownCard({ targetDate, slug }: { targetDate: Date | string;
                 <Countdown targetDate={targetDate} />
             </CardContent>
             <CardFooter className="flex flex-col gap-12 items-center">
-                <Button className="bg-white text-black hover:bg-white/90">
-                    <Link href={`/dashboard/pr/${slug}/participate`}>
-                        شرکت در معامله
-                    </Link>
-                </Button>
+                <ParticipateButton slug={slug} />
                 <Alert className="border-0 bg-white/20 text-white text-sm font-bold">
                     <CircleAlertIcon style={{ width: 20, height: 20 }} />
                     <AlertDescription className="text-white">

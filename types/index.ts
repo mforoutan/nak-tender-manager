@@ -30,7 +30,7 @@ export interface SessionUser {
         inquiryCount: number; // استعلام (ID: 4)
         callCount: number; // فراخوان (ID: 3)
     };
-    accountTask?: {
+    accountVerificationTask?: {
         hasTask: boolean;
         status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED' | null;
         rejectionReason?: string;

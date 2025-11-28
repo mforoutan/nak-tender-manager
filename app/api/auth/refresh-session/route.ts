@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // Refresh account task status if requested or missing
-    if (refreshFields?.includes('accountTask') || !session.accountTask) {
+    // Refresh account verification task status if requested or missing
+    if (refreshFields?.includes('accountVerificationTask') || !session.accountVerificationTask) {
       const taskResult = await connection.execute<any>(
         `SELECT 
           ID,
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         { contractorId }
       );
 
-      updatedSession.accountTask = taskResult.rows && taskResult.rows.length > 0
+      updatedSession.accountVerificationTask = taskResult.rows && taskResult.rows.length > 0
         ? {
             hasTask: true,
             status: taskResult.rows[0].STATUS as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED',

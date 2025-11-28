@@ -88,7 +88,7 @@ export function useSession(options: UseSessionOptions = {}) {
     fetchSession,
     refreshSession,
     // Convenience getters
-    accountTask: user?.accountTask,
+    accountVerificationTask: user?.accountVerificationTask,
     processParticipation: user?.processParticipation,
     contractorId: user?.contractorId,
   };

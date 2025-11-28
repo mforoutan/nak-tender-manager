@@ -42,7 +42,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
   const [uploadedFileIds, setUploadedFileIds] = useState<{ [key: string]: number }>({})
 
-  const { accountTask, refreshSession } = useSession()
+  const { accountVerificationTask, refreshSession } = useSession()
 
   const [formData, setFormData] = useState<ContractorFormData>({
     companyName: "",
@@ -90,26 +90,26 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
   // Set task status and step from session (only on initial load)
   useEffect(() => {
-    if (accountTask && !stepInitialized) {
-      if (accountTask.hasTask) {
-        setTaskStatus(accountTask.status);
-        setRejectionReason(accountTask.rejectionReason || '');
+    if (accountVerificationTask && !stepInitialized) {
+      if (accountVerificationTask.hasTask) {
+        setTaskStatus(accountVerificationTask.status);
+        setRejectionReason(accountVerificationTask.rejectionReason || '');
         
         // Set initial step based on status
-        if (accountTask.status === 'PENDING' || accountTask.status === 'IN_PROGRESS') {
+        if (accountVerificationTask.status === 'PENDING' || accountVerificationTask.status === 'IN_PROGRESS') {
           setIsEditable(false);
           setCurrentStep(3);
-        } else if (accountTask.status === 'COMPLETED') {
+        } else if (accountVerificationTask.status === 'COMPLETED') {
           setIsEditable(false);
           setCurrentStep(5);
-        } else if (accountTask.status === 'REJECTED') {
+        } else if (accountVerificationTask.status === 'REJECTED') {
           setIsEditable(true);
           setCurrentStep(2);
         }
         setStepInitialized(true);
       }
     }
-  }, [accountTask, stepInitialized]);
+  }, [accountVerificationTask, stepInitialized]);
 
   // Load initial data or fetch contractor data
   useEffect(() => {
@@ -219,7 +219,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       }
 
       // Check for tasks and set status (only if not already set from session)
-      if (data.tasks && data.tasks.length > 0 && !accountTask) {
+      if (data.tasks && data.tasks.length > 0 && !accountVerificationTask) {
         const latestTask = data.tasks[0]
         const status = latestTask.STATUS
 
@@ -452,7 +452,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
       if (response.ok) {
         // Refresh session to get updated task status
-        await refreshSession(['accountTask']);
+        await refreshSession(['accountVerificationTask']);
         
         setShowSuccessDialog(true)
         setIsEditable(false)

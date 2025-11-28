@@ -27,26 +27,26 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
-  const { accountTask } = useSession()
+  const { accountVerificationTask } = useSession()
 
   const getAccountBadge = () => {
-    if (!accountTask) return null;
+    if (!accountVerificationTask) return null;
 
-    if (accountTask.status === 'COMPLETED') {
+    if (accountVerificationTask.status === 'COMPLETED') {
       return {
         text: 'فعال',
         className: 'text-[#34C759] bg-[#34C759]/20'
       };
     }
 
-    if (!accountTask.hasTask || accountTask.status === 'REJECTED') {
+    if (!accountVerificationTask.hasTask || accountVerificationTask.status === 'REJECTED') {
       return {
         text: 'غیرفعال',
         className: 'text-destructive bg-destructive/15'
       };
     }
 
-    if (accountTask.status === 'PENDING' || accountTask.status === 'IN_PROGRESS') {
+    if (accountVerificationTask.status === 'PENDING' || accountVerificationTask.status === 'IN_PROGRESS') {
       return {
         text: 'در انتظار تایید',
         className: 'text-[#7E7E7E] bg-[#7E7E7E]/10'
