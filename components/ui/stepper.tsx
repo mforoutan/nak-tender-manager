@@ -25,7 +25,7 @@ export function Stepper({ steps, currentStep, showLabelMobile = true, className,
 
           return (
             <React.Fragment key={index}>
-              <div className="flex flex-col items-center flex-1">
+              <div className="relative pb-6 flex flex-col items-center flex-1">
                 <div
                   className={cn(
                     "flex items-center justify-center rounded-full shadow-md transition-colors",
@@ -66,7 +66,7 @@ export function Stepper({ steps, currentStep, showLabelMobile = true, className,
                 {showLabelMobile && !isLargeVariant && (
                   <p
                     className={cn(
-                      "hidden lg:block mt-2 font-bold text-xs text-center text-nowrap transition-colors",
+                      "absolute bottom-0 hidden lg:block font-bold text-xs text-center text-nowrap transition-colors",
                       isCompleted ? "text-green-500" : isCurrent ? "text-black" : "text-muted-foreground"
                     )}
                   >
