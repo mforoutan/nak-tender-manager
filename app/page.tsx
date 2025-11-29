@@ -1,11 +1,11 @@
 import { MainHeader } from "@/components/main-header";
-import { DataTable } from "@/components/data-table";
+import { DataTable, DataTableServer, DataTableSkeleton } from "@/components/data-table";
 import type { TenderListItem } from "@/types"
 
-import data from "@/app/dashboard/data.json"
 import { NewsEvents } from "@/components/dashboard/news-events";
 import { MainFooter } from "@/components/main-footer";
 import { MainHero } from "@/components/main-hero";
+import { Suspense } from "react";
 
 
 export const metadata = {
@@ -22,7 +22,33 @@ export default function Home() {
         <div className="space-y-10">
           <div className="space-y-12">
             <h3 className="font-medium text-lg px-4 lg:px-6">معاملات موجود</h3>
-            <DataTable data={data as TenderListItem[]} showStatusFilter={false} showStatus={false} itemsPerPage={4} />
+            <Suspense 
+                    fallback={
+                      <DataTableSkeleton 
+                        itemsPerPage={4} 
+                        tabs={[
+                          { value: "all", label: "همه" },
+                          { value: "tender", label: "مناقصه", typeFilter: "مناقصه عمومی" },
+                          { value: "inquiry", label: "استعلام", typeFilter: "استعلام" },
+                          { value: "call", label: "فراخوان", typeFilter: "فراخوان" },
+                        ]}
+                        showStatusFilter={true}
+                      />
+                    }
+                  >
+                    <DataTableServer
+                      tabs={[
+                        { value: "all", label: "همه" },
+                        { value: "tender", label: "مناقصه", typeFilter: "مناقصه عمومی" },
+                        { value: "inquiry", label: "استعلام", typeFilter: "استعلام" },
+                        { value: "call", label: "فراخوان", typeFilter: "فراخوان" },
+                      ]}
+                      itemsPerPage={4}
+                      showStatus={false}
+                      showStatusFilter={true}
+                      apiEndpoint="/api/transaction-process/published"
+                    />
+                  </Suspense>
           </div>
           <NewsEvents />
         </div>

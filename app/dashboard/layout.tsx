@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { AlertProvider } from "@/contexts/alert-context"
 import { AlertContainer } from "@/components/alert-container"
+import { CompanyStatusAlerts } from "@/components/dashboard/company-status-alerts"
 
 export default function DashboardLayout({ children }: React.PropsWithChildren<{}>) {
   const router = useRouter();
@@ -70,15 +71,11 @@ export default function DashboardLayout({ children }: React.PropsWithChildren<{}
         <AppSidebar variant="inset" className="bg-[#131A22] py-18" />
         <SidebarInset className="bg-[url(/bg.svg)] bg-no-repeat bg-bottom">
           <SiteHeader />
+          {/* <CompanyStatusAlerts companyStatus={companyStatus} /> */}
           <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">
               <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                {React.Children.map(children, child => {
-                  if (React.isValidElement(child)) {
-                    return React.cloneElement(child, { companyStatus } as any);
-                  }
-                  return child;
-                })}
+                {children}
               </div>
             </div>
           </div>
