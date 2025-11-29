@@ -3,7 +3,7 @@
 import * as React from "react"
 import { AwardIcon, MilestoneIcon, Calendar1Icon, Search, SearchCheckIcon, GavelIcon, StickerIcon, Clock, MegaphoneIcon, FileX2 } from "lucide-react"
 
-import { toPersianNumbers } from "@/lib/utils"
+import { toPersianNumbers, toPersianDate } from "@/lib/utils"
 import type { TenderListItem } from "@/types"
 import type { TabConfig } from "./types"
 
@@ -46,16 +46,6 @@ import { PersianDatePicker } from "@/components/ui/persian-date-picker"
 
 // Re-export TabConfig for convenience
 export type { TabConfig } from "./types"
-
-// Helper function to convert Gregorian date to Persian calendar
-function toPersianDate(dateString: string): string {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fa-IR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(date)
-}
 
 function CardIcon({ type, status }: { type: string, status: string }) {
   if (type.includes("قرارداد")) {

@@ -33,3 +33,12 @@ export function formatDate(dateStr: string): string {
   const formatted = formatter.format(date);
   return formatted.replace(/،\s*([^،]+)$/, " ساعت $1");
 }
+
+export function toPersianDate(dateString: string): string {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fa-IR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date)
+}
