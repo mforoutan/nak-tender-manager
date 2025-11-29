@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { serializeRows } from '@/types';
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -73,28 +74,6 @@ export async function GET(request: NextRequest) {
         [contractorId]
       )
     ]);
-
-    // Serialize function
-    const serializeRows = (rows: any[] | undefined) => {
-      if (!rows || rows.length === 0) return [];
-      
-      return rows.map(row => {
-        const cleanRow: any = {};
-        for (const key in row) {
-          if (Object.prototype.hasOwnProperty.call(row, key)) {
-            const value = row[key];
-            if (value === null || value === undefined) {
-              cleanRow[key] = null;
-            } else if (value instanceof Date) {
-              cleanRow[key] = value.toISOString();
-            } else {
-              cleanRow[key] = value;
-            }
-          }
-        }
-        return cleanRow;
-      });
-    };
 
     return NextResponse.json({
       success: true,

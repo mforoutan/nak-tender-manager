@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         { mobile }
       );
 
-      const count = (result.rows?.[0] as any)?.COUNT || 0;
+      const count = (result.rows?.[0] as { COUNT: number })?.COUNT || 0;
       
       if (count > 0) {
         return NextResponse.json(

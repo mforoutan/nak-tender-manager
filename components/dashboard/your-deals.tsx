@@ -1,8 +1,8 @@
 import { Empty, EmptyTitle } from "../ui/empty";
-import { DataTableServer, DataTableSkeleton } from "../data-table";
+import { DataTableServer, DataTableSkeleton, type DataTableServerProps } from "../data-table";
 import { Suspense } from "react";
 
-function YourDeals(params: any) {
+function YourDeals(params: DataTableServerProps) {
 
     return (
         <div className="space-y-6">
@@ -20,7 +20,7 @@ function YourDeals(params: any) {
                 }
             >
                 <DataTableServer
-                    searchParams={params}
+                    searchParams={params['searchParams']}
                     tabs={[]}
                     itemsPerPage={1}
                     showStatus={false}

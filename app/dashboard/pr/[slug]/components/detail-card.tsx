@@ -44,7 +44,7 @@ export function DetailCard(detail:
             <CardFooter className="p-4 bg-[#F6F6F6] rounded-md text-blue-500 flex flex-col items-start gap-y-6">
                 <span className="font-bold text-base">تاریخ‌های مهم</span>
                 <ul>
-                    {detail.importantDates.map((date: any, index: number) => (
+                    {detail.importantDates.map((date: { label: string, value: string }, index: number) => (
                         <li key={index} className="flex items-center gap-x-3 px-3">
                             <CalendarDaysIcon />
                             <div className="flex flex-col lg:flex-row gap-x-2 items-start lg:items-center">

@@ -13,7 +13,7 @@ import { PersianDatePicker } from "@/components/ui/persian-date-picker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 
-interface Project {
+export interface Project {
     id?: number
     PROJECT_TITLE: string
     CLIENT_NAME: string

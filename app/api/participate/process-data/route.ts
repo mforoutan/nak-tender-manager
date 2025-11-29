@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+import { getSession } from '@/lib/auth';
+import type { DatabaseRow } from '@/types';
 
 /**
  * GET /api/participate/process-data
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
     `;
     const documentsResult = await query(documentsSql, [process.PROCESS_TYPE_ID]);
 
-    const mappedDocuments = documentsResult.map((doc: any) => ({
+    const mappedDocuments = documentsResult.map((doc: DatabaseRow) => ({
       id: doc.ID,
       docName: doc.DOC_NAME,
       submissionType: doc.SUBMISSION_TYPE,

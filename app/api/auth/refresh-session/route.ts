@@ -58,7 +58,11 @@ export async function POST(request: NextRequest) {
 
     // Refresh account verification task status if requested or missing
     if (refreshFields?.includes('accountVerificationTask') || !session.accountVerificationTask) {
-      const taskResult = await connection.execute<any>(
+      const taskResult = await connection.execute<{
+        ID: number;
+        STATUS: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
+        rejectionReason: string | null;
+      }>(
         `SELECT 
           ID,
           STATUS,

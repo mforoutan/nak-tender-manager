@@ -9,7 +9,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { SiteHeader } from "@/components/dashboard/site-header"
 import { AlertContainer } from "@/components/alert-container"
 
-function DashboardContent({ children }: React.PropsWithChildren<{}>) {
+function DashboardContent({ children }: React.PropsWithChildren) {
 
   return (
     <SidebarProvider
@@ -48,7 +48,7 @@ function DashboardContent({ children }: React.PropsWithChildren<{}>) {
   );
 }
 
-export default function DashboardLayout({ children }: React.PropsWithChildren<{}>) {
+export default function DashboardLayout({ children }: React.PropsWithChildren) {
   return (
     <AlertProvider>
       <SessionProvider>

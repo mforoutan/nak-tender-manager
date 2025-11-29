@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import type { TenderListItem } from "@/types";
+import type { TenderListItem, DatabaseRow } from "@/types";
 
 export async function GET(request: NextRequest) {
     try {
@@ -23,10 +23,10 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '10');
         const offset = (page - 1) * limit;
 
-        let whereConditions = [
+        const whereConditions = [
             "PS.CONTRACTOR_ID = :contractorId1"
         ];
-        let params: any[] = [session.contractorId];
+        const params: (string | number)[] = [session.contractorId];
         let paramIndex = 2;
 
         // Search filter
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
         `;
 
         const countResult = await query(countSql, params);
-        const total = countResult[0]?.TOTAL || 0;
+        const total = (countResult[0] as DatabaseRow)?.TOTAL as number || 0;
 
         // Data query
         const dataSql = `
@@ -106,8 +106,8 @@ export async function GET(request: NextRequest) {
 
         const results = await query(dataSql, params);
 
-        const data: TenderListItem[] = results.map((row: any) => {
-            const endDate = row.SUBMISSION_END_DATE ? new Date(row.SUBMISSION_END_DATE) : null;
+        const data: TenderListItem[] = (results as DatabaseRow[]).map((row: DatabaseRow) => {
+            const endDate = row.SUBMISSION_END_DATE ? new Date(row.SUBMISSION_END_DATE as string | Date) : null;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
@@ -127,13 +127,13 @@ export async function GET(request: NextRequest) {
             }
 
             return {
-                id: row.ID,
-                title: row.TITLE || 'بدون عنوان',
-                type: row.TYPE_NAME || 'نامشخص',
+                id: row.ID as number,
+                title: (row.TITLE as string) || 'بدون عنوان',
+                type: (row.TYPE_NAME as string) || 'نامشخص',
                 status: itemStatus,
                 endDate: endDate ? endDate.toISOString().split('T')[0] : '',
-                category: row.CATEGORY_NAME || 'عمومی',
-                code: row.PUBLICATION_NUMBER || '',
+                category: (row.CATEGORY_NAME as string) || 'عمومی',
+                code: (row.PUBLICATION_NUMBER as string) || '',
             };
         });
 

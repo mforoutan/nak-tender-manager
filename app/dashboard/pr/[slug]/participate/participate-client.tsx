@@ -16,6 +16,23 @@ import {
 } from "./components"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 
+interface Guarantor {
+    id: string
+    guaranteeType: string
+    number: string
+    serial: string
+    count: string
+    issueDate: string
+    endDate: string
+    amount: string
+}
+
+interface DocumentData {
+    file?: File | null
+    guarantors?: Guarantor[]
+    [key: string]: unknown
+}
+
 interface ParticipateClientProps {
     processId: string
     processType: string
@@ -44,7 +61,7 @@ export default function ParticipateClient({
     const [isSaving, setIsSaving] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
     const [showSuccessDialog, setShowSuccessDialog] = useState(false)
-    const [documentData, setDocumentData] = useState<{ [key: string]: any }>({})
+    const [documentData, setDocumentData] = useState<Record<string, DocumentData>>({})
     const [isEditable, setIsEditable] = useState(true)
 
     // Static steps: 2 initial + 3 packet steps + 2 final
@@ -64,7 +81,7 @@ export default function ParticipateClient({
         toast.success("خرید اسناد با موفقیت انجام شد")
     }
 
-    const handleDocumentChange = (docId: string, data: any) => {
+    const handleDocumentChange = (docId: string, data: DocumentData) => {
         if (!isEditable) {
             toast.error("امکان ویرایش اطلاعات وجود ندارد")
             return
@@ -197,7 +214,7 @@ export default function ParticipateClient({
                                     stepNumber={2 + index} // Steps 2, 3, 4 (پاکت الف، ب، ج)
                                     document={doc}
                                     data={documentData[doc.id.toString()]}
-                                    onChange={(data: any) => handleDocumentChange(doc.id.toString(), data)}
+                                    onChange={(data: DocumentData) => handleDocumentChange(doc.id.toString(), data)}
                                     disabled={!isPurchased || isSubmitted}
                                 />
                             ))}

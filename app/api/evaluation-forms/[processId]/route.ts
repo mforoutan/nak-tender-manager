@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import type { DatabaseRow } from "@/types";
+import type { 
+  EvaluationTemplate, 
+  EvaluationCriterion 
+} from "@/app/dashboard/pr/[slug]/participate/evaluation-forms/page";
 
 /**
  * GET /api/evaluation-forms/[processId]
@@ -95,8 +100,8 @@ export async function GET(
       );
     }
 
-    const process = processResult[0];
-    const transactionProcessId = process.ID;
+    const process = processResult[0] as DatabaseRow;
+    const transactionProcessId = process.ID as number;
 
     // Check if contractor has purchased documents (authorization check)
     const purchaseCheckSql = `
@@ -112,7 +117,7 @@ export async function GET(
       publicationNumber,
     ]);
 
-    const hasPurchased = purchaseResult[0]?.PURCHASE_COUNT > 0;
+    const hasPurchased = (purchaseResult[0] as DatabaseRow)?.PURCHASE_COUNT as number > 0;
 
     if (!hasPurchased) {
       return NextResponse.json(
@@ -234,49 +239,49 @@ export async function GET(
     ]);
 
     // Group criteria by template and attach responses
-    const templatesWithCriteria = templatesData.map((template: any) => {
-      const templateCriteria = allCriteria
-        .filter((c: any) => c.TEMPLATE_ID === template.ID)
-        .map((criterion: any) => {
+    const templatesWithCriteria = (templatesData as DatabaseRow[]).map((template: DatabaseRow) => {
+      const templateCriteria = (allCriteria as DatabaseRow[])
+        .filter((c: DatabaseRow) => c.TEMPLATE_ID === template.ID)
+        .map((criterion: DatabaseRow) => {
           // Find existing response for this criterion
-          const existingResponse = responses.find(
-            (r: any) => r.EVALUATION_CRITERIA_ID === criterion.ID
+          const existingResponse = (responses as DatabaseRow[]).find(
+            (r: DatabaseRow) => r.EVALUATION_CRITERIA_ID === criterion.ID
           );
 
           return {
-            id: criterion.ID,
-            criteriaCode: criterion.CRITERIA_CODE,
-            criteriaTitle: criterion.CRITERIA_TITLE,
-            criteriaDescription: criterion.CRITERIA_DESCRIPTION,
-            displayOrder: criterion.DISPLAY_ORDER,
-            indentLevel: criterion.INDENT_LEVEL || 0,
-            inputType: criterion.INPUT_TYPE,
-            isRequired: criterion.IS_REQUIRED === 1,
+            id: criterion.ID as number,
+            criteriaCode: criterion.CRITERIA_CODE as string,
+            criteriaTitle: criterion.CRITERIA_TITLE as string,
+            criteriaDescription: criterion.CRITERIA_DESCRIPTION as string,
+            displayOrder: criterion.DISPLAY_ORDER as number,
+            indentLevel: (criterion.INDENT_LEVEL as number) || 0,
+            inputType: criterion.INPUT_TYPE as string,
+            isRequired: (criterion.IS_REQUIRED as number) === 1,
             validationRules: criterion.VALIDATION_RULES
-              ? JSON.parse(criterion.VALIDATION_RULES)
+              ? JSON.parse(criterion.VALIDATION_RULES as string)
               : null,
             predefinedOptions: criterion.PREDEFINED_OPTIONS
-              ? JSON.parse(criterion.PREDEFINED_OPTIONS)
+              ? JSON.parse(criterion.PREDEFINED_OPTIONS as string)
               : null,
-            allowCustomInput: criterion.ALLOW_CUSTOM_INPUT === 1,
-            helpText: criterion.HELP_TEXT,
-            evaluationGuide: criterion.EVALUATION_GUIDE,
+            allowCustomInput: (criterion.ALLOW_CUSTOM_INPUT as number) === 1,
+            helpText: criterion.HELP_TEXT as string,
+            evaluationGuide: criterion.EVALUATION_GUIDE as string,
             // Existing response data
             response: existingResponse
               ? {
-                  id: existingResponse.ID,
-                  value: existingResponse.RESPONSE_VALUE,
-                  text: existingResponse.RESPONSE_TEXT,
-                  score: existingResponse.RESPONSE_SCORE,
-                  fileId: existingResponse.RESPONSE_FILE_ID,
-                  folderId: existingResponse.RESPONSE_FOLDER_ID,
-                  date: existingResponse.RESPONSE_DATE,
-                  status: existingResponse.STATUS,
+                  id: existingResponse.ID as number,
+                  value: existingResponse.RESPONSE_VALUE as string | number,
+                  text: existingResponse.RESPONSE_TEXT as string,
+                  score: existingResponse.RESPONSE_SCORE as number,
+                  fileId: existingResponse.RESPONSE_FILE_ID as number,
+                  folderId: existingResponse.RESPONSE_FOLDER_ID as number,
+                  date: existingResponse.RESPONSE_DATE as Date,
+                  status: existingResponse.STATUS as string,
                   file: existingResponse.FILE_NAME
                     ? {
-                        name: existingResponse.ORIGINAL_NAME,
-                        size: existingResponse.FILE_SIZE,
-                        type: existingResponse.MIME_TYPE,
+                        name: existingResponse.ORIGINAL_NAME as string,
+                        size: existingResponse.FILE_SIZE as number,
+                        type: existingResponse.MIME_TYPE as string,
                       }
                     : null,
                 }
@@ -285,21 +290,21 @@ export async function GET(
         });
 
       return {
-        id: template.ID,
-        templateCode: template.TEMPLATE_CODE,
-        templateName: template.TEMPLATE_NAME,
-        templateDescription: template.TEMPLATE_DESCRIPTION,
-        evaluationType: template.EVALUATION_TYPE_NAME,
-        evaluationTypeCode: template.EVALUATION_TYPE_CODE,
-        totalMaxScore: template.TOTAL_MAX_SCORE,
-        displayOrder: template.DISPLAY_ORDER,
-        guidelines: template.EVALUATION_GUIDELINES,
-        instructions: template.COMPLETION_INSTRUCTIONS,
-        processEvaluationId: template.PROCESS_EVALUATION_ID,
-        evaluationStatus: template.EVALUATION_STATUS,
-        dueDate: template.DUE_DATE,
-        minimumRequiredScore: template.MINIMUM_REQUIRED_SCORE,
-        isMandatory: template.IS_MANDATORY === 1,
+        id: template.ID as number,
+        templateCode: template.TEMPLATE_CODE as string,
+        templateName: template.TEMPLATE_NAME as string,
+        templateDescription: template.TEMPLATE_DESCRIPTION as string,
+        evaluationType: template.EVALUATION_TYPE_NAME as string,
+        evaluationTypeCode: template.EVALUATION_TYPE_CODE as string,
+        totalMaxScore: template.TOTAL_MAX_SCORE as number,
+        displayOrder: template.DISPLAY_ORDER as number,
+        guidelines: template.EVALUATION_GUIDELINES as string,
+        instructions: template.COMPLETION_INSTRUCTIONS as string,
+        processEvaluationId: template.PROCESS_EVALUATION_ID as number,
+        evaluationStatus: template.EVALUATION_STATUS as string,
+        dueDate: template.DUE_DATE as Date,
+        minimumRequiredScore: template.MINIMUM_REQUIRED_SCORE as number,
+        isMandatory: (template.IS_MANDATORY as number) === 1,
         criteria: templateCriteria,
       };
     });
@@ -308,9 +313,9 @@ export async function GET(
       success: true,
       data: {
         processId: transactionProcessId,
-        processTitle: process.TITLE,
+        processTitle: process.TITLE as string,
         publicationNumber: publicationNumber,
-        processStatus: process.STATUS,
+        processStatus: process.STATUS as string,
         templates: templatesWithCriteria,
       },
     });

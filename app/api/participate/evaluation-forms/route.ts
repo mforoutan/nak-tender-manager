@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import type { DatabaseRow } from "@/types";
 
 /**
  * GET /api/participate/evaluation-forms
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
     const allCriteria = await query(criteriaSql, []);
 
     // Map criteria to templates
-    const templatesWithCriteria = templates.map((template: any) => ({
+    const templatesWithCriteria = templates.map((template: DatabaseRow) => ({
       id: template.ID,
       templateCode: template.TEMPLATE_CODE,
       templateName: template.TEMPLATE_NAME,
@@ -110,8 +111,8 @@ export async function GET(request: NextRequest) {
       completionInstructions: template.COMPLETION_INSTRUCTIONS,
       evaluationTypeName: template.EVALUATION_TYPE_NAME,
       criteria: allCriteria
-        .filter((c: any) => c.TEMPLATE_ID === template.ID)
-        .map((criterion: any) => ({
+        .filter((c: DatabaseRow) => c.TEMPLATE_ID === template.ID)
+        .map((criterion: DatabaseRow) => ({
           id: criterion.ID,
           criteriaCode: criterion.CRITERIA_CODE,
           criteriaTitle: criterion.CRITERIA_TITLE,

@@ -11,7 +11,7 @@ import { FieldGroup } from "@/components/ui/field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 
-interface Member {
+export interface Member {
     id?: number
     FIRST_NAME: string
     LAST_NAME: string

@@ -8,12 +8,19 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-interface EvaluationFormProps {
+export interface EvaluationFormProps {
     title: string;
     children: React.ReactNode;
 }
 
-interface EvaluationCriterion {
+export interface ValidationRules {
+    maxSize?: number;
+    allowedTypes?: string[];
+    maxFiles?: number;
+    [key: string]: unknown;
+}
+
+export interface EvaluationCriterion {
     id: number;
     criteriaCode: string;
     criteriaTitle: string;
@@ -22,15 +29,15 @@ interface EvaluationCriterion {
     indentLevel: number;
     inputType: string;
     isRequired: boolean;
-    validationRules: any;
-    predefinedOptions: any;
+    validationRules: ValidationRules | null;
+    predefinedOptions: string[] | null;
     allowCustomInput: boolean;
     helpText: string;
     evaluationGuide: string;
-    response: any;
+    response: string | number | null;
 }
 
-interface EvaluationTemplate {
+export interface EvaluationTemplate {
     id: number;
     templateCode: string;
     templateName: string;
@@ -52,7 +59,7 @@ function EvaluationFormScoringBasis({ children }: { children: React.ReactNode })
     return <>{children}</>;
 }
 
-interface EvaluationFormUploadProps {
+export interface EvaluationFormUploadProps {
     children?: React.ReactNode;
     files?: Array<{ name: string; type: string; size: string }>;
     onUpload?: () => void;
@@ -232,7 +239,7 @@ export default async function EvaluationFormsPage({ params }: { params: Promise<
                         </p>
                     </div>
 
-                    {evaluationData.templates.map((template: any) => (
+                    {evaluationData.templates.map((template: EvaluationTemplate) => (
                         <div key={template.id} className="space-y-8">
                             {/* <div className="border-b pb-2">
                                 <h2 className="font-bold text-xl">{template.templateName}</h2>
@@ -251,7 +258,7 @@ export default async function EvaluationFormsPage({ params }: { params: Promise<
                                 </div>
                             </div> */}
 
-                            {template.criteria.map((criterion: any) => (
+                            {template.criteria.map((criterion: EvaluationCriterion) => (
                                 <EvaluationForm key={criterion.id} title={criterion.criteriaTitle}>
                                     <EvaluationForm.Description>
                                         {criterion.criteriaDescription}

@@ -28,6 +28,12 @@ interface Guarantor {
   amount: string
 }
 
+interface DocumentData {
+  file?: File | null
+  guarantors?: Guarantor[]
+  [key: string]: unknown
+}
+
 interface DocumentSubmissionStepProps {
   stepNumber: number
   document: {
@@ -36,8 +42,8 @@ interface DocumentSubmissionStepProps {
     submissionType: string
     isMandatory: boolean
   }
-  data?: any
-  onChange: (data: any) => void
+  data?: DocumentData
+  onChange: (data: DocumentData) => void
   disabled?: boolean
 }
 
@@ -53,7 +59,7 @@ export function DocumentSubmissionStep({
   const [editingGuarantorId, setEditingGuarantorId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Guarantor>>({})
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: unknown) => {
     onChange({
       ...data,
       [field]: value

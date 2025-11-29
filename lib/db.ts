@@ -53,9 +53,9 @@ export async function getConnection(): Promise<oracledb.Connection> {
 // Helper function for executing queries
 export async function query(
     sql: string,
-    params: any[] = [],
+    params: (string | number | null | undefined)[] = [],
     options: oracledb.ExecuteOptions = {}
-): Promise<any[]> {
+): Promise<unknown[]> {
     let connection: oracledb.Connection | null = null;
     try {
         const pool = await getPool();
@@ -64,7 +64,7 @@ export async function query(
         // Convert positional parameters to named parameters
         // Oracle named parameters use :paramName format
         let namedSql = sql;
-        const namedParams: any = {};
+        const namedParams: Record<string, string | number | null | undefined> = {};
         
         params.forEach((param, index) => {
             const paramName = `param${index + 1}`;
@@ -79,7 +79,7 @@ export async function query(
             ...options,
         });
         
-        return result.rows || [];
+        return (result.rows as unknown[]) || [];
     } catch (error) {
         console.error('Database query error:', error);
         throw error;

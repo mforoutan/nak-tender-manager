@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import type { PublishedProcess, TenderListItem, PublishedProcessListResponse } from '@/types';
+import type { PublishedProcess, TenderListItem, PublishedProcessListResponse, DatabaseRow } from '@/types';
 
 // Helper function to determine status based on dates
 function determineStatus(
@@ -38,23 +38,23 @@ function determineStatus(
 }
 
 // Transform database record to TenderListItem
-function transformToTenderItem(record: any): TenderListItem {
+function transformToTenderItem(record: DatabaseRow): TenderListItem {
   const status = determineStatus(
-    record.PUBLISH_DATE,
-    record.SUBMISSION_END_DATE,
-    record.STATUS
+    record.PUBLISH_DATE as Date | string | null,
+    record.SUBMISSION_END_DATE as Date | string | null,
+    record.STATUS as string
   );
   
   return {
-    id: record.ID,
-    title: record.TITLE || '',
-    type: record.PROCESS_TYPE || 'مناقصه عمومی',
+    id: record.ID as number,
+    title: (record.TITLE as string) || '',
+    type: (record.PROCESS_TYPE as string) || 'مناقصه عمومی',
     status,
     endDate: record.SUBMISSION_END_DATE 
-      ? new Date(record.SUBMISSION_END_DATE).toISOString().split('T')[0]
+      ? new Date(record.SUBMISSION_END_DATE as string | Date).toISOString().split('T')[0]
       : '',
-    category: record.REQUEST_CATEGORY || 'تجهیزات صنعتی',
-    code: record.PUBLICATION_NUMBER || '',
+    category: (record.REQUEST_CATEGORY as string) || 'تجهیزات صنعتی',
+    code: (record.PUBLICATION_NUMBER as string) || '',
   };
 }
 
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
       WHERE pp.IS_ACTIVE = 1
     `;
     
-    const params: any[] = [];
+    const params: (string | number)[] = [];
     let paramIndex = 1;
     
     // Add search filter
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
     
     // Transform and filter by status on the application side
     // (because status is derived from dates, not stored in DB)
-    let allItems = allRecords.map((record: any) => transformToTenderItem(record));
+    let allItems = (allRecords as DatabaseRow[]).map((record: DatabaseRow) => transformToTenderItem(record));
     
     // Apply status filter
     if (statusFilter !== 'all') {
@@ -175,10 +175,11 @@ export async function GET(request: NextRequest) {
     };
     
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching published processes:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to fetch published processes', details: error.message },
+      { error: 'Failed to fetch published processes', details: errorMessage },
       { status: 500 }
     );
   }

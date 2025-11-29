@@ -11,6 +11,10 @@ import {
   ProjectsSection,
   EquipmentSection,
   RankingsSection,
+  type Member,
+  type Project,
+  type Equipment,
+  type Ranking,
   // CertificatesSection,
   // ActivitiesSection,
 } from "./components/index"
@@ -24,12 +28,12 @@ export default function ProfileClient({ contractorId }: ProfileClientProps) {
   const [isSaving, setIsSaving] = useState(false)
 
   // State for each section
-  const [members, setMembers] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
-  const [equipment, setEquipment] = useState<any[]>([])
-  const [rankings, setRankings] = useState<any[]>([])
-  const [certificates, setCertificates] = useState<any[]>([])
-  const [activities, setActivities] = useState<any[]>([])
+  const [members, setMembers] = useState<Member[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [equipment, setEquipment] = useState<Equipment[]>([])
+  const [rankings, setRankings] = useState<Ranking[]>([])
+  const [certificates, setCertificates] = useState<unknown[]>([])
+  const [activities, setActivities] = useState<unknown[]>([])
 
   // Fetch profile data
   useEffect(() => {

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         );
       }
 
-      const file = fileResult.rows[0] as any;
+      const file = fileResult.rows[0] as { FILE_NAME: string; ENTITY_TYPE: string };
       const fileName = file.FILE_NAME;
 
       // Mark file as deleted (soft delete)

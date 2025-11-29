@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
+import { serializeRows } from '@/types';
+
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -47,31 +49,6 @@ export async function GET(request: NextRequest) {
        FETCH FIRST 1 ROWS ONLY`,
       [contractorId]
     );
-
-    // Use a more robust serialization approach
-    const serializeRows = (rows: any[] | undefined) => {
-      if (!rows || rows.length === 0) return [];
-      
-      return rows.map(row => {
-        const cleanRow: any = {};
-        for (const key in row) {
-          if (Object.prototype.hasOwnProperty.call(row, key)) {
-            const value = row[key];
-            // Handle different data types
-            if (value === null || value === undefined) {
-              cleanRow[key] = null;
-            } else if (value instanceof Date) {
-              cleanRow[key] = value.toISOString();
-            } else if (typeof value === 'object' && value.constructor === Object) {
-              cleanRow[key] = value;
-            } else {
-              cleanRow[key] = value;
-            }
-          }
-        }
-        return cleanRow;
-      });
-    };
 
     return NextResponse.json({
       contractor: contractorResult.rows[0] ? serializeRows([contractorResult.rows[0]])[0] : null,

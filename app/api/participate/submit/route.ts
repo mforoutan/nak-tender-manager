@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query, getConnection } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import oracledb from "oracledb";
+import type { DatabaseRow } from "@/types";
 
 export async function POST(request: NextRequest) {
     let connection;
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
             );
         }
         
-        const publishedProcessId = (processResult.rows as any[])[0].ID;
+        const publishedProcessId = (processResult.rows as DatabaseRow[])[0].ID;
         
         // Check if already submitted
         const checkSql = `
@@ -58,8 +59,8 @@ export async function POST(request: NextRequest) {
         `;
         
         const existingSubmission = await connection.execute(checkSql, {
-            processId: publishedProcessId,
-            contractorId: session.contractorId
+            processId: publishedProcessId as number,
+            contractorId: session.contractorId as number
         }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
         
         if (existingSubmission.rows && existingSubmission.rows.length > 0) {
@@ -91,8 +92,8 @@ export async function POST(request: NextRequest) {
         `;
         
         await connection.execute(insertSubmissionSql, {
-            processId: publishedProcessId,
-            contractorId: session.contractorId,
+            processId: publishedProcessId as number,
+            contractorId: session.contractorId as number,
             createdBy: session.username
         });
         
@@ -107,16 +108,16 @@ export async function POST(request: NextRequest) {
         `;
         
         const submissionResult = await connection.execute(getIdSql, {
-            processId: publishedProcessId,
-            contractorId: session.contractorId
+            processId: publishedProcessId as number,
+            contractorId: session.contractorId as number
         }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
         
-        const submissionId = (submissionResult.rows as any[])[0].ID;
+        const submissionId = (submissionResult.rows as DatabaseRow[])[0].ID;
         
         // Store document data if provided
         if (documentData && Object.keys(documentData).length > 0) {
             for (const [docId, data] of Object.entries(documentData)) {
-                if (data && (data as any).fileId) {
+                if (data && (data as DatabaseRow).fileId) {
                     const insertDocSql = `
                         INSERT INTO PROCESS_SUBMITTED_DOCUMENTS (
                             ID,
@@ -138,8 +139,8 @@ export async function POST(request: NextRequest) {
                     `;
                     
                     await connection.execute(insertDocSql, {
-                        submissionId: submissionId,
-                        fileId: (data as any).fileId,
+                        submissionId: submissionId as number,
+                        fileId: (data as DatabaseRow).fileId as number,
                         docTypeId: docId,
                         uploadedBy: session.username
                     });

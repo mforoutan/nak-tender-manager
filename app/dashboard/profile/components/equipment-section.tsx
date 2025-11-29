@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { FieldGroup } from "@/components/ui/field"
 import { toast } from "sonner"
 
-interface Equipment {
+export interface Equipment {
     id?: number
     EQUIPMENT_NAME: string
     EQUIPMENT_TYPE: string

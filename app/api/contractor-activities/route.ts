@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
+import type { DatabaseRow } from "@/types";
 
 export async function GET(request: NextRequest) {
   let connection;
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       WHERE 1=1
     `;
 
-    const bindParams: any = {};
+    const bindParams: Record<string, unknown> = {};
 
     // Filter active activities unless explicitly including inactive
     if (!includeInactive) {
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     const result = await connection.execute(query, bindParams);
 
-    const activities = (result.rows || []).map((row: any) => ({
+    const activities = (result.rows || []).map((row: DatabaseRow) => ({
       id: row.ID,
       code: row.ACTIVITY_CODE,
       name: row.ACTIVITY_NAME,

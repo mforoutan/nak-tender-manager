@@ -107,7 +107,11 @@ export async function POST(request: NextRequest) {
     };
 
     // Fetch account task status
-    const taskResult = await connection.execute<any>(
+    const taskResult = await connection.execute<{
+      ID: number;
+      STATUS: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'REJECTED';
+      rejectionReason: string | null;
+    }>(
       `SELECT 
         ID,
         STATUS,
@@ -149,7 +153,7 @@ export async function POST(request: NextRequest) {
       firstName: loginData.firstName,
       lastName: loginData.lastName,
       companyName: contractor.companyName,
-      companyStatus: (contractor as any).STATUS || 1,
+      companyStatus: (contractor).status || 1,
       processParticipation,
       accountVerificationTask,
     };

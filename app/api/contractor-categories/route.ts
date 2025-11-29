@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
+import type { DatabaseRow } from "@/types";
 
 export async function GET(request: NextRequest) {
   let connection;
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       WHERE 1=1
     `;
 
-    const bindParams: any = {};
+    const bindParams: Record<string, unknown> = {};
 
     // Filter by parent category if specified
     if (parentId !== null) {
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     const result = await connection.execute(query, bindParams);
 
-    const categories = (result.rows || []).map((row: any) => ({
+    const categories = (result.rows || []).map((row: DatabaseRow) => ({
       id: row.ID,
       code: row.CATEGORY_CODE,
       name: row.CATEGORY_NAME,

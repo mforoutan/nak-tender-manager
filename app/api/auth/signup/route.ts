@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       { nationalId, mobile: repPhone }
     );
 
-    const count = (existingContractor.rows?.[0] as any)?.COUNT || 0;
+    const count = (existingContractor.rows?.[0] as { COUNT: number })?.COUNT || 0;
     if (count > 0) {
       return NextResponse.json(
         { error: "این شرکت قبلاً ثبت نام کرده است" },
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     const repFullName = `${repFirstName || ''} ${repLastName || ''}`.trim();
 
     // Helper function to convert empty strings to null
-    const toNullIfEmpty = (value: any) => {
+    const toNullIfEmpty = (value: string | undefined | null) => {
       if (value === undefined || value === null || value === '') {
         return null;
       }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Helper function to safely parse integers
-    const parseIntOrNull = (value: any) => {
+    const parseIntOrNull = (value: string | undefined | null) => {
       if (!value || value === '') {
         return null;
       }
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
     );
 
 
-    const contractorId = (contractorResult.outBinds as any)?.id?.[0];
+    const contractorId = (contractorResult.outBinds as { id: number[] })?.id?.[0];
 
     if (!contractorId) {
       throw new Error("Failed to get contractor ID");

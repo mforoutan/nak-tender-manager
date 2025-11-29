@@ -8,7 +8,7 @@ import { Stepper } from "@/components/ui/stepper"
 import { Spinner } from "@/components/ui/spinner"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import type { ContractorFormData } from "@/types"
+import type { ContractorFormData, DatabaseRow } from "@/types"
 import {
   InformationStep,
   ConfirmationStep,
@@ -28,9 +28,16 @@ const steps = [
   "finish"
 ]
 
+interface ContractorData {
+  contractor: DatabaseRow;
+  members: DatabaseRow[];
+  documents: DatabaseRow[];
+  tasks: DatabaseRow[];
+}
+
 interface AccountClientProps {
   contractorId: number;
-  initialData?: any;
+  initialData?: ContractorData;
 }
 
 export default function AccountClient({ contractorId, initialData }: AccountClientProps) {
@@ -94,7 +101,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       if (accountVerificationTask.hasTask) {
         setTaskStatus(accountVerificationTask.status);
         setRejectionReason(accountVerificationTask.rejectionReason || '');
-        
+
         // Set initial step based on status
         if (accountVerificationTask.status === 'PENDING' || accountVerificationTask.status === 'IN_PROGRESS') {
           setIsEditable(false);
@@ -121,34 +128,34 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
     }
   }, [])
 
-  const processContractorData = (data: any) => {
+  const processContractorData = (data: ContractorData) => {
     if (data.contractor) {
       const contractor = data.contractor
 
       setFormData({
-        companyName: contractor.COMPANY_NAME || '',
-        companyNameEN: contractor.COMPANY_NAME_EN || '',
-        nationalId: contractor.NATIONAL_ID || '',
-        economicCode: contractor.ECONOMIC_CODE || '',
-        registrationNumber: contractor.REGISTRATION_NUMBER || '',
+        companyName: (contractor.COMPANY_NAME as string) || '',
+        companyNameEN: (contractor.COMPANY_NAME_EN as string) || '',
+        nationalId: (contractor.NATIONAL_ID as string) || '',
+        economicCode: (contractor.ECONOMIC_CODE as string) || '',
+        registrationNumber: (contractor.REGISTRATION_NUMBER as string) || '',
         establishmentDate: contractor.ESTABLISHMENT_DATE ?
-          new Date(contractor.ESTABLISHMENT_DATE).toISOString().split('T')[0] : '',
-        phone: contractor.PHONE || '',
-        mobile: contractor.MOBILE || '',
-        fax: contractor.FAX || '',
-        email: contractor.EMAIL || '',
-        website: contractor.WEBSITE || '',
-        postalCode: contractor.POSTAL_CODE || '',
-        province: contractor.PROVINCE_ID?.toString() || '',
-        city: contractor.CITY_ID?.toString() || '',
-        bankName: contractor.BANK_ID?.toString() || '',
-        accountNumber: contractor.BANK_ACCOUNT || '',
-        shabaNumber: contractor.SHABA_NUMBER || '',
-        bankBranch: contractor.BRANCH_ACCOUNT || '',
-        companyType: contractor.CONTRACTOR_TYPE_ID?.toString() || '',
-        companyCategory: contractor.CONTRACTOR_CATEGORY_ID?.toString() || '',
-        registrationPlace: contractor.REGISTRATION_PLACE || '',
-        insuranceBranch: contractor.INSURANCE_BRANCH || '',
+          new Date(contractor.ESTABLISHMENT_DATE as string | number | Date).toISOString().split('T')[0] : '',
+        phone: (contractor.PHONE as string) || '',
+        mobile: (contractor.MOBILE as string) || '',
+        fax: (contractor.FAX as string) || '',
+        email: (contractor.EMAIL as string) || '',
+        website: (contractor.WEBSITE as string) || '',
+        postalCode: (contractor.POSTAL_CODE as string) || '',
+        province: (contractor.PROVINCE_ID as number)?.toString() || '',
+        city: (contractor.CITY_ID as number)?.toString() || '',
+        bankName: (contractor.BANK_ID as number)?.toString() || '',
+        accountNumber: (contractor.BANK_ACCOUNT as string) || '',
+        shabaNumber: (contractor.SHABA_NUMBER as string) || '',
+        bankBranch: (contractor.BRANCH_ACCOUNT as string) || '',
+        companyType: (contractor.CONTRACTOR_TYPE_ID as number)?.toString() || '',
+        companyCategory: (contractor.CONTRACTOR_CATEGORY_ID as number)?.toString() || '',
+        registrationPlace: (contractor.REGISTRATION_PLACE as string) || '',
+        insuranceBranch: (contractor.INSURANCE_BRANCH as string) || '',
         ceoFirstName: '',
         ceoLastName: '',
         ceoNationalId: '',
@@ -161,22 +168,22 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
       // Extract CEO and Rep info from members
       if (data.members && Array.isArray(data.members)) {
-        data.members.forEach((member: any) => {
+        data.members.forEach((member: DatabaseRow) => {
           if (member.POSITION_TITLE === 'CEO') {
             setFormData(prev => ({
               ...prev,
-              ceoFirstName: member.FIRST_NAME || '',
-              ceoLastName: member.LAST_NAME || '',
-              ceoNationalId: member.NATIONAL_ID || '',
-              ceoMobile: member.MOBILE || '',
+              ceoFirstName: (member.FIRST_NAME as string) || '',
+              ceoLastName: (member.LAST_NAME as string) || '',
+              ceoNationalId: (member.NATIONAL_ID as string) || '',
+              ceoMobile: (member.MOBILE as string) || '',
             }))
-          } else if (member.POSITION_TITLE?.includes('REP')) {
+          } else if ((member.POSITION_TITLE as string)?.includes('REP')) {
             setFormData(prev => ({
               ...prev,
-              repFirstName: member.FIRST_NAME || '',
-              repLastName: member.LAST_NAME || '',
-              repPhone: member.PHONE || '',
-              repEmail: member.EMAIL || '',
+              repFirstName: (member.FIRST_NAME as string) || '',
+              repLastName: (member.LAST_NAME as string) || '',
+              repPhone: (member.PHONE as string) || '',
+              repEmail: (member.EMAIL as string) || '',
             }))
           }
         })
@@ -187,12 +194,12 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
         const filesMap: { [key: string]: File | null } = {}
         const fileIdsMap: { [key: string]: number } = {}
 
-        data.documents.forEach((doc: any) => {
+        data.documents.forEach((doc: DatabaseRow) => {
           let docType = ''
 
-          if (doc.CERTIFICATE_TYPE === 'LEGAL' && doc.CERTIFICATE_NAME?.includes('اساسنامه')) {
+          if (doc.CERTIFICATE_TYPE === 'LEGAL' && (doc.CERTIFICATE_NAME as string)?.includes('اساسنامه')) {
             docType = 'registration'
-          } else if (doc.CERTIFICATE_TYPE === 'LEGAL' && doc.CERTIFICATE_NAME?.includes('روزنامه')) {
+          } else if (doc.CERTIFICATE_TYPE === 'LEGAL' && (doc.CERTIFICATE_NAME as string)?.includes('روزنامه')) {
             docType = 'newspaper'
           } else if (doc.CERTIFICATE_TYPE === 'TAX') {
             docType = 'tax'
@@ -202,11 +209,11 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
 
           if (docType && doc.FILE_NAME) {
             filesMap[docType] = {
-              name: doc.ORIGINAL_NAME || doc.FILE_NAME,
-              size: doc.FILE_SIZE || 0,
-              type: doc.MIME_TYPE || 'application/octet-stream',
+              name: (doc.ORIGINAL_NAME as string) || (doc.FILE_NAME as string),
+              size: (doc.FILE_SIZE as number) || 0,
+              type: (doc.MIME_TYPE as string) || 'application/octet-stream',
             } as File
-            fileIdsMap[docType] = doc.CERTIFICATE_FILE_ID
+            fileIdsMap[docType] = doc.CERTIFICATE_FILE_ID as number
 
             setUploadProgress(prev => ({ ...prev, [docType]: 100 }))
           }
@@ -221,7 +228,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       // Check for tasks and set status (only if not already set from session)
       if (data.tasks && data.tasks.length > 0 && !accountVerificationTask) {
         const latestTask = data.tasks[0]
-        const status = latestTask.STATUS
+        const status = latestTask.STATUS as string
 
         setTaskStatus(status)
 
@@ -234,7 +241,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
         } else if (status === 'REJECTED') {
           setIsEditable(true)
           setCurrentStep(2)
-          setRejectionReason(latestTask.REJECTION_REASON || '')
+          setRejectionReason((latestTask.REJECTION_REASON as string) || '')
         }
         setStepInitialized(true)
       }
@@ -453,7 +460,7 @@ export default function AccountClient({ contractorId, initialData }: AccountClie
       if (response.ok) {
         // Refresh session to get updated task status
         await refreshSession(['accountVerificationTask']);
-        
+
         setShowSuccessDialog(true)
         setIsEditable(false)
         setCurrentStep(2)

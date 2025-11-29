@@ -8,7 +8,7 @@ import { toPersianNumbers } from "@/lib/utils";
 
 
 function SectionCards() {
-    let data = [
+    const data = [
         {
             name: "مناقصات",
             icon: AwardIcon,

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PersianDatePicker } from "@/components/ui/persian-date-picker";
 import type { FormFieldConfig } from "@/types/form-fields";
 import type { ContractorFormData } from "@/types";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "../ui/field";
+import { Field, FieldDescription, FieldLabel } from "../ui/field";
 
 interface FormFieldRendererProps {
     field: FormFieldConfig;
@@ -66,7 +66,7 @@ export function FormFieldRenderer({
                         let mappedOptions: Array<{ value: string; label: string }> = [];
 
                         // Generic mapping - try to find the array in the response
-                        let dataArray: any[] = [];
+                        let dataArray: unknown[] = [];
                         
                         // First check if response has a 'data' property (common API pattern)
                         if (data.data && Array.isArray(data.data)) {
@@ -94,10 +94,18 @@ export function FormFieldRenderer({
 
                         // Map the array to options
                         if (dataArray.length > 0) {
-                            mappedOptions = dataArray.map((item: any) => ({
-                                value: item.id?.toString() || item.ID?.toString() || item.value?.toString() || '',
-                                label: item.name || item.NAME || item.label || item.title || '',
-                            }));
+                            mappedOptions = dataArray.map((item: unknown) => {
+                                const obj = item as Record<string, unknown>;
+                                return {
+                                    value: (obj.id as number | undefined)?.toString() || 
+                                           (obj.ID as number | undefined)?.toString() || 
+                                           (obj.value as string | number | undefined)?.toString() || '',
+                                    label: (obj.name as string | undefined) || 
+                                           (obj.NAME as string | undefined) || 
+                                           (obj.label as string | undefined) || 
+                                           (obj.title as string | undefined) || '',
+                                };
+                            });
                         }
 
                         console.log(`Mapped ${mappedOptions.length} options for ${field.name}`, mappedOptions.slice(0, 3));

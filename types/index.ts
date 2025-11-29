@@ -11,6 +11,7 @@ export interface ContractorLogin {
 export interface Contractor {
     id: number;
     companyName: string;
+    status: number;
     nationalId: string;
     email?: string;
     phone?: string;
@@ -200,6 +201,41 @@ export interface PublishedProcessListResponse {
         total: number;
         totalPages: number;
     };
+}
+
+// Database row types
+export type DatabaseRow = Record<string, unknown>;
+export type DatabaseRows = DatabaseRow[] | undefined;
+
+/**
+ * Serializes database rows to JSON-safe objects
+ * Handles Date objects, null/undefined values, and complex objects
+ * @param rows - Array of database rows or undefined
+ * @returns Array of serialized rows
+ */
+export function serializeRows(rows: unknown[] | undefined): DatabaseRow[] {
+  if (!rows || rows.length === 0) return [];
+  
+  return rows.map(row => {
+    const cleanRow: DatabaseRow = {};
+    const rowRecord = row as Record<string, unknown>;
+    for (const key in rowRecord) {
+      if (Object.prototype.hasOwnProperty.call(rowRecord, key)) {
+        const value = rowRecord[key];
+        // Handle different data types
+        if (value === null || value === undefined) {
+          cleanRow[key] = null;
+        } else if (value instanceof Date) {
+          cleanRow[key] = value.toISOString();
+        } else if (typeof value === 'object' && value.constructor === Object) {
+          cleanRow[key] = value;
+        } else {
+          cleanRow[key] = value;
+        }
+      }
+    }
+    return cleanRow;
+  });
 }
 
 // Export alert types

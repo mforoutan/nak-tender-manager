@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FieldGroup } from "@/components/ui/field"
 import { toast } from "sonner"
 
-interface Ranking {
+export interface Ranking {
     id?: number
     RANKING_TYPE: string
     RANKING_LEVEL: string

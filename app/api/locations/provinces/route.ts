@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
+import type { DatabaseRow } from "@/types";
 
 export async function GET(request: NextRequest) {
   let connection;
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const provinces = (result.rows as any[]).map((row) => ({
+    const provinces = (result.rows as DatabaseRow[]).map((row) => ({
       id: row.ID,
       code: row.PROVINCE_CODE,
       name: row.PROVINCE_NAME,

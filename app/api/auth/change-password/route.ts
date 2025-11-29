@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const currentPasswordHash = (result.rows[0] as any).PASSWORD_HASH;
+    const currentPasswordHash = (result.rows[0] as { PASSWORD_HASH: string }).PASSWORD_HASH;
 
     // Verify old password
     const isValidPassword = await bcrypt.compare(oldPassword, currentPasswordHash);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getConnection } from '@/lib/db';
+import type { DatabaseRow } from '@/types';
 import { TenderListItem } from '@/types';
 import oracledb from 'oracledb';
 
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
       outFormat: oracledb.OUT_FORMAT_OBJECT
     });
 
-    const rows = result.rows as any[];
+    const rows = result.rows as DatabaseRow[];
 
     // Transform to TenderListItem format
     const tenderList: TenderListItem[] = rows.map(row => {
@@ -70,8 +71,8 @@ export async function GET(request: NextRequest) {
       let status: 'ongoing' | 'upcoming' | 'completed' = 'ongoing';
       
       const now = new Date();
-      const dueDate = row.DUE_DATE ? new Date(row.DUE_DATE) : null;
-      const evaluationStatus = row.EVALUATION_STATUS;
+      const dueDate = row.DUE_DATE ? new Date(row.DUE_DATE as string | Date) : null;
+      const evaluationStatus = row.EVALUATION_STATUS as string;
       
       // Status logic:
       // - If evaluation is completed/closed -> 'completed'
@@ -85,21 +86,21 @@ export async function GET(request: NextRequest) {
       } else if (evaluationStatus === 'PENDING' || evaluationStatus === 'IN_PROGRESS') {
         status = 'ongoing';
       } else {
-        const assignmentDate = row.ASSIGNMENT_DATE ? new Date(row.ASSIGNMENT_DATE) : null;
+        const assignmentDate = row.ASSIGNMENT_DATE ? new Date(row.ASSIGNMENT_DATE as string | Date) : null;
         if (assignmentDate && assignmentDate > now) {
           status = 'upcoming';
         }
       }
 
       return {
-        id: row.PUBLISHED_PROCESS_ID,
-        title: row.TITLE || '',
-        type: row.PROCESS_TYPE || 'نامشخص',
+        id: row.PUBLISHED_PROCESS_ID as number,
+        title: (row.TITLE as string) || '',
+        type: (row.PROCESS_TYPE as string) || 'نامشخص',
         status,
-        endDate: row.DUE_DATE ? new Date(row.DUE_DATE).toISOString() : 
-                 (row.END_DATE ? new Date(row.END_DATE).toISOString() : ''),
-        category: row.REQUEST_CATEGORY || 'نامشخص',
-        code: row.PUBLICATION_NUMBER || '',
+        endDate: row.DUE_DATE ? new Date(row.DUE_DATE as string | Date).toISOString() : 
+                 (row.END_DATE ? new Date(row.END_DATE as string | Date).toISOString() : ''),
+        category: (row.REQUEST_CATEGORY as string) || 'نامشخص',
+        code: (row.PUBLICATION_NUMBER as string) || '',
       };
     });
 

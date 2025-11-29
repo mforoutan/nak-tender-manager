@@ -3,6 +3,7 @@ import { getConnection } from "@/lib/db";
 import { unlink } from "fs/promises";
 import path from "path";
 import { existsSync } from 'fs';
+import { DatabaseRow } from "@/types";
 
 export async function POST(req: Request) {
   let connection;
@@ -84,9 +85,9 @@ export async function POST(req: Request) {
         );
       }
 
-      const certificate = certificateResult.rows[0];
-      const fileId = certificate.CERTIFICATE_FILE_ID;
-      const fileName = certificate.FILE_NAME;
+      const certificate = certificateResult.rows[0] as DatabaseRow;
+      const fileId = certificate.CERTIFICATE_FILE_ID as number;
+      const fileName = certificate.FILE_NAME as string;
 
       // Mark certificate as inactive
       await connection.execute(
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
          SET IS_ACTIVE = 0,
              MODIFIED_DATE = SYSDATE
          WHERE ID = :certId`,
-        { certId: certificate.ID }
+        { certId: certificate.ID as number }
       );
 
       // Mark file as deleted

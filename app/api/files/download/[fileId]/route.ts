@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
+import { DatabaseRow } from '@/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { fileId: string } }
+  { params }: { params: Promise<{ fileId: string }> }
 ) {
   let connection;
   try {
-    const fileId = params.fileId;
+    const { fileId } = await params;
 
     if (!fileId) {
       return NextResponse.json(
@@ -32,10 +33,10 @@ export async function GET(
       );
     }
 
-    const file = result.rows[0];
+    const file = result.rows[0] as DatabaseRow;
     const fileContent = file.FILE_CONTENT;
-    const originalName = file.ORIGINAL_NAME || 'download';
-    const mimeType = file.MIME_TYPE || 'application/octet-stream';
+    const originalName = (file.ORIGINAL_NAME as string) || 'download';
+    const mimeType = (file.MIME_TYPE as string) || 'application/octet-stream';
 
     // Convert BLOB to Buffer
     let buffer: Buffer;
@@ -50,7 +51,7 @@ export async function GET(
       );
     }
 
-    return new NextResponse(buffer, {
+    return new NextResponse(buffer as BodyInit, {
       headers: {
         'Content-Type': mimeType,
         'Content-Disposition': `attachment; filename="${encodeURIComponent(originalName)}"`,

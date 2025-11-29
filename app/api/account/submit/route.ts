@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
+import { DatabaseRow } from '@/types';
 
 export async function POST(request: NextRequest) {
   let connection;
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
             lastName: formData.ceoLastName || null,
             nationalId: formData.ceoNationalId || null,
             mobile: formData.ceoMobile || null,
-            id: ceoCheck.rows[0].ID,
+            id: (ceoCheck.rows[0] as DatabaseRow).ID as number,
           }
         );
       } else {
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest) {
             phone: formData.repPhone || null,
             email: formData.repEmail || null,
             position: formData.repPosition || 'REPRESENTATIVE',
-            id: repCheck.rows[0].ID,
+            id: (repCheck.rows[0] as DatabaseRow).ID as number,
           }
         );
       } else {

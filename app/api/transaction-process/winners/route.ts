@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getConnection } from '@/lib/db';
+import type { DatabaseRow } from '@/types';
 import { TenderListItem } from '@/types';
 import oracledb from 'oracledb';
 
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
       outFormat: oracledb.OUT_FORMAT_OBJECT
     });
 
-    const rows = result.rows as any[];
+    const rows = result.rows as DatabaseRow[];
 
     // Transform to TenderListItem format
     const tenderList: TenderListItem[] = rows.map(row => {
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
       let status: 'ongoing' | 'upcoming' | 'completed' = 'completed';
       
       const now = new Date();
-      const endDate = row.END_DATE ? new Date(row.END_DATE) : null;
+      const endDate = row.END_DATE ? new Date(row.END_DATE as string | Date) : null;
       
       if (endDate) {
         if (endDate > now) {
@@ -76,13 +77,13 @@ export async function GET(request: NextRequest) {
       }
 
       return {
-        id: row.PUBLISHED_PROCESS_ID,
-        title: row.TITLE || '',
-        type: row.PROCESS_TYPE || 'نامشخص',
+        id: row.PUBLISHED_PROCESS_ID as number,
+        title: (row.TITLE as string) || '',
+        type: (row.PROCESS_TYPE as string) || 'نامشخص',
         status,
         endDate: endDate ? endDate.toISOString() : '',
-        category: row.REQUEST_CATEGORY || 'نامشخص',
-        code: row.PUBLICATION_NUMBER || '',
+        category: (row.REQUEST_CATEGORY as string) || 'نامشخص',
+        code: (row.PUBLICATION_NUMBER as string) || '',
       };
     });
 

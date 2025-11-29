@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
+import type { DatabaseRow } from "@/types";
 
 export async function GET(request: NextRequest) {
   let connection;
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const result = await connection.execute(query);
 
-    const types = (result.rows || []).map((row: any) => ({
+    const types = (result.rows || []).map((row: DatabaseRow) => ({
       id: row.ID,
       code: row.TYPE_CODE,
       name: row.TYPE_NAME,

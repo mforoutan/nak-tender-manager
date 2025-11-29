@@ -2,7 +2,7 @@ import type { TabConfig } from "./types"
 import { DataTable } from "./data-table"
 import { cookies } from "next/headers"
 
-interface DataTableServerProps {
+export interface DataTableServerProps {
   searchParams?: {
     search?: string
     status?: string
