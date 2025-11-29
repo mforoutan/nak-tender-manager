@@ -1,86 +1,101 @@
-import { Suspense } from "react"
-import { DataTable } from "./data-table"
-import { DataTableSkeleton } from "./data-table-skeleton"
 import type { TabConfig } from "./types"
-import type { TenderListItem } from "@/types"
+import { DataTable } from "./data-table"
 
 interface DataTableServerProps {
-  searchParams?: Promise<{
+  searchParams?: {
     search?: string
     status?: string
     type?: string
     date?: string
     page?: string
-  }>
+  }
   itemsPerPage?: number
   tabs?: TabConfig[]
   showStatusFilter?: boolean
   showStatus?: boolean
-  apiEndpoint?: string
+  apiEndpoint: string
 }
 
 async function fetchTenders(
+  apiEndpoint: string,
   searchParams: DataTableServerProps['searchParams'],
-  apiEndpoint: string = '/api/published-processes'
-): Promise<{ data: TenderListItem[], total: number }> {
+  itemsPerPage: number
+) {
+  const params = new URLSearchParams()
+  
+  if (searchParams?.search) params.set('search', searchParams.search)
+  if (searchParams?.status) params.set('status', searchParams.status)
+  if (searchParams?.type && searchParams.type !== 'all') {
+    const typeMap: Record<string, string> = {
+      'tender': 'مناقصه عمومی',
+      'inquiry': 'استعلام',
+      'call': 'فراخوان',
+      'evaluation': 'ارزیابی',
+    }
+    const mappedType = typeMap[searchParams.type] || searchParams.type
+    params.set('type', mappedType)
+  }
+  if (searchParams?.date) params.set('endDate', searchParams.date)
+  if (searchParams?.page) params.set('page', searchParams.page)
+  
+  params.set('limit', itemsPerPage.toString())
+  
+  // Construct full URL for API call
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const url = `${baseUrl}${apiEndpoint}?${params.toString()}`
+  
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    
-    // Await searchParams (Next.js 15 requirement)
-    const params = new URLSearchParams()
-    const resolvedParams = searchParams ? await searchParams : {}
-    
-    if (resolvedParams?.search) params.set('search', resolvedParams.search)
-    // Default to 'ongoing' status if not specified
-    params.set('status', resolvedParams?.status || 'ongoing')
-    if (resolvedParams?.type) params.set('type', resolvedParams.type)
-    if (resolvedParams?.date) params.set('endDate', resolvedParams.date)
-    if (resolvedParams?.page) params.set('page', resolvedParams.page)
-    
-    // Always set a reasonable limit for server-side fetching
-    params.set('limit', '1000')
-    
-    const url = `${baseUrl}${apiEndpoint}?${params.toString()}`
-    
-    const response = await fetch(url, {
-      next: { revalidate: 300 } // Cache for 5 minutes
+    const response = await fetch(url, { 
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     })
     
     if (!response.ok) {
-      console.error('Failed to fetch tenders:', response.statusText)
+      console.error('Failed to fetch data:', response.statusText)
       return { data: [], total: 0 }
     }
     
     const result = await response.json()
+    
     return {
       data: result.data || [],
       total: result.pagination?.total || 0
     }
   } catch (error) {
-    console.error('Error fetching tenders:', error)
+    console.error('Error fetching data:', error)
     return { data: [], total: 0 }
   }
 }
 
-async function DataTableContent(props: DataTableServerProps) {
-  const { data, total } = await fetchTenders(props.searchParams, props.apiEndpoint)
+export async function DataTableServer({
+  searchParams,
+  itemsPerPage = 10,
+  tabs,
+  showStatusFilter,
+  showStatus,
+  apiEndpoint
+}: DataTableServerProps) {
+  // Set default values for searchParams
+  const params = {
+    status: searchParams?.status || 'ongoing',
+    type: searchParams?.type || 'all',
+    search: searchParams?.search,
+    date: searchParams?.date,
+    page: searchParams?.page || '1',
+  }
   
+  const { data, total } = await fetchTenders(apiEndpoint, params, itemsPerPage)
+
   return (
     <DataTable
       data={data}
       totalCount={total}
-      itemsPerPage={props.itemsPerPage}
-      tabs={props.tabs}
-      showStatusFilter={props.showStatusFilter}
-      showStatus={props.showStatus}
+      itemsPerPage={itemsPerPage}
+      tabs={tabs}
+      showStatusFilter={showStatusFilter}
+      showStatus={showStatus}
     />
-  )
-}
-
-export function DataTableServer(props: DataTableServerProps) {
-  return (
-    <Suspense fallback={<DataTableSkeleton itemsPerPage={props.itemsPerPage} tabs={props.tabs} showStatusFilter={props.showStatusFilter} />}>
-      <DataTableContent {...props} />
-    </Suspense>
   )
 }

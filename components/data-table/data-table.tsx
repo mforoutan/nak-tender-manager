@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import { AwardIcon, MilestoneIcon, Calendar1Icon, Search, SearchCheckIcon, GavelIcon, StickerIcon, Clock, MegaphoneIcon, FileX2 } from "lucide-react"
+import { useSearchParams, usePathname, useRouter } from "next/navigation"
+import { useDebouncedCallback } from "use-debounce"
 
 import { toPersianNumbers, toPersianDate } from "@/lib/utils"
 import type { TenderListItem } from "@/types"
@@ -250,77 +252,75 @@ export function DataTable({
   showStatus?: boolean
   totalCount?: number
 }) {
-  // State for filters
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [selectedDate, setSelectedDate] = React.useState("")
-  const [statusFilter, setStatusFilter] = React.useState<string>("ongoing")
-  const [typeFilter, setTypeFilter] = React.useState<string>(tabs[0]?.value || "all")
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: itemsPerPage,
-  })
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const { replace } = useRouter()
 
-  // Handle search change
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value)
-  }
+  // Read values from URL
+  const searchQuery = searchParams.get('search') || ''
+  const selectedDate = searchParams.get('date') || ''
+  const statusFilter = searchParams.get('status') || 'ongoing'
+  const typeFilter = searchParams.get('type') || tabs[0]?.value || 'all'
+  const currentPage = Number(searchParams.get('page')) || 1
 
-  // Handle filter changes
+  // Handle search with debouncing
+  const handleSearch = useDebouncedCallback((term: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('page', '1')
+    if (term) {
+      params.set('search', term)
+    } else {
+      params.delete('search')
+    }
+    replace(`${pathname}?${params.toString()}`)
+  }, 500)
+
+  // Handle status filter
   const handleStatusChange = (value: string) => {
-    setStatusFilter(value)
+    const params = new URLSearchParams(searchParams)
+    params.set('page', '1')
+    params.set('status', value)
+    replace(`${pathname}?${params.toString()}`)
   }
 
+  // Handle type filter
   const handleTypeChange = (value: string) => {
-    setTypeFilter(value)
+    const params = new URLSearchParams(searchParams)
+    params.set('page', '1')
+    params.set('type', value)
+    replace(`${pathname}?${params.toString()}`)
   }
 
+  // Handle date filter
   const handleDateChange = (value: string) => {
-    setSelectedDate(value)
+    const params = new URLSearchParams(searchParams)
+    params.set('page', '1')
+    if (value) {
+      params.set('date', value)
+    } else {
+      params.delete('date')
+    }
+    replace(`${pathname}?${params.toString()}`)
   }
 
+  // Handle page change
   const handlePageChange = (pageIndex: number) => {
-    setPagination(prev => ({ ...prev, pageIndex }))
+    const params = new URLSearchParams(searchParams)
+    params.set('page', (pageIndex + 1).toString())
+    replace(`${pathname}?${params.toString()}`)
   }
 
-  // Client-side filtering
-  const filteredData = React.useMemo(() => {
-    return initialData.filter((item) => {
-      const matchesSearch = searchQuery === "" ||
-        item.title.includes(searchQuery) ||
-        item.code.includes(searchQuery) ||
-        item.category.includes(searchQuery)
-
-      const matchesDate = selectedDate === "" || item.endDate === selectedDate
-      const matchesStatus = item.status === statusFilter
-
-      const currentTab = tabs.find(tab => tab.value === typeFilter)
-      const matchesType = !currentTab?.typeFilter || item.type.includes(currentTab.typeFilter)
-
-      return matchesSearch && matchesDate && matchesStatus && matchesType
-    })
-  }, [initialData, searchQuery, selectedDate, statusFilter, typeFilter, tabs])
-
-  // Pagination - client-side slicing
-  const paginatedData = React.useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize
-    const end = start + pagination.pageSize
-    return filteredData.slice(start, end)
-  }, [filteredData, pagination])
-
-  // Reset pagination when filters change
-  React.useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-  }, [searchQuery, selectedDate, statusFilter, typeFilter])
-
-  const totalItems = filteredData.length
-  const pageCount = Math.ceil(totalItems / pagination.pageSize)
-  const canPreviousPage = pagination.pageIndex > 0
-  const canNextPage = pagination.pageIndex < pageCount - 1
+  // Use server-provided data directly (already filtered)
+  const filteredData = initialData
+  const paginatedData = filteredData
+  const totalItems = totalCount || filteredData.length
+  const pageCount = Math.ceil(totalItems / itemsPerPage)
+  const canPreviousPage = currentPage > 1
+  const canNextPage = currentPage < pageCount
 
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = []
-    const currentPage = pagination.pageIndex + 1
 
     if (pageCount <= 7) {
       // Show all pages if 7 or fewer
@@ -384,8 +384,8 @@ export function DataTable({
             <InputGroup className="w-64" size="lg">
               <InputGroupInput
                 placeholder="جستجو در معاملات..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                defaultValue={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="p-0 leading-7 h-7"
               />
               <InputGroupAddon className="pl-2 py-0">
@@ -425,8 +425,8 @@ export function DataTable({
             <InputGroup className="w-64 bg-white">
               <InputGroupInput
                 placeholder="جستجو در معاملات..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                defaultValue={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
               />
               <InputGroupAddon className="pr-3 pl-1">
                 <Search />
@@ -453,7 +453,7 @@ export function DataTable({
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
-                      onClick={() => handlePageChange(pagination.pageIndex - 1)}
+                      onClick={() => handlePageChange(currentPage - 2)}
                       aria-disabled={!canPreviousPage}
                       className={`border border-[#E4E4E7] ${!canPreviousPage ? "hidden" : "cursor-pointer"}`}
                     />
@@ -465,7 +465,7 @@ export function DataTable({
                       ) : (
                         <PaginationLink
                           onClick={() => handlePageChange(page - 1)}
-                          isActive={pagination.pageIndex + 1 === page}
+                          isActive={currentPage === page}
                           className={`border border-[#E4E4E7]  cursor-pointer aria-[current=page]:bg-primary aria-[current=page]:text-white`}
                         >
                           {toPersianNumbers(page.toString())}
@@ -475,7 +475,7 @@ export function DataTable({
                   ))}
                   <PaginationItem>
                     <PaginationNext
-                      onClick={() => handlePageChange(pagination.pageIndex + 1)}
+                      onClick={() => handlePageChange(currentPage)}
                       aria-disabled={!canNextPage}
                       className={`border border-[#E4E4E7] ${!canNextPage ? "hidden" : "cursor-pointer"}`}
                     />
