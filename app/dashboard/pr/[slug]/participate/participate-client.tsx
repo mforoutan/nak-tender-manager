@@ -114,27 +114,44 @@ export default function ParticipateClient({
         setIsSubmitting(true)
 
         try {
-            // TODO: Implement submission logic
             // Check if all required fields are filled
-            const missingRequired = requiredDocuments
-                .filter(doc => doc.isMandatory)
-                .some(doc => !documentData[doc.id.toString()])
+            // const missingRequired = requiredDocuments
+            //     .filter(doc => doc.isMandatory)
+            //     .some(doc => !documentData[doc.id.toString()])
 
-            if (missingRequired) {
-                toast.error("لطفا تمام فیلدهای الزامی را تکمیل کنید")
+            // if (missingRequired) {
+            //     toast.error("لطفا تمام فیلدهای الزامی را تکمیل کنید")
+            //     setIsSubmitting(false)
+            //     return
+            // }
+
+            // Submit participation request
+            const response = await fetch('/api/participate/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    publicationNumber,
+                    documentData,
+                }),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                toast.error(result.error || "خطا در ارسال درخواست")
                 setIsSubmitting(false)
                 return
             }
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500))
 
             setIsSubmitted(true)
             setIsEditable(false)
             setShowSuccessDialog(true)
             setCurrentStep(steps.length - 1)
-            toast.success("درخواست شما با موفقیت ارسال شد")
+            toast.success(result.message || "درخواست شما با موفقیت ارسال شد")
         } catch (error) {
+            console.error("Error submitting participation:", error)
             toast.error("خطا در ارسال درخواست")
         } finally {
             setIsSubmitting(false)
@@ -192,13 +209,16 @@ export default function ParticipateClient({
                 <CardFooter className="flex justify-between mt-6 p-0">
                     <Button
                         variant="outline"
-                        // onClick={onSaveDraft}
+                        onClick={handleSaveDraft}
                         disabled={!isEditable || isSaving}
                         className="bg-transparent font-semibold"
                     >
                         {isSaving ? "در حال ذخیره..." : "ذخیره پیش‌نویس"}
                     </Button>
-                    <Button disabled={!isEditable}>
+                    <Button 
+                        onClick={handleSubmit}
+                        disabled={!isEditable || isSubmitting}
+                    >
                         {isSubmitting ? "در حال ارسال..." : "ثبت و ارسال درخواست"}
                     </Button>
                 </CardFooter>

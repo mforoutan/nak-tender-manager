@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query, getConnection } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import oracledb from "oracledb";
 
 export async function POST(request: NextRequest) {
     let connection;
@@ -25,46 +26,48 @@ export async function POST(request: NextRequest) {
             );
         }
         
+        connection = await getConnection();
+        
         // Get process ID
         const processSql = `
             SELECT ID 
             FROM PUBLISHED_PROCESSES 
-            WHERE PUBLICATION_NUMBER = :pubNum1
+            WHERE PUBLICATION_NUMBER = :pubNum
                 AND IS_ACTIVE = 1
         `;
         
-        const processResult = await query(processSql, [publicationNumber]);
+        const processResult = await connection.execute(processSql, {
+            pubNum: publicationNumber
+        }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
         
-        if (!processResult || processResult.length === 0) {
+        if (!processResult.rows || processResult.rows.length === 0) {
             return NextResponse.json(
                 { error: "مناقصه مورد نظر یافت نشد" },
                 { status: 404 }
             );
         }
         
-        const publishedProcessId = processResult[0].ID;
+        const publishedProcessId = (processResult.rows as any[])[0].ID;
         
         // Check if already submitted
         const checkSql = `
             SELECT ID 
             FROM PROCESS_SUBMISSION 
-            WHERE PUBLISHED_PROCESSES_ID = :processId1
-                AND CONTRACTOR_ID = :contractorId1
+            WHERE PUBLISHED_PROCESSES_ID = :processId
+                AND CONTRACTOR_ID = :contractorId
         `;
         
-        const existingSubmission = await query(checkSql, [
-            publishedProcessId,
-            session.contractorId
-        ]);
+        const existingSubmission = await connection.execute(checkSql, {
+            processId: publishedProcessId,
+            contractorId: session.contractorId
+        }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
         
-        if (existingSubmission && existingSubmission.length > 0) {
+        if (existingSubmission.rows && existingSubmission.rows.length > 0) {
             return NextResponse.json(
                 { error: "قبلاً درخواست خود را ارسال کرده‌اید" },
                 { status: 400 }
             );
         }
-        
-        connection = await getConnection();
         
         // Create submission
         const insertSubmissionSql = `
@@ -78,37 +81,37 @@ export async function POST(request: NextRequest) {
                 CREATED_BY
             ) VALUES (
                 PROCESS_SUBMISSION_SEQ.NEXTVAL,
-                :processId2,
-                :contractorId2,
+                :processId,
+                :contractorId,
                 'PENDING',
                 SYSDATE,
                 SYSDATE,
-                :createdBy1
+                :createdBy
             )
         `;
         
-        await query(insertSubmissionSql, [
-            publishedProcessId,
-            session.contractorId,
-            session.username
-        ]);
+        await connection.execute(insertSubmissionSql, {
+            processId: publishedProcessId,
+            contractorId: session.contractorId,
+            createdBy: session.username
+        });
         
         // Get the newly created submission ID
         const getIdSql = `
             SELECT ID 
             FROM PROCESS_SUBMISSION 
-            WHERE PUBLISHED_PROCESSES_ID = :processId3
-                AND CONTRACTOR_ID = :contractorId3
+            WHERE PUBLISHED_PROCESSES_ID = :processId
+                AND CONTRACTOR_ID = :contractorId
                 AND ROWNUM = 1
             ORDER BY CREATED_DATE DESC
         `;
         
-        const submissionResult = await query(getIdSql, [
-            publishedProcessId,
-            session.contractorId
-        ]);
+        const submissionResult = await connection.execute(getIdSql, {
+            processId: publishedProcessId,
+            contractorId: session.contractorId
+        }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
         
-        const submissionId = submissionResult[0].ID;
+        const submissionId = (submissionResult.rows as any[])[0].ID;
         
         // Store document data if provided
         if (documentData && Object.keys(documentData).length > 0) {
@@ -125,21 +128,21 @@ export async function POST(request: NextRequest) {
                             UPLOADED_BY
                         ) VALUES (
                             PROCESS_SUBMITTED_DOCUMENTS_SEQ.NEXTVAL,
-                            :submissionId1,
-                            :fileId1,
-                            :docTypeId1,
+                            :submissionId,
+                            :fileId,
+                            :docTypeId,
                             'SUBMITTED',
                             SYSDATE,
-                            :uploadedBy1
+                            :uploadedBy
                         )
                     `;
                     
-                    await query(insertDocSql, [
-                        submissionId,
-                        (data as any).fileId,
-                        docId,
-                        session.username
-                    ]);
+                    await connection.execute(insertDocSql, {
+                        submissionId: submissionId,
+                        fileId: (data as any).fileId,
+                        docTypeId: docId,
+                        uploadedBy: session.username
+                    });
                 }
             }
         }
