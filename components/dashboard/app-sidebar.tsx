@@ -49,19 +49,19 @@ const getNavData = (participation: { tenderCount: number; inquiryCount: number; 
         items: [
           {
             title: "مناقصه",
-            url: "/dashboard/tenders/list",
+            url: "/dashboard/tp/my/tenders",
             icon: "award" as IconName,
             count: participation.tenderCount,
           },
           {
             title: "استعلام‌ها",
-            url: "/dashboard/tenders/inquiries",
+            url: "/dashboard/tp/my/inquiries",
             icon: "search-check" as IconName,
             count: participation.inquiryCount,
           },
           {
             title: "فراخوان‌ها",
-            url: "/dashboard/tenders/calls",
+            url: "/dashboard/tp/my/calls",
             icon: "megaphone" as IconName,
             count: participation.callCount,
           },
@@ -69,17 +69,17 @@ const getNavData = (participation: { tenderCount: number; inquiryCount: number; 
       },
       {
         title: "وضعیت ارزیابی‌ها",
-        url: "/dashboard/tenders/evaluations",
+        url: "/dashboard/tp/my/evaluations",
         icon: "scan-search" as IconName,
       },
       {
         title: "قراردادها",
-        url: "/dashboard/tenders/contracts",
+        url: "/dashboard/tp/my/contracts",
         icon: "sticker" as IconName,
       },
       {
         title: "معاملات موجود",
-        url: "/dashboard/pr/",
+        url: "/dashboard/tp/available",
         icon: "list" as IconName,
       },
     ],
