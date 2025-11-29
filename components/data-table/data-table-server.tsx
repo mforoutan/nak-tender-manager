@@ -1,5 +1,6 @@
 import type { TabConfig } from "./types"
 import { DataTable } from "./data-table"
+import { cookies } from "next/headers"
 
 interface DataTableServerProps {
   searchParams?: {
@@ -40,6 +41,10 @@ async function fetchTenders(
   
   params.set('limit', itemsPerPage.toString())
   
+  // Get cookies to forward to API route
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('session')
+  
   // Construct full URL for API call
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   const url = `${baseUrl}${apiEndpoint}?${params.toString()}`
@@ -49,6 +54,7 @@ async function fetchTenders(
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
+        'Cookie': sessionCookie ? `session=${sessionCookie.value}` : '',
       }
     })
     

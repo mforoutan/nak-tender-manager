@@ -36,13 +36,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyMedia,
-} from "@/components/ui/empty"
 import Link from "next/link"
 import { PersianDatePicker } from "@/components/ui/persian-date-picker"
 
