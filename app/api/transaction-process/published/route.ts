@@ -60,17 +60,6 @@ function transformToTenderItem(record: any): TenderListItem {
 
 export async function GET(request: NextRequest) {
   try {
-    // Prevent direct browser access - require referer header
-    // This allows both server components and client-side fetch() but blocks direct browser navigation
-    const referer = request.headers.get('referer');
-    
-    if (!referer) {
-      return NextResponse.json(
-        { error: 'Direct access not allowed' },
-        { status: 403 }
-      );
-    }
-    
     const searchParams = request.nextUrl.searchParams;
     
     // Parse query parameters

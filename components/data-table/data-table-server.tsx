@@ -73,7 +73,6 @@ async function DataTableContent(props: DataTableServerProps) {
       tabs={props.tabs}
       showStatusFilter={props.showStatusFilter}
       showStatus={props.showStatus}
-      serverSide={true}
     />
   )
 }

@@ -46,7 +46,6 @@ export default async function ProcessEvaluationPage() {
                 data={evaluations}
                 tabs={[]}
                 itemsPerPage={10}
-                serverSide={true}
                 showStatus={true}
                 showStatusFilter={false}
             />
