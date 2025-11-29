@@ -14,6 +14,7 @@ interface DataTableServerProps {
   tabs?: TabConfig[]
   showStatusFilter?: boolean
   showStatus?: boolean
+  showPaging?: boolean
   apiEndpoint: string
 }
 
@@ -81,6 +82,7 @@ export async function DataTableServer({
   tabs,
   showStatusFilter,
   showStatus,
+  showPaging = true,
   apiEndpoint
 }: DataTableServerProps) {
   // Set default values for searchParams
@@ -102,6 +104,7 @@ export async function DataTableServer({
       tabs={tabs}
       showStatusFilter={showStatusFilter}
       showStatus={showStatus}
+      showPaging={showPaging}
     />
   )
 }

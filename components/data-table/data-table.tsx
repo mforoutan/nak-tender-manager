@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/pagination"
 import Link from "next/link"
 import { PersianDatePicker } from "@/components/ui/persian-date-picker"
+import { get } from "http"
 
 // Re-export TabConfig for convenience
 export type { TabConfig } from "./types"
@@ -133,7 +134,7 @@ function TypeBadge({ type }: { type: string }) {
       </Badge>
     );
   }
-  
+
   if (type.includes("استعلام")) {
     return (
       <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
@@ -141,7 +142,7 @@ function TypeBadge({ type }: { type: string }) {
       </Badge>
     );
   }
-  
+
   if (type.includes("فراخوان")) {
     return (
       <Badge variant="outline" className="text-primary border-[#FFDED0] bg-[#FFF4F0] rounded-md px-2">
@@ -149,7 +150,7 @@ function TypeBadge({ type }: { type: string }) {
       </Badge>
     );
   }
-  
+
   if (type.includes("ارزیابی")) {
     return (
       <Badge variant="outline" className="text-black border border-[#E4E4E7] bg-transparent rounded-md px-2">
@@ -157,7 +158,7 @@ function TypeBadge({ type }: { type: string }) {
       </Badge>
     );
   }
-  
+
   if (type.includes("مزایده")) {
     return (
       <Badge variant="outline" className="text-black border border-[#E4E4E7] bg-transparent rounded-md px-2">
@@ -165,7 +166,7 @@ function TypeBadge({ type }: { type: string }) {
       </Badge>
     );
   }
-  
+
   if (type.includes("قرارداد")) {
     return (
       <Badge variant="outline" className="text-black border border-[#E4E4E7] bg-transparent rounded-md px-2">
@@ -236,13 +237,15 @@ export function DataTable({
   ],
   showStatusFilter = true,
   showStatus = true,
+  showPaging = true,
   totalCount,
 }: {
   data: TenderListItem[]
   itemsPerPage?: number
   tabs?: TabConfig[],
   showStatusFilter?: boolean,
-  showStatus?: boolean
+  showStatus?: boolean,
+  showPaging?: boolean,
   totalCount?: number
 }) {
   const searchParams = useSearchParams()
@@ -437,46 +440,48 @@ export function DataTable({
               </div>
             )}
           </div>
-          <div className="flex items-center justify-end px-4">
-            <div className={`flex w-full items-center gap-8 ${showStatusFilter ? "lg:w-fit" : ""}`}>
-              <div className={`text-primary flex-1 ${showStatusFilter ? "flex lg:hidden" : "flex"} justify-start`}>
-                {toPersianNumbers(totalItems.toString())} معامله
-              </div>
-              <Pagination dir="ltr" className="w-auto justify-start">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => handlePageChange(currentPage - 2)}
-                      aria-disabled={!canPreviousPage}
-                      className={`border border-[#E4E4E7] ${!canPreviousPage ? "hidden" : "cursor-pointer"}`}
-                    />
-                  </PaginationItem>
-                  {getPageNumbers().map((page, index) => (
-                    <PaginationItem key={index}>
-                      {page === 'ellipsis' ? (
-                        <PaginationEllipsis />
-                      ) : (
-                        <PaginationLink
-                          onClick={() => handlePageChange(page - 1)}
-                          isActive={currentPage === page}
-                          className={`border border-[#E4E4E7]  cursor-pointer aria-[current=page]:bg-primary aria-[current=page]:text-white`}
-                        >
-                          {toPersianNumbers(page.toString())}
-                        </PaginationLink>
-                      )}
+          {showPaging && getPageNumbers().length > 1 && (
+            <div className="flex items-center justify-end px-4">
+              <div className={`flex w-full items-center gap-8 ${showStatusFilter ? "lg:w-fit" : ""}`}>
+                <div className={`text-primary flex-1 ${showStatusFilter ? "flex lg:hidden" : "flex"} justify-start`}>
+                  {toPersianNumbers(totalItems.toString())} معامله
+                </div>
+                <Pagination dir="ltr" className="w-auto justify-start">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => handlePageChange(currentPage - 2)}
+                        aria-disabled={!canPreviousPage}
+                        className={`border border-[#E4E4E7] ${!canPreviousPage ? "hidden" : "cursor-pointer"}`}
+                      />
                     </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => handlePageChange(currentPage)}
-                      aria-disabled={!canNextPage}
-                      className={`border border-[#E4E4E7] ${!canNextPage ? "hidden" : "cursor-pointer"}`}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+                    {getPageNumbers().map((page, index) => (
+                      <PaginationItem key={index}>
+                        {page === 'ellipsis' ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <PaginationLink
+                            onClick={() => handlePageChange(page - 1)}
+                            isActive={currentPage === page}
+                            className={`border border-[#E4E4E7]  cursor-pointer aria-[current=page]:bg-primary aria-[current=page]:text-white`}
+                          >
+                            {toPersianNumbers(page.toString())}
+                          </PaginationLink>
+                        )}
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => handlePageChange(currentPage)}
+                        aria-disabled={!canNextPage}
+                        className={`border border-[#E4E4E7] ${!canNextPage ? "hidden" : "cursor-pointer"}`}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
-          </div>
+          )}
         </TabsContent>
       ))}
     </Tabs>

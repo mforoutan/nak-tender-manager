@@ -28,7 +28,7 @@ export default async function DashboardPage({
       <h1 className="px-4 lg:px-6 font-medium text-xl">داشبورد</h1>
 
       <SectionCards />
-      <YourDeals />
+      <YourDeals params={params} />
       <Suspense 
         key={JSON.stringify(params)} 
         fallback={
