@@ -162,7 +162,6 @@ export default function ParticipateClient({
         <div className="space-y-8 bg-[#F6F6F6] rounded-md p-6 lg:p-12">
             <div className="flex items-center gap-5">
                 <h1 className="font-bold text-2xl">{proccessTitle}</h1>
-                {/* <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{toPersianNumbers(processId)}</Badge> */}
                 <Badge variant={`outline`} className="py-0.5 px-5 rounded-md border-border-default text-lg font-bold">{toPersianNumbers(publicationNumber)}</Badge>
 
             </div>

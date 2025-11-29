@@ -1,9 +1,6 @@
-import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/dashboard/section-cards"
 import { YourDeals } from "@/components/dashboard/your-deals"
 import { NewsEvents } from "@/components/dashboard/news-events"
-import type { TenderListItem } from "@/types"
-import { cookies } from "next/headers"
 import { Suspense } from "react"
 import { DataTableServer } from "@/components/data-table";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
@@ -61,6 +58,7 @@ export default async function DashboardPage({
           apiEndpoint="/api/transaction-process/published"
         />
       </Suspense>
+      <NewsEvents />
     </section>
   )
 }

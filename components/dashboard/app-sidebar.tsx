@@ -3,12 +3,6 @@
 import * as React from "react"
 import { useSession } from "@/hooks/use-session"
 
-import {
-  IconCamera,
-  IconFileAi,
-  IconFileDescription,
-} from "@tabler/icons-react"
-
 import { type IconName } from 'lucide-react/dynamic';
 
 import { NavTenders } from "@/components/dashboard/nav-tenders"
